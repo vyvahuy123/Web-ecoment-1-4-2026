@@ -17,9 +17,6 @@ public class Review : BaseEntity
     public ReviewStatus Status { get; private set; } = ReviewStatus.Pending;
     public string? AdminReply { get; private set; }     // Shop phản hồi
     public DateTime? RepliedAt { get; private set; }
-    public bool IsDeleted { get; private set; } = false;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
 
     // Navigation
     public Product Product { get; private set; } = null!;
@@ -38,7 +35,6 @@ public class Review : BaseEntity
     {
         if (rating < 1 || rating > 5)
             throw new ArgumentOutOfRangeException(nameof(rating), "Rating phải từ 1 đến 5 sao.");
-
         return new Review
         {
             Id = Guid.NewGuid(),
@@ -66,11 +62,10 @@ public class Review : BaseEntity
     {
         if (rating < 1 || rating > 5)
             throw new ArgumentOutOfRangeException(nameof(rating), "Rating phải từ 1 đến 5 sao.");
-
         Rating = rating;
         Comment = comment;
         ImageUrls = imageUrls;
-        Status = ReviewStatus.Pending; // Reset về pending khi sửa
+        Status = ReviewStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
     }
 

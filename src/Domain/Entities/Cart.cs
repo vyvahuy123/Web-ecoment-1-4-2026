@@ -8,8 +8,6 @@ namespace Domain.Entities;
 public class Cart : BaseEntity
 {
     public Guid UserId { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
 
     // Navigation
     public User User { get; private set; } = null!;
@@ -35,7 +33,6 @@ public class Cart : BaseEntity
             existing.UpdateQuantity(existing.Quantity + quantity);
         else
             _items.Add(CartItem.Create(Id, productId, unitPrice, quantity));
-
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -44,12 +41,10 @@ public class Cart : BaseEntity
     {
         var item = _items.FirstOrDefault(i => i.ProductId == productId);
         if (item == null) return;
-
         if (quantity <= 0)
             _items.Remove(item);
         else
             item.UpdateQuantity(quantity);
-
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -60,49 +55,5 @@ public class Cart : BaseEntity
     }
 
     public void Clear() { _items.Clear(); UpdatedAt = DateTime.UtcNow; }
-
     public decimal GetTotal() => _items.Sum(i => i.TotalPrice);
-}
-
-/// <summary>
-/// Item trong giỏ hàng
-/// </summary>
-public class CartItem : BaseEntity
-{
-    public Guid CartId { get; private set; }
-    public Guid ProductId { get; private set; }
-    public decimal UnitPrice { get; private set; }      // Giá tại thời điểm thêm vào giỏ
-    public int Quantity { get; private set; }
-    public decimal TotalPrice => UnitPrice * Quantity;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
-
-    // Navigation
-    public Cart Cart { get; private set; } = null!;
-    public Product Product { get; private set; } = null!;
-
-    private CartItem() { }
-
-    public static CartItem Create(Guid cartId, Guid productId, decimal unitPrice, int quantity)
-        => new CartItem
-        {
-            Id = Guid.NewGuid(),
-            CartId = cartId,
-            ProductId = productId,
-            UnitPrice = unitPrice,
-            Quantity = quantity,
-            CreatedAt = DateTime.UtcNow
-        };
-
-    public void UpdateQuantity(int quantity)
-    {
-        Quantity = quantity;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void UpdatePrice(decimal newPrice)
-    {
-        UnitPrice = newPrice;
-        UpdatedAt = DateTime.UtcNow;
-    }
 }

@@ -15,9 +15,6 @@ public class Address : BaseEntity
     public string Ward { get; private set; } = string.Empty;        // Phường/Xã
     public string Street { get; private set; } = string.Empty;      // Số nhà, tên đường
     public bool IsDefault { get; private set; } = false;            // Địa chỉ mặc định
-    public bool IsDeleted { get; private set; } = false;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
 
     // Navigation
     public User User { get; private set; } = null!;

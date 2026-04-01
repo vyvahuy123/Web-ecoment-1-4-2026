@@ -27,6 +27,11 @@ public class AppDbContext : DbContext
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<WishList> WishLists => Set<WishList>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // Tự động apply tất cả IEntityTypeConfiguration trong assembly này

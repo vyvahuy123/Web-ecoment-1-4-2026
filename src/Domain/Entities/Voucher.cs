@@ -20,9 +20,6 @@ public class Voucher : BaseEntity
     public DateTime StartDate { get; private set; }
     public DateTime EndDate { get; private set; }
     public bool IsActive { get; private set; } = true;
-    public bool IsDeleted { get; private set; } = false;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
 
     // Navigation
@@ -74,14 +71,11 @@ public class Voucher : BaseEntity
     public decimal CalculateDiscount(decimal orderAmount)
     {
         if (Type == VoucherType.FreeShipping) return 0; // xử lý riêng tầng ship
-
         var discount = Type == VoucherType.Percentage
             ? orderAmount * DiscountValue / 100
             : DiscountValue;
-
         if (MaxDiscountAmount.HasValue && discount > MaxDiscountAmount.Value)
             discount = MaxDiscountAmount.Value;
-
         return Math.Min(discount, orderAmount);
     }
 

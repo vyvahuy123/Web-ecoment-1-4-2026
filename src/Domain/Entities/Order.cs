@@ -40,9 +40,6 @@ public class Order : BaseEntity
     public DateTime? ShippedAt { get; private set; }
     public DateTime? DeliveredAt { get; private set; }
     public DateTime? CancelledAt { get; private set; }
-    public bool IsDeleted { get; private set; } = false;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
 
     // Navigation
     public User User { get; private set; } = null!;

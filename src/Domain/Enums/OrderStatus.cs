@@ -43,4 +43,11 @@ namespace Domain.Enums
         Approved = 1,       // Đã duyệt
         Rejected = 2        // Bị từ chối
     }
+    public enum NotificationType
+    {
+        Order = 1,          // Thông báo liên quan đơn hàng
+        Promotion = 2,      // Khuyến mãi, voucher mới
+        System = 3,         // Thông báo hệ thống
+        Review = 4          // Phản hồi đánh giá
+    }
 }
