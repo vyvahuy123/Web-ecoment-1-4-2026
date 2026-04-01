@@ -1,22 +1,24 @@
 version: '3.9'
 
 services:
-  mysql:
-    image: mysql:8.2
-    container_name: clean_arch_mysql
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: clean_arch_sqlserver
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: clean_arch_dev
+      SA_PASSWORD: "Admin@123456"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
     ports:
-      - "3306:3306"
+      - "1433:1433"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Admin@123456 -Q 'SELECT 1' -No"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7.2-alpine
@@ -37,17 +39,17 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=clean_arch_dev;User=root;Password=root;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=clean_arch_dev;User Id=sa;Password=Admin@123456;TrustServerCertificate=True;
       - ConnectionStrings__Redis=redis:6379
       - Jwt__Key=YOUR_SUPER_SECRET_KEY_CHANGE_THIS_IN_PRODUCTION_MIN_32_CHARS
       - Jwt__Issuer=CleanArchitectureApi
       - Jwt__Audience=CleanArchitectureClient
     depends_on:
-      mysql:
+      sqlserver:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
 
 volumes:
-  mysql_data:
+  sqlserver_data:
   redis_data:
