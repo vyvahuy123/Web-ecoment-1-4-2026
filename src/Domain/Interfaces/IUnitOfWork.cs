@@ -20,6 +20,10 @@ public interface IUnitOfWork
     IAddressRepository Addresses { get; }
     IVoucherRepository Vouchers { get; }
     IVoucherUsageRepository VoucherUsages { get; }
+    // Repositories mới - Day 3
+    ICartRepository Carts { get; }
+    IReviewRepository Reviews { get; }
+
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

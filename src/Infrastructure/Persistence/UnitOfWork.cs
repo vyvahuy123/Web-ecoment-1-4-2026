@@ -1,6 +1,7 @@
 ﻿using Domain.Interfaces;
 using Infrastructure.Persistence.Repositories;
 
+
 namespace Infrastructure.Persistence;
 
 public class UnitOfWork : IUnitOfWork
@@ -23,6 +24,10 @@ public class UnitOfWork : IUnitOfWork
     private IAddressRepository? _addresses;
     private IVoucherRepository? _vouchers;
     private IVoucherUsageRepository? _voucherUsages;
+    // Repositories mới - Day 3  // ← THÊM VÀO ĐÂY
+    private ICartRepository? _carts;
+    private IReviewRepository? _reviews;
+
 
     public UnitOfWork(AppDbContext ctx) => _ctx = ctx;
 
@@ -50,6 +55,11 @@ public class UnitOfWork : IUnitOfWork
         => _vouchers ??= new VoucherRepository(_ctx);
     public IVoucherUsageRepository VoucherUsages
         => _voucherUsages ??= new VoucherUsageRepository(_ctx);
+    // ← THÊM VÀO ĐÂY
+    public ICartRepository Carts
+        => _carts ??= new CartRepository(_ctx);
+    public IReviewRepository Reviews
+        => _reviews ??= new ReviewRepository(_ctx);
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         => await _ctx.SaveChangesAsync(ct);
