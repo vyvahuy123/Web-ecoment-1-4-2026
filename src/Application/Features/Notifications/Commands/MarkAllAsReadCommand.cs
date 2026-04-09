@@ -3,23 +3,16 @@ using MediatR;
 
 namespace Application.Features.Notifications.Commands;
 
-public record MarkAsReadCommand(Guid UserId, Guid NotificationId) : IRequest;
+public record MarkAllAsReadCommand(Guid UserId) : IRequest;
 
-public class MarkAsReadCommandHandler
+public class MarkAllAsReadCommandHandler : IRequestHandler<MarkAllAsReadCommand>
 {
     private readonly IUnitOfWork _uow;
-    public MarkAsReadCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public MarkAllAsReadCommandHandler(IUnitOfWork uow) => _uow = uow;
 
-    public async Task Handle(MarkAsReadCommand request, CancellationToken ct)
+    public async Task Handle(MarkAllAsReadCommand request, CancellationToken ct)
     {
-        var notification = await _uow.Notifications.GetByIdAsync(request.NotificationId, ct)
-            ?? throw new Exception("Notification not found.");
-
-        if (notification.UserId != request.UserId)
-            throw new Exception("Forbidden.");
-
-        notification.MarkAsRead();
-        _uow.Notifications.Update(notification);
+        await _uow.Notifications.MarkAllAsReadAsync(request.UserId, ct);
         await _uow.SaveChangesAsync(ct);
     }
 }
