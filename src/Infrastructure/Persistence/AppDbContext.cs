@@ -59,6 +59,9 @@ public class AppDbContext : DbContext
         entities.ForEach(e => e.ClearDomainEvents());
 
         foreach (var evt in events)
-            await _mediator.Publish(evt, ct);
+        {
+            if (evt is INotification notification)  // ← chỉ publish nếu implement INotification
+                await _mediator.Publish(notification, ct);
+        }
     }
 }
