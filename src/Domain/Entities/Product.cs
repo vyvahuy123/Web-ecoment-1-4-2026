@@ -16,7 +16,9 @@ public sealed class Product : AuditableEntity
     public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; }
     public Guid CategoryId { get; private set; }
-
+    public Category Category { get; private set; } = null!;
+    private readonly List<ProductImage> _images = new();
+    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
     private Product() { }
 
     public static Result<Product> Create(

@@ -23,11 +23,3 @@ public interface IRefreshTokenRepository
     Task DeleteExpiredAsync(CancellationToken ct = default);
 }
 
-/// <summary>Mở rộng IUnitOfWork để thêm Products + RefreshTokens</summary>
-public interface IUnitOfWork
-{
-    IUserRepository Users { get; }
-    IProductRepository Products { get; }
-    IRefreshTokenRepository RefreshTokens { get; }
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
-}

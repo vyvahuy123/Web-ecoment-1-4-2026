@@ -1,6 +1,8 @@
 using Application;
 using Application.Common.Interfaces;
+using Domain.Entities;
 using Infrastructure;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -112,8 +114,31 @@ try
     if (app.Environment.IsDevelopment())
     {
         using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<Infrastructure.Persistence.AppDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
+
+        var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var seedEmail = cfg["Seed:Email"];
+        var seedPassword = cfg["Seed:Password"];
+        var seedUsername = cfg["Seed:Username"];
+        var seedFullName = cfg["Seed:FullName"];
+
+        if (!string.IsNullOrEmpty(seedEmail) &&
+            !await db.Users.AnyAsync(u => u.Email.Value ==seedEmail))
+        {
+            var userResult = User.Create(
+                seedUsername!,
+                seedEmail!,
+                BCrypt.Net.BCrypt.HashPassword(seedPassword),
+                seedFullName);
+
+            if (userResult.IsSuccess)
+            {
+                userResult.Value.AssignRole("Admin");
+                db.Users.Add(userResult.Value);
+                await db.SaveChangesAsync();
+            }
+        }
     }
 
     await app.RunAsync();
