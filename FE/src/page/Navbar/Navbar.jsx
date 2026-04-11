@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
@@ -13,11 +13,19 @@ const PRODUCTS = [
   { name: "Leather Card Holder", cat: "Accessories", price: "350.000", emoji: "💳" },
 ];
 
-const NAV_LINKS = [
-  ["Mới về", "#products"],
-  ["Phụ nữ", "#categories"],
-  ["Đàn ông", "#categories"],
-  ["Phụ kiện", "#categories"],
+const PRODUCT_DROPDOWN = [
+  { label: "Quần áo", href: "#categories" },
+  { label: "Phụ kiện", href: "#categories" },
+  { label: "Giày dép", href: "#categories" },
+];
+
+const NAV_LINKS_LEFT = [
+  ["Trang chủ", "#products"],
+  ["Giới thiệu", "#categories"],
+  ["Tin tức", "#categories"],
+];
+
+const NAV_LINKS_RIGHT = [
   ["Sale", "#products"],
   ["Liên hệ", "/lien-he"],
 ];
@@ -26,10 +34,30 @@ export default function Navbar({ cartCount, onCartOpen }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
+  const [visible, setVisible] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const lastY = useRef(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY < 10) {
+        setVisible(true);
+      } else if (currentY < lastY.current) {
+        setVisible(true);
+      } else {
+        setVisible(false);
+      }
+      lastY.current = currentY;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scroll = (href) => {
     setOpen(false);
+    setDropdownOpen(false);
     if (href === "/lien-he") {
       navigate("/lien-he");
       return;
@@ -52,18 +80,50 @@ export default function Navbar({ cartCount, onCartOpen }) {
   const clearSearch = () => { setSearch(""); setResults([]); };
 
   return (
-    <nav className="ec-nav">
+    <nav className={`ec-nav ${visible ? "nav-visible" : "nav-hidden"}`}>
       <div className="ec-nav-inner">
         <span className="ec-logo" style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
           INDIAS
         </span>
+
         <div className="ec-nav-links">
-          {NAV_LINKS.map(([l, h]) => (
+          {NAV_LINKS_LEFT.map(([l, h]) => (
+            <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
+              {l}
+            </a>
+          ))}
+
+          {/* Dropdown hover */}
+          <div
+            className="ec-dropdown-wrap"
+            onMouseEnter={() => setDropdownOpen(true)}
+            onMouseLeave={() => setDropdownOpen(false)}
+          >
+            <button className="ec-dropdown-trigger">
+              Sản phẩm
+              <span className={`ec-dropdown-arrow ${dropdownOpen ? "open" : ""}`}>▾</span>
+            </button>
+            <div className={`ec-dropdown-menu ${dropdownOpen ? "open" : ""}`}>
+              {PRODUCT_DROPDOWN.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="ec-dropdown-item"
+                  onClick={(e) => { e.preventDefault(); scroll(item.href); }}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {NAV_LINKS_RIGHT.map(([l, h]) => (
             <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
               {l}
             </a>
           ))}
         </div>
+
         <div className="ec-nav-actions">
           <div className="ec-search-wrap">
             <input
@@ -106,12 +166,32 @@ export default function Navbar({ cartCount, onCartOpen }) {
             {cartCount > 0 && <span className="ec-cart-count">{cartCount}</span>}
           </button>
         </div>
+
         <button className="ec-burger" onClick={() => setOpen((o) => !o)}>
           <span /><span /><span />
         </button>
       </div>
+
       <div className={`ec-mobile-menu ${open ? "open" : ""}`}>
-        {NAV_LINKS.map(([l, h]) => (
+        {NAV_LINKS_LEFT.map(([l, h]) => (
+          <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
+            {l}
+          </a>
+        ))}
+        <div className="ec-mobile-dropdown">
+          <span className="ec-mobile-dropdown-title">Sản phẩm ▾</span>
+          {PRODUCT_DROPDOWN.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="ec-mobile-dropdown-item"
+              onClick={(e) => { e.preventDefault(); scroll(item.href); }}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+        {NAV_LINKS_RIGHT.map(([l, h]) => (
           <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
             {l}
           </a>
