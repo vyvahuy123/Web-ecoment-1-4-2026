@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import MainLayout from "./layouts/MainLayout.jsx";
 import AuthLayout from "./layouts/AuthLayout.jsx";
@@ -7,6 +7,22 @@ import Contact from "./page/Contact/Contact.jsx";
 import Products from "./page/Products/Products.jsx";
 import About from "./page/About/About.jsx";
 import Auth from "./page/Auth/Auth.jsx";
+import AdminDashboard from "./page/Admin/AdminDashboard";
+import Cart from "./page/Cart/Cart";
+import Orders from "./page/Orders/Orders";
+
+// Wrapper để dùng useNavigate trong Auth
+function AuthPage({ defaultTab }) {
+  const navigate = useNavigate();
+
+  const handleLoginSuccess = (data) => {
+    // Token đã được lưu vào localStorage bởi AuthService
+    // Redirect về trang chủ sau khi login/register thành công
+    setTimeout(() => navigate("/"), 1500);
+  };
+
+  return <Auth defaultTab={defaultTab} onLoginSuccess={handleLoginSuccess} />;
+}
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -30,11 +46,14 @@ export default function App() {
           <Route path="/lien-he" element={<Contact />} />
           <Route path="/san-pham" element={<Products onAddCart={addToCart} />} />
           <Route path="/gioi-thieu" element={<About />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/orders" element={<Orders />} />
         </Route>
 
         <Route element={<AuthLayout />}>
-          <Route path="/dang-nhap" element={<Auth defaultTab="login" />} />
-          <Route path="/dang-ky" element={<Auth defaultTab="register" />} />
+          <Route path="/dang-nhap" element={<AuthPage defaultTab="login" />} />
+          <Route path="/dang-ky" element={<AuthPage defaultTab="register" />} />
+          <Route path="/admin/*" element={<AdminDashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>

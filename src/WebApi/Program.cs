@@ -85,9 +85,10 @@ try
 
     // ── CORS ──────────────────────────────────────────────────────────────────
     builder.Services.AddCors(opt => opt.AddPolicy("Default", policy =>
-        policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "*" })
-              .AllowAnyMethod()
-              .AllowAnyHeader()));
+        policy.WithOrigins("http://localhost:5173")
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials()));
 
     // ═════════════════════════════════════════════════════════════════════════
     var app = builder.Build();
@@ -98,10 +99,19 @@ try
 
     app.UseSerilogRequestLogging();
 
+    //if (app.Environment.IsDevelopment())
+    //{
+    //    app.UseSwagger();
+    //    app.UseSwaggerUI();
+    //}
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Clean Architecture API v1");
+            c.RoutePrefix = string.Empty;
+        });
     }
 
     app.UseHttpsRedirection();
@@ -141,6 +151,7 @@ try
         }
     }
 
+    await AppDbContextSeed.SeedAsync(app.Services);
     await app.RunAsync();
 }
 catch (Exception ex)

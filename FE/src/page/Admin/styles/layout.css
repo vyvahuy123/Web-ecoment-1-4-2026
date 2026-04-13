@@ -1,0 +1,301 @@
+/* ─── ADMIN LAYOUT ────────────────────────────────────── */
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+  /* Đổ bóng nhẹ sang phải */
+  box-shadow: 2px 0 12px rgba(0,0,0,.18);
+}
+
+/* Logo */
+.sidebar-logo {
+  padding: 26px 24px 20px;
+  border-bottom: 1px solid #1e1e1e;
+  flex-shrink: 0;
+}
+.sidebar-logo__brand {
+  font-family: var(--font-serif);
+  font-size: 22px;             /* tăng từ 20 → 22 */
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  display: block;
+}
+.sidebar-logo__sub {
+  font-size: 10.5px;           /* tăng từ 10 → 10.5 */
+  color: #555;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 5px;
+  display: block;
+}
+
+/* Nav scroll area */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 0 16px;
+}
+
+/* Group label */
+.sidebar-group {
+  padding: 20px 24px 7px;
+  font-size: 10px;             
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #444;
+  font-weight: 500;
+}
+
+/* Nav item */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 24px;          
+  font-size: 15px;            
+  color: #888;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition),
+    padding-left var(--transition);
+  white-space: nowrap;
+  position: relative;
+}
+.sidebar-item:hover {
+  background: var(--sidebar-hover);
+  color: #ddd;
+  padding-left: 28px;          
+}
+.sidebar-item.active {
+  background: var(--sidebar-active);
+  color: var(--white);
+  border-left-color: var(--white);
+  padding-left: 26px;
+}
+
+.sidebar-item__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+  transition: transform var(--transition);
+}
+.sidebar-item:hover .sidebar-item__icon,
+.sidebar-item.active .sidebar-item__icon {
+  transform: scale(1.15);
+}
+
+.sidebar-item__label {
+  flex: 1;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--white);
+  color: var(--black);
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* pulse nhẹ */
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+/* Footer */
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 16px 24px;
+  border-top: 1px solid #1e1e1e;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background var(--transition);
+}
+.sidebar-footer:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  border: 1px solid #333;
+  transition: border-color var(--transition);
+}
+.sidebar-footer:hover .sidebar-avatar {
+  border-color: #666;
+}
+
+.sidebar-user { overflow: hidden; }
+.sidebar-user__name {
+  font-size: 15px;             /* tăng từ 13.5 → 15 */
+  color: #ccc;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-user__role {
+  font-size: 11px;             /* tăng từ 10 → 11 */
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ══════════════════════════════════════════════════════
+   MAIN AREA
+══════════════════════════════════════════════════════ */
+.main-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 1px solid var(--g2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  flex-shrink: 0;
+  gap: 16px;
+}
+.topbar__title {
+  font-size: 20px;             /* tăng từ 17 → 20 */
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.topbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--g1);
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;             /* tăng từ 13 → 14 */
+  color: var(--g4);
+  cursor: text;
+  transition: border-color var(--transition), background var(--transition);
+  white-space: nowrap;
+}
+.topbar__search:hover {
+  border-color: var(--g3);
+  background: var(--white);
+}
+
+.topbar__icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--g4);
+  cursor: pointer;
+  font-size: 16px;
+  transition:
+    border-color var(--transition),
+    color var(--transition),
+    background var(--transition),
+    transform var(--transition);
+  flex-shrink: 0;
+}
+.topbar__icon-btn:hover {
+  border-color: var(--black);
+  color: var(--black);
+  background: var(--g1);
+  transform: scale(1.08);
+}
+.topbar__dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  background: #e53935;
+  border-radius: 50%;
+  border: 1.5px solid var(--white);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* Content */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 30px 32px;
+  min-height: 0;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
+import AuthService from "@/services/auth.service";
 
 const PRODUCTS = [
   { name: "Oversized Linen Blazer", cat: "Women", price: "1.890.000", emoji: "🧥" },
@@ -20,8 +21,8 @@ const PRODUCT_DROPDOWN = [
 ];
 
 const NAV_LINKS_LEFT = [
-  ["Trang chủ", "#products"],
-  ["Giới thiệu", "#categories"],
+  ["Trang chủ", "/"],
+  ["Giới thiệu", "/gioi-thieu"],
   ["Tin tức", "#categories"],
 ];
 
@@ -30,25 +31,114 @@ const NAV_LINKS_RIGHT = [
   ["Liên hệ", "/lien-he"],
 ];
 
+// Lấy 2 chữ cái đầu từ tên
+function getInitials(name) {
+  if (!name) return "U";
+  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+// Lấy màu avatar từ tên (consistent)
+function getAvatarColor(name) {
+  const colors = ["#5c6bc0", "#26a69a", "#ef5350", "#ab47bc", "#42a5f5", "#d4a43a"];
+  if (!name) return colors[0];
+  const idx = name.charCodeAt(0) % colors.length;
+  return colors[idx];
+}
+
+function UserMenu({ onLogout }) {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const ref = useRef(null);
+
+  // Đọc user từ localStorage
+  const raw = localStorage.getItem("user");
+  const user = raw ? JSON.parse(raw) : null;
+  const displayName = user?.fullName || user?.username || user?.email || "User";
+
+  // Đóng khi click ra ngoài
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleLogout = async () => {
+    await AuthService.logout();
+    localStorage.removeItem("user");
+    setOpen(false);
+    onLogout?.();
+    navigate("/");
+  };
+
+  return (
+    <div className="ec-user-menu" ref={ref}>
+      <button className="ec-user-btn" onClick={() => setOpen((o) => !o)}>
+        <div
+          className="ec-user-avatar"
+          style={{ background: getAvatarColor(displayName) }}
+        >
+          {getInitials(displayName)}
+        </div>
+        <span className="ec-user-name">{displayName.split(" ").slice(-1)[0]}</span>
+        <span className={`ec-dropdown-arrow ${open ? "open" : ""}`}>▾</span>
+      </button>
+
+      {open && (
+        <div className="ec-user-dropdown">
+          <div className="ec-user-dropdown-header">
+            <div
+              className="ec-user-avatar-lg"
+              style={{ background: getAvatarColor(displayName) }}
+            >
+              {getInitials(displayName)}
+            </div>
+            <div>
+              <p className="ec-user-fullname">{displayName}</p>
+              <p className="ec-user-email">{user?.email}</p>
+            </div>
+          </div>
+          <div className="ec-user-dropdown-divider" />
+          <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); navigate("/orders"); }}>
+            📦 Đơn hàng của tôi
+          </button>
+          <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); navigate("/profile"); }}>
+            👤 Tài khoản
+          </button>
+          <div className="ec-user-dropdown-divider" />
+          <button className="ec-user-dropdown-item ec-user-logout" onClick={handleLogout}>
+            🚪 Đăng xuất
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Navbar({ cartCount, onCartOpen }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [visible, setVisible] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const lastY = useRef(0);
   const navigate = useNavigate();
+
+  // Lắng nghe thay đổi localStorage (sau khi login/logout)
+  useEffect(() => {
+    const check = () => setIsLoggedIn(!!localStorage.getItem("token"));
+    window.addEventListener("storage", check);
+    // Polling nhẹ để bắt được thay đổi trong cùng tab
+    const interval = setInterval(check, 500);
+    return () => { window.removeEventListener("storage", check); clearInterval(interval); };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY;
-      if (currentY < 10) {
-        setVisible(true);
-      } else if (currentY < lastY.current) {
-        setVisible(true);
-      } else {
-        setVisible(false);
-      }
+      if (currentY < 10) setVisible(true);
+      else if (currentY < lastY.current) setVisible(true);
+      else setVisible(false);
       lastY.current = currentY;
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -58,10 +148,7 @@ export default function Navbar({ cartCount, onCartOpen }) {
   const scroll = (href) => {
     setOpen(false);
     setDropdownOpen(false);
-    if (href === "/lien-he") {
-      navigate("/lien-he");
-      return;
-    }
+    if (href.startsWith("/")) { navigate(href); return; }
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -69,12 +156,9 @@ export default function Navbar({ cartCount, onCartOpen }) {
     const val = e.target.value;
     setSearch(val);
     if (val.trim() === "") { setResults([]); return; }
-    const filtered = PRODUCTS.filter(
-      (p) =>
-        p.name.toLowerCase().includes(val.toLowerCase()) ||
-        p.cat.toLowerCase().includes(val.toLowerCase()),
-    );
-    setResults(filtered);
+    setResults(PRODUCTS.filter(
+      (p) => p.name.toLowerCase().includes(val.toLowerCase()) || p.cat.toLowerCase().includes(val.toLowerCase())
+    ));
   };
 
   const clearSearch = () => { setSearch(""); setResults([]); };
@@ -88,12 +172,9 @@ export default function Navbar({ cartCount, onCartOpen }) {
 
         <div className="ec-nav-links">
           {NAV_LINKS_LEFT.map(([l, h]) => (
-            <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
-              {l}
-            </a>
+            <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>{l}</a>
           ))}
 
-          {/* Dropdown hover */}
           <div
             className="ec-dropdown-wrap"
             onMouseEnter={() => setDropdownOpen(true)}
@@ -105,12 +186,8 @@ export default function Navbar({ cartCount, onCartOpen }) {
             </button>
             <div className={`ec-dropdown-menu ${dropdownOpen ? "open" : ""}`}>
               {PRODUCT_DROPDOWN.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="ec-dropdown-item"
-                  onClick={(e) => { e.preventDefault(); scroll(item.href); }}
-                >
+                <a key={item.label} href={item.href} className="ec-dropdown-item"
+                  onClick={(e) => { e.preventDefault(); scroll(item.href); }}>
                   {item.label}
                 </a>
               ))}
@@ -118,9 +195,7 @@ export default function Navbar({ cartCount, onCartOpen }) {
           </div>
 
           {NAV_LINKS_RIGHT.map(([l, h]) => (
-            <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
-              {l}
-            </a>
+            <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>{l}</a>
           ))}
         </div>
 
@@ -133,18 +208,12 @@ export default function Navbar({ cartCount, onCartOpen }) {
               value={search}
               onChange={handleSearch}
             />
-            {search && (
-              <button className="ec-search-clear" onClick={clearSearch}>✕</button>
-            )}
+            {search && <button className="ec-search-clear" onClick={clearSearch}>✕</button>}
             {results.length > 0 && (
               <div className="ec-search-dropdown">
                 {results.map((p) => (
                   <div key={p.name} className="ec-search-item" onClick={() => {
-                    clearSearch();
-                    navigate("/");
-                    setTimeout(() => {
-                      document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" });
-                    }, 100);
+                    clearSearch(); navigate("/san-pham");
                   }}>
                     <span className="ec-search-item-emoji">{p.emoji}</span>
                     <div>
@@ -161,10 +230,20 @@ export default function Navbar({ cartCount, onCartOpen }) {
               </div>
             )}
           </div>
+
           <button className="ec-cart-btn" onClick={onCartOpen}>
             <span className="ec-cart-icon" />
             {cartCount > 0 && <span className="ec-cart-count">{cartCount}</span>}
           </button>
+
+          {/* User area */}
+          {isLoggedIn ? (
+            <UserMenu onLogout={() => setIsLoggedIn(false)} />
+          ) : (
+            <button className="ec-login-btn" onClick={() => navigate("/dang-nhap")}>
+              Đăng nhập
+            </button>
+          )}
         </div>
 
         <button className="ec-burger" onClick={() => setOpen((o) => !o)}>
@@ -174,28 +253,25 @@ export default function Navbar({ cartCount, onCartOpen }) {
 
       <div className={`ec-mobile-menu ${open ? "open" : ""}`}>
         {NAV_LINKS_LEFT.map(([l, h]) => (
-          <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
-            {l}
-          </a>
+          <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>{l}</a>
         ))}
         <div className="ec-mobile-dropdown">
           <span className="ec-mobile-dropdown-title">Sản phẩm ▾</span>
           {PRODUCT_DROPDOWN.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="ec-mobile-dropdown-item"
-              onClick={(e) => { e.preventDefault(); scroll(item.href); }}
-            >
+            <a key={item.label} href={item.href} className="ec-mobile-dropdown-item"
+              onClick={(e) => { e.preventDefault(); scroll(item.href); }}>
               {item.label}
             </a>
           ))}
         </div>
         {NAV_LINKS_RIGHT.map(([l, h]) => (
-          <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>
-            {l}
-          </a>
+          <a key={l} href={h} onClick={(e) => { e.preventDefault(); scroll(h); }}>{l}</a>
         ))}
+        {!isLoggedIn && (
+          <a href="/dang-nhap" onClick={(e) => { e.preventDefault(); navigate("/dang-nhap"); setOpen(false); }}>
+            Đăng nhập
+          </a>
+        )}
       </div>
     </nav>
   );

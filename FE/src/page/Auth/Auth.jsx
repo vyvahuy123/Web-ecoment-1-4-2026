@@ -1,19 +1,6 @@
 import { useState } from "react";
 import "./Auth.css";
-
-const API_BASE = "http://localhost:5000/api";
-
-async function apiPost(path, body) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || data.title || "Có lỗi xảy ra");
-  return data;
-}
+import AuthService from "@/services/auth.service";
 
 function InputField({ label, type = "text", value, onChange, placeholder, error }) {
   const [show, setShow] = useState(false);
@@ -62,10 +49,13 @@ function LoginForm({ onSuccess }) {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({}); setServerError(""); setLoading(true);
     try {
-      const data = await apiPost("/auth/login", { email: form.email, password: form.password });
-      onSuccess?.(data);
-    } catch (err) { setServerError(err.message); }
-    finally { setLoading(false); }
+      const data = await AuthService.login(form.email, form.password);
+      onSuccess?.(data, "login");
+    } catch (err) {
+      setServerError(err.message ?? "Đăng nhập thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -82,7 +72,7 @@ function LoginForm({ onSuccess }) {
 }
 
 function RegisterForm({ onSuccess }) {
-  const [form, setForm] = useState({ fullName: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState({ fullName: "", username: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -91,6 +81,7 @@ function RegisterForm({ onSuccess }) {
   const validate = () => {
     const e = {};
     if (!form.fullName.trim()) e.fullName = "Vui lòng nhập họ tên";
+    if (!form.username.trim()) e.username = "Vui lòng nhập tên đăng nhập";
     if (!form.email) e.email = "Vui lòng nhập email";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Email không hợp lệ";
     if (!form.password) e.password = "Vui lòng nhập mật khẩu";
@@ -106,10 +97,18 @@ function RegisterForm({ onSuccess }) {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({}); setServerError(""); setLoading(true);
     try {
-      const data = await apiPost("/auth/register", { fullName: form.fullName, email: form.email, password: form.password });
-      onSuccess?.(data);
-    } catch (err) { setServerError(err.message); }
-    finally { setLoading(false); }
+      const data = await AuthService.register({
+        fullName: form.fullName,
+        username: form.username,
+        email: form.email,
+        password: form.password,
+      });
+      onSuccess?.(data, "register");
+    } catch (err) {
+      setServerError(err.message ?? "Đăng ký thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const strength = form.password.length === 0 ? 0 : form.password.length < 6 ? 1 : form.password.length < 10 ? 2 : 3;
@@ -119,6 +118,7 @@ function RegisterForm({ onSuccess }) {
   return (
     <form className="au-form" onSubmit={submit} noValidate>
       <InputField label="Họ và tên" value={form.fullName} onChange={set("fullName")} placeholder="Nguyễn Văn A" error={errors.fullName} />
+      <InputField label="Tên đăng nhập" value={form.username} onChange={set("username")} placeholder="nguyenvana" error={errors.username} />
       <InputField label="Email" type="email" value={form.email} onChange={set("email")} placeholder="hello@indias.vn" error={errors.email} />
       <InputField label="Mật khẩu" type="password" value={form.password} onChange={set("password")} placeholder="••••••••" error={errors.password} />
       {form.password && (
@@ -143,7 +143,7 @@ function RegisterForm({ onSuccess }) {
   );
 }
 
-export default function Auth({ defaultTab = "login" }) {
+export default function Auth({ defaultTab = "login", onLoginSuccess }) {
   const [tab, setTab] = useState(defaultTab);
   const [animating, setAnimating] = useState(false);
   const [direction, setDirection] = useState("right");
@@ -153,15 +153,13 @@ export default function Auth({ defaultTab = "login" }) {
     if (newTab === tab || animating) return;
     setDirection(newTab === "register" ? "right" : "left");
     setAnimating(true);
-    setTimeout(() => {
-      setTab(newTab);
-      setAnimating(false);
-    }, 300);
+    setTimeout(() => { setTab(newTab); setAnimating(false); }, 300);
   };
 
-  const handleSuccess = (data) => {
-    setSuccess(data);
-    if (data.accessToken) window.__accessToken = data.accessToken;
+  const handleSuccess = (data, type) => {
+    setSuccess({ data, type });
+    // Gọi callback lên App nếu có (để update navbar, redirect...)
+    onLoginSuccess?.(data);
   };
 
   if (success) {
@@ -169,9 +167,13 @@ export default function Auth({ defaultTab = "login" }) {
       <div className="au-page">
         <div className="au-success-wrap">
           <div className="au-success-icon">✓</div>
-          <h2>{tab === "login" ? "Chào mừng trở lại!" : "Tài khoản đã được tạo!"}</h2>
-          <p>Xin chào, <strong>{success.user?.fullName || success.user?.email}</strong></p>
-          <a href="/" className="au-submit" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", marginTop: 8 }}>
+          <h2>{success.type === "login" ? "Chào mừng trở lại!" : "Tài khoản đã được tạo!"}</h2>
+          <p>Xin chào, <strong>{success.data?.user?.fullName || success.data?.user?.email}</strong></p>
+          <a
+            href="/"
+            className="au-submit"
+            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", marginTop: 8 }}
+          >
             Về trang chủ
           </a>
         </div>
@@ -194,9 +196,7 @@ export default function Auth({ defaultTab = "login" }) {
               Tham gia cùng hàng nghìn khách hàng đang tạo nên tủ quần áo có ý nghĩa.
             </p>
             <div className="au-left-deco">
-              <span>🧥</span>
-              <span>👜</span>
-              <span>👟</span>
+              <span>🧥</span><span>👜</span><span>👟</span>
             </div>
           </div>
           <div className="au-left-circles">
@@ -208,7 +208,6 @@ export default function Auth({ defaultTab = "login" }) {
         {/* Right panel */}
         <div className="au-right">
           <div className="au-right-inner">
-
             <div className="au-tabs">
               <button className={`au-tab ${tab === "login" ? "active" : ""}`} onClick={() => switchTab("login")} type="button">
                 Đăng nhập
@@ -228,10 +227,11 @@ export default function Auth({ defaultTab = "login" }) {
             >
               <div className="au-tab-head">
                 <h3>{tab === "login" ? "Chào mừng trở lại" : "Tạo tài khoản mới"}</h3>
-                <p>{tab === "login"
-                  ? "Đăng nhập để tiếp tục mua sắm và theo dõi đơn hàng."
-                  : "Đăng ký để nhận ưu đãi độc quyền dành cho thành viên."
-                }</p>
+                <p>
+                  {tab === "login"
+                    ? "Đăng nhập để tiếp tục mua sắm và theo dõi đơn hàng."
+                    : "Đăng ký để nhận ưu đãi độc quyền dành cho thành viên."}
+                </p>
               </div>
 
               {tab === "login"
@@ -249,7 +249,6 @@ export default function Auth({ defaultTab = "login" }) {
                 )}
               </div>
             </div>
-
           </div>
         </div>
 
