@@ -18,5 +18,6 @@ public record ProductSummaryDto(
     decimal Price,
     int Stock,
     bool IsActive,
-    string? ImageUrl
+    string? ImageUrl,
+    int TotalSold = 0
 );

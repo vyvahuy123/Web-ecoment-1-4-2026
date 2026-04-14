@@ -6,7 +6,18 @@
   --black: #0a0a0a; --white: #ffffff; --gray-1: #f5f5f5; --gray-2: #e8e8e8;
   --gray-3: #b0b0b0; --gray-4: #6b6b6b; --accent: #0a0a0a; --radius: 4px;
 }
+.badge-hot {
+  background: #e74c3c;
+  color: #fff;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 2px;
+}
 
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 body { font-family: "DM Sans", sans-serif; color: var(--black); background: var(--white); }
 a { text-decoration: none; color: inherit; }
 ul { list-style: none; }

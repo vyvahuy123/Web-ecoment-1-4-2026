@@ -23,6 +23,7 @@ public interface IUnitOfWork
     // Repositories mới - Day 3
     ICartRepository Carts { get; }
     IReviewRepository Reviews { get; }
+    ICategoryRepository Categories { get; }
 
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

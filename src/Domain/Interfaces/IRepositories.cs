@@ -11,6 +11,8 @@ public interface IProductRepository
     void Add(Product product);
     void Update(Product product);
     void Remove(Product product);
+    Task<IEnumerable<(Product Product, int TotalSold)>> GetTopSellingAsync(
+    int limit = 8, CancellationToken ct = default);
 }
 
 public interface IRefreshTokenRepository

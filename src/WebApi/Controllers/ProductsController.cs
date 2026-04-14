@@ -86,6 +86,11 @@ public class ProductsController : ControllerBase
         await _mediator.Send(new DeleteProductCommand(id), ct);
         return NoContent();
     }
+    [HttpGet("top-selling")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopSelling(
+    [FromQuery] int limit = 8, CancellationToken ct = default)
+    => Ok(await _mediator.Send(new GetTopSellingProductsQuery(limit), ct));
 }
 
 public record UpdateProductRequest(

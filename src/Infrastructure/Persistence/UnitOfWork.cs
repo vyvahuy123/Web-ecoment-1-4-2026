@@ -1,5 +1,6 @@
 ﻿using Domain.Interfaces;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Repositories;
 
 
 namespace Infrastructure.Persistence;
@@ -27,6 +28,7 @@ public class UnitOfWork : IUnitOfWork
     // Repositories mới - Day 3  // ← THÊM VÀO ĐÂY
     private ICartRepository? _carts;
     private IReviewRepository? _reviews;
+    private ICategoryRepository? _categories;
 
 
     public UnitOfWork(AppDbContext ctx) => _ctx = ctx;
@@ -63,4 +65,6 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         => await _ctx.SaveChangesAsync(ct);
+    public ICategoryRepository Categories
+    => _categories ??= new CategoryRepository(_ctx);
 }

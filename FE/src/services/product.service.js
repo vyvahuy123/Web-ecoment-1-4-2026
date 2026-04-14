@@ -63,6 +63,10 @@ const ProductService = {
   delete: async (id) => {
     await api.delete(`/products/${id}`);
   },
+  getTopSelling: async (limit = 8) => {
+  const { data } = await api.get("/products/top-selling", { params: { limit } });
+  return data;
+},
 };
 
 export default ProductService;
