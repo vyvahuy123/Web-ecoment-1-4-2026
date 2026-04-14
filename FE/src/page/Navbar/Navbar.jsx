@@ -2,23 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import AuthService from "@/services/auth.service";
-import CategoryService from "@/services/category.service";
-
-const PRODUCTS_SEARCH = [
-  { name: "Oversized Linen Blazer", cat: "Women", price: "1.890.000", emoji: "🧥" },
-  { name: "Slim Fit Chino Pants", cat: "Men", price: "890.000", emoji: "👖" },
-  { name: "Silk Slip Dress", cat: "Women", price: "2.350.000", emoji: "👗" },
-  { name: "Structured Tote Bag", cat: "Accessories", price: "1.450.000", emoji: "👜" },
-  { name: "Merino Wool Turtleneck", cat: "Men", price: "1.190.000", emoji: "🧣" },
-  { name: "Wide-Leg Trousers", cat: "Women", price: "990.000", emoji: "👘" },
-  { name: "Canvas Sneakers", cat: "Men", price: "750.000", emoji: "👟" },
-  { name: "Leather Card Holder", cat: "Accessories", price: "350.000", emoji: "💳" },
-];
 
 const NAV_LINKS_LEFT = [
   ["Trang chủ", "/"],
   ["Giới thiệu", "/gioi-thieu"],
   ["Tin tức", "/"],
+  ["Sản phẩm", "/san-pham"],
 ];
 
 const NAV_LINKS_RIGHT = [
@@ -100,27 +89,14 @@ function UserMenu({ onLogout }) {
 
 export default function Navbar({ cartCount, onCartOpen }) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]);
   const [visible, setVisible] = useState(true);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
-  const [categories, setCategories] = useState([]);
   const lastY = useRef(0);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Fetch categories từ API
-  useEffect(() => {
-    CategoryService.getAll()
-      .then((data) => setCategories(data))
-      .catch(() => setCategories([]));
-  }, []);
+  useEffect(() => { setOpen(false); }, [location.pathname]);
 
-  // Đóng mobile menu khi đổi route
-  useEffect(() => { setOpen(false); setDropdownOpen(false); }, [location.pathname]);
-
-  // Theo dõi login state
   useEffect(() => {
     const check = () => setIsLoggedIn(!!localStorage.getItem("token"));
     window.addEventListener("storage", check);
@@ -128,7 +104,6 @@ export default function Navbar({ cartCount, onCartOpen }) {
     return () => { window.removeEventListener("storage", check); clearInterval(interval); };
   }, []);
 
-  // Hide/show navbar on scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY;
@@ -143,20 +118,8 @@ export default function Navbar({ cartCount, onCartOpen }) {
 
   const go = (href) => {
     setOpen(false);
-    setDropdownOpen(false);
     navigate(href);
   };
-
-  const handleSearch = (e) => {
-    const val = e.target.value;
-    setSearch(val);
-    if (!val.trim()) { setResults([]); return; }
-    setResults(PRODUCTS_SEARCH.filter(
-      (p) => p.name.toLowerCase().includes(val.toLowerCase()) || p.cat.toLowerCase().includes(val.toLowerCase())
-    ));
-  };
-
-  const clearSearch = () => { setSearch(""); setResults([]); };
 
   const isActive = (href) => location.pathname === href;
 
@@ -178,44 +141,6 @@ export default function Navbar({ cartCount, onCartOpen }) {
               {l}
             </a>
           ))}
-
-          {/* Dropdown Danh mục — load từ API */}
-          <div
-            className="ec-dropdown-wrap"
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
-          >
-            <button className={`ec-dropdown-trigger ${isActive("/san-pham") ? "active" : ""}`}>
-              Danh mục
-              <span className={`ec-dropdown-arrow ${dropdownOpen ? "open" : ""}`}>▾</span>
-            </button>
-            <div className={`ec-dropdown-menu ${dropdownOpen ? "open" : ""}`}>
-              {/* Mục "Tất cả" cố định */}
-              <a
-                href="/san-pham"
-                className="ec-dropdown-item"
-                onClick={(e) => { e.preventDefault(); go("/san-pham"); }}
-              >
-                Tất cả sản phẩm
-              </a>
-
-              {categories.length === 0 ? (
-                <p className="ec-dropdown-empty">Đang tải...</p>
-              ) : (
-                categories.map((cat) => (
-                  <a
-                    key={cat.id}
-                    href={`/san-pham?category=${cat.id}`}
-                    className="ec-dropdown-item"
-                    onClick={(e) => { e.preventDefault(); go(`/san-pham?category=${cat.id}`); }}
-                  >
-                    {cat.name}
-                  </a>
-                ))
-              )}
-            </div>
-          </div>
-
           {NAV_LINKS_RIGHT.map(([l, h]) => (
             <a
               key={l}
@@ -229,37 +154,6 @@ export default function Navbar({ cartCount, onCartOpen }) {
         </div>
 
         <div className="ec-nav-actions">
-          <div className="ec-search-wrap">
-            <input
-              className="ec-search-input"
-              type="text"
-              placeholder="Tìm sản phẩm..."
-              value={search}
-              onChange={handleSearch}
-            />
-            {search && <button className="ec-search-clear" onClick={clearSearch}>✕</button>}
-            {results.length > 0 && (
-              <div className="ec-search-dropdown">
-                {results.map((p) => (
-                  <div key={p.name} className="ec-search-item"
-                    onClick={() => { clearSearch(); navigate("/san-pham"); }}
-                  >
-                    <span className="ec-search-item-emoji">{p.emoji}</span>
-                    <div>
-                      <p className="ec-search-item-name">{p.name}</p>
-                      <p className="ec-search-item-cat">{p.cat} — {p.price}₫</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {search && results.length === 0 && (
-              <div className="ec-search-dropdown">
-                <p className="ec-search-empty">Không tìm thấy sản phẩm</p>
-              </div>
-            )}
-          </div>
-
           <button className="ec-cart-btn" onClick={onCartOpen}>
             <span className="ec-cart-icon" />
             {cartCount > 0 && <span className="ec-cart-count">{cartCount}</span>}
@@ -284,23 +178,6 @@ export default function Navbar({ cartCount, onCartOpen }) {
         {NAV_LINKS_LEFT.map(([l, h]) => (
           <a key={l} href={h} onClick={(e) => { e.preventDefault(); go(h); }}>{l}</a>
         ))}
-        <div className="ec-mobile-dropdown">
-          <span className="ec-mobile-dropdown-title">Danh mục ▾</span>
-          <a href="/san-pham" className="ec-mobile-dropdown-item"
-            onClick={(e) => { e.preventDefault(); go("/san-pham"); }}>
-            Tất cả sản phẩm
-          </a>
-          {categories.map((cat) => (
-            <a
-              key={cat.id}
-              href={`/san-pham?category=${cat.id}`}
-              className="ec-mobile-dropdown-item"
-              onClick={(e) => { e.preventDefault(); go(`/san-pham?category=${cat.id}`); }}
-            >
-              {cat.name}
-            </a>
-          ))}
-        </div>
         {NAV_LINKS_RIGHT.map(([l, h]) => (
           <a key={l} href={h} onClick={(e) => { e.preventDefault(); go(h); }}>{l}</a>
         ))}

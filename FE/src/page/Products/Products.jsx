@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./Products.css";
 import ProductService from "@/services/product.service";
 
@@ -8,7 +9,6 @@ const SORT_OPTIONS = [
   { value: "price-desc", label: "Giá giảm dần" },
 ];
 
-// Chạy lại observe mỗi khi products thay đổi
 function useFadeUp(ref, deps) {
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -20,7 +20,7 @@ function useFadeUp(ref, deps) {
     );
     ref.current?.querySelectorAll(".fade-up").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, [ref, ...deps]); // re-observe khi deps thay đổi
+  }, [ref, ...deps]);
 }
 
 function ProductCard({ p, onAddCart, delay }) {
@@ -64,11 +64,11 @@ function ProductCard({ p, onAddCart, delay }) {
   );
 }
 
-function CategoryHero() {
+function CategoryHero({ categoryId }) {
   return (
     <div className="pd-hero" style={{ background: "#f0ece6" }}>
       <div className="pd-hero-inner">
-        <h1>Toàn bộ sản phẩm</h1>
+        <h1>{categoryId ? "Sản phẩm theo danh mục" : "Toàn bộ sản phẩm"}</h1>
         <p>Khám phá trọn bộ sưu tập — từ trang phục đến phụ kiện và giày dép.</p>
       </div>
       <div className="pd-hero-deco">✦</div>
@@ -92,6 +92,9 @@ function SkeletonCard() {
 const PAGE_SIZE = 20;
 
 export default function Products({ onAddCart }) {
+  const [searchParams] = useSearchParams();
+  const categoryId = searchParams.get("category") || undefined;
+
   const [products, setProducts] = useState([]);
   const [total, setTotal]       = useState(0);
   const [page, setPage]         = useState(1);
@@ -102,8 +105,14 @@ export default function Products({ onAddCart }) {
   const [error, setError]       = useState(null);
   const ref = useRef(null);
 
-  // Truyền products vào deps để re-observe sau khi data load
   useFadeUp(ref, [products]);
+
+  // Reset page khi đổi category
+  useEffect(() => {
+    setPage(1);
+    setSearch("");
+    setInputVal("");
+  }, [categoryId]);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(inputVal); setPage(1); }, 400);
@@ -118,6 +127,7 @@ export default function Products({ onAddCart }) {
         page,
         pageSize: PAGE_SIZE,
         search: search || undefined,
+        categoryId,
       });
       setProducts(result.items ?? []);
       setTotal(result.totalCount ?? result.total ?? result.items?.length ?? 0);
@@ -126,7 +136,7 @@ export default function Products({ onAddCart }) {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, categoryId]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
@@ -140,7 +150,7 @@ export default function Products({ onAddCart }) {
 
   return (
     <div className="pd-page" ref={ref} style={{ paddingTop: "68px" }}>
-      <CategoryHero />
+      <CategoryHero categoryId={categoryId} />
 
       <div className="pd-main">
         <div className="pd-controls">
