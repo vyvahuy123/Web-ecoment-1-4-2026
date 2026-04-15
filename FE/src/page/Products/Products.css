@@ -417,3 +417,118 @@
 .pd-card:hover .pd-card-image {
   transform: scale(1.05);
 }
+/* ── Thêm vào Products.css ── */
+
+/* Layout chính: sidebar + grid */
+.pd-content-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* Sidebar */
+.pd-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 88px;
+}
+
+.pd-sidebar-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.pd-sidebar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pd-sidebar-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pd-sidebar-item:hover {
+  background: #f4f1ed;
+  color: #1a1a1a;
+}
+
+.pd-sidebar-item.active {
+  background: #1a1a1a;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Skeleton cho sidebar */
+.pd-sidebar-skeleton {
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+/* Content area chiếm phần còn lại */
+.pd-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsive: ẩn sidebar trên mobile, hiện dạng scroll ngang */
+@media (max-width: 768px) {
+  .pd-content-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .pd-sidebar {
+    width: 100%;
+    position: static;
+    margin-bottom: 16px;
+  }
+
+  .pd-sidebar-list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+
+  .pd-sidebar-list li {
+    flex-shrink: 0;
+  }
+
+  .pd-sidebar-item {
+    white-space: nowrap;
+    padding: 7px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+  }
+
+  .pd-sidebar-item.active {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+    color: #fff;
+  }
+}

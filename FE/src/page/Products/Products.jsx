@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import "./Products.css";
 import ProductService from "@/services/product.service";
+import CategoryService from "@/services/category.service";
 
 const SORT_OPTIONS = [
   { value: "default", label: "Mặc định" },
@@ -64,11 +65,11 @@ function ProductCard({ p, onAddCart, delay }) {
   );
 }
 
-function CategoryHero({ categoryId }) {
+function CategoryHero({ categoryName }) {
   return (
     <div className="pd-hero" style={{ background: "#f0ece6" }}>
       <div className="pd-hero-inner">
-        <h1>{categoryId ? "Sản phẩm theo danh mục" : "Toàn bộ sản phẩm"}</h1>
+        <h1>{categoryName ? categoryName : "Toàn bộ sản phẩm"}</h1>
         <p>Khám phá trọn bộ sưu tập — từ trang phục đến phụ kiện và giày dép.</p>
       </div>
       <div className="pd-hero-deco">✦</div>
@@ -89,23 +90,73 @@ function SkeletonCard() {
   );
 }
 
+function CategorySidebar({ categories, selectedId, onSelect, loading }) {
+  return (
+    <aside className="pd-sidebar">
+      <div className="pd-sidebar-title">Danh mục</div>
+      <ul className="pd-sidebar-list">
+        <li>
+          <button
+            className={`pd-sidebar-item ${!selectedId ? "active" : ""}`}
+            onClick={() => onSelect(null)}
+          >
+            Tất cả sản phẩm
+          </button>
+        </li>
+        {loading ? (
+          Array.from({ length: 4 }, (_, i) => (
+            <li key={i}>
+              <div className="pd-sidebar-skeleton" />
+            </li>
+          ))
+        ) : (
+          categories.map((cat) => (
+            <li key={cat.id}>
+              <button
+                className={`pd-sidebar-item ${selectedId === String(cat.id) ? "active" : ""}`}
+                onClick={() => onSelect(cat.id)}
+              >
+                {cat.name}
+              </button>
+            </li>
+          ))
+        )}
+      </ul>
+    </aside>
+  );
+}
+
 const PAGE_SIZE = 20;
 
 export default function Products({ onAddCart }) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const categoryId = searchParams.get("category") || undefined;
 
-  const [products, setProducts] = useState([]);
-  const [total, setTotal]       = useState(0);
-  const [page, setPage]         = useState(1);
-  const [sort, setSort]         = useState("default");
-  const [inputVal, setInputVal] = useState("");
-  const [search, setSearch]     = useState("");
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [products, setProducts]     = useState([]);
+  const [total, setTotal]           = useState(0);
+  const [page, setPage]             = useState(1);
+  const [sort, setSort]             = useState("default");
+  const [inputVal, setInputVal]     = useState("");
+  const [search, setSearch]         = useState("");
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [catsLoading, setCatsLoading] = useState(true);
   const ref = useRef(null);
 
   useFadeUp(ref, [products]);
+
+  // Fetch categories
+  useEffect(() => {
+    setCatsLoading(true);
+    CategoryService.getAll()
+      .then((res) => {
+        const data = Array.isArray(res) ? res : res?.data;
+        setCategories(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setCategories([]))
+      .finally(() => setCatsLoading(false));
+  }, []);
 
   // Reset page khi đổi category
   useEffect(() => {
@@ -140,6 +191,19 @@ export default function Products({ onAddCart }) {
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
+  const handleSelectCategory = (id) => {
+    if (id === null) {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: id });
+    }
+    setPage(1);
+  };
+
+  const selectedCategoryName = categories.find(
+    (c) => String(c.id) === String(categoryId)
+  )?.name;
+
   const sorted = [...products].sort((a, b) => {
     if (sort === "price-asc") return a.price - b.price;
     if (sort === "price-desc") return b.price - a.price;
@@ -150,9 +214,10 @@ export default function Products({ onAddCart }) {
 
   return (
     <div className="pd-page" ref={ref} style={{ paddingTop: "68px" }}>
-      <CategoryHero categoryId={categoryId} />
+      <CategoryHero categoryName={selectedCategoryName} />
 
       <div className="pd-main">
+        {/* Toolbar */}
         <div className="pd-controls">
           <div className="pd-toolbar">
             <div className="pd-search-wrap">
@@ -180,61 +245,73 @@ export default function Products({ onAddCart }) {
           </div>
         </div>
 
-        {error && (
-          <div className="pd-empty">
-            <p>⚠️ {error}</p>
-            <button className="pd-btn-retry" onClick={fetchProducts}>Thử lại</button>
-          </div>
-        )}
+        {/* Layout: sidebar + grid */}
+        <div className="pd-content-layout">
+          <CategorySidebar
+            categories={categories}
+            selectedId={categoryId}
+            onSelect={handleSelectCategory}
+            loading={catsLoading}
+          />
 
-        {loading && !error && (
-          <div className="pd-grid">
-            {Array.from({ length: 8 }, (_, i) => (
-              <SkeletonCard key={`skeleton-${i}`} />
-            ))}
-          </div>
-        )}
-
-        {!loading && !error && sorted.length === 0 && (
-          <div className="pd-empty">
-            <p>Không tìm thấy sản phẩm nào.</p>
-          </div>
-        )}
-
-        {!loading && !error && sorted.length > 0 && (
-          <>
-            <div className="pd-grid">
-              {sorted.map((p, i) => (
-                <ProductCard
-                  key={p.id}
-                  p={p}
-                  onAddCart={onAddCart}
-                  delay={(i % 8) * 0.07}
-                />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="pd-pagination">
-                <button
-                  className="pd-page-btn"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  ← Trước
-                </button>
-                <span className="pd-page-info">Trang {page} / {totalPages}</span>
-                <button
-                  className="pd-page-btn"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Sau →
-                </button>
+          <div className="pd-content">
+            {error && (
+              <div className="pd-empty">
+                <p>⚠️ {error}</p>
+                <button className="pd-btn-retry" onClick={fetchProducts}>Thử lại</button>
               </div>
             )}
-          </>
-        )}
+
+            {loading && !error && (
+              <div className="pd-grid">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <SkeletonCard key={`skeleton-${i}`} />
+                ))}
+              </div>
+            )}
+
+            {!loading && !error && sorted.length === 0 && (
+              <div className="pd-empty">
+                <p>Không tìm thấy sản phẩm nào.</p>
+              </div>
+            )}
+
+            {!loading && !error && sorted.length > 0 && (
+              <>
+                <div className="pd-grid">
+                  {sorted.map((p, i) => (
+                    <ProductCard
+                      key={p.id}
+                      p={p}
+                      onAddCart={onAddCart}
+                      delay={(i % 8) * 0.07}
+                    />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="pd-pagination">
+                    <button
+                      className="pd-page-btn"
+                      disabled={page === 1}
+                      onClick={() => setPage((p) => p - 1)}
+                    >
+                      ← Trước
+                    </button>
+                    <span className="pd-page-info">Trang {page} / {totalPages}</span>
+                    <button
+                      className="pd-page-btn"
+                      disabled={page === totalPages}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Sau →
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
