@@ -1,4 +1,5 @@
-﻿using Application.Features.Notifications.Commands;
+﻿// WebApi/Controllers/NotificationsController.cs
+using Application.Features.Notifications.Commands;
 using Application.Features.Notifications.DTOs;
 using Application.Features.Notifications.Queries;
 using MediatR;
@@ -16,7 +17,15 @@ public class NotificationsController : ControllerBase
     private readonly IMediator _mediator;
     public NotificationsController(IMediator mediator) => _mediator = mediator;
 
-    private Guid UserId => Guid.Parse(User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+    private Guid? UserId
+    {
+        get
+        {
+            var val = User.FindFirst("sub")?.Value
+                   ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return Guid.TryParse(val, out var id) ? id : null;
+        }
+    }
 
     /// <summary>Lấy danh sách thông báo</summary>
     [HttpGet]
@@ -26,8 +35,10 @@ public class NotificationsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        if (UserId is null) return Unauthorized();
+
         var (items, total, unread) = await _mediator.Send(
-            new GetMyNotificationsQuery(UserId, page, pageSize), ct);
+            new GetMyNotificationsQuery(UserId.Value, page, pageSize), ct);
         return Ok(new { items, total, unread });
     }
 
@@ -36,7 +47,8 @@ public class NotificationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> MarkAsRead(Guid id, CancellationToken ct)
     {
-        await _mediator.Send(new MarkAsReadCommand(UserId, id), ct);
+        if (UserId is null) return Unauthorized();
+        await _mediator.Send(new MarkAsReadCommand(UserId.Value, id), ct);
         return NoContent();
     }
 
@@ -45,7 +57,8 @@ public class NotificationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> MarkAllAsRead(CancellationToken ct)
     {
-        await _mediator.Send(new MarkAllAsReadCommand(UserId), ct);
+        if (UserId is null) return Unauthorized();
+        await _mediator.Send(new MarkAllAsReadCommand(UserId.Value), ct);
         return NoContent();
     }
 }

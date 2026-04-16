@@ -1,5 +1,7 @@
-﻿using Application.Features.Payments.Commands;
+﻿// WebApi/Controllers/PaymentsController.cs
+using Application.Features.Payments.Commands;
 using Application.Features.Payments.DTOs;
+using Application.Features.Payments.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +16,19 @@ public class PaymentsController : ControllerBase
 {
     private readonly IMediator _mediator;
     public PaymentsController(IMediator mediator) => _mediator = mediator;
+
+    /// <summary>Lấy danh sách payment - Admin</summary>
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetAllPaymentsQuery(page, pageSize), ct);
+        return Ok(result);
+    }
 
     /// <summary>Tạo payment cho đơn hàng</summary>
     [HttpPost]

@@ -2,6 +2,7 @@ using Domain.Common;
 using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Persistence;
 
@@ -34,9 +35,16 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        // Tự động apply tất cả IEntityTypeConfiguration trong assembly này
+        // Tự động apply tất cả configuration
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
         base.OnModelCreating(builder);
+
+        // SOFT DELETE GLOBAL FILTER
+        builder.Entity<Product>()
+            .HasQueryFilter(p => !p.IsDeleted);
+
+        // Nếu có entity khác cũng soft delete, thêm tiếp ở đây
     }
 
     // Override SaveChangesAsync để dispatch domain events sau khi save

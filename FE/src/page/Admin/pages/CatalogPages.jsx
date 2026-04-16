@@ -1,16 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import OrderService   from "@/services/order.service";
+import VoucherService from "@/services/voucher.service";
+import { useFetch }   from "@/hooks/useFetch";
 
-/* ══════════════════════════════════════════════════════
-   CATEGORIES
-══════════════════════════════════════════════════════ */
-const CATS = [
-  { name: "Women",       slug: "women",       products: 124, status: "active" },
-  { name: "Men",         slug: "men",         products: 98,  status: "active" },
-  { name: "Accessories", slug: "accessories", products: 76,  status: "active" },
-  { name: "New Arrivals",slug: "new-arrivals",products: 32,  status: "active" },
-];
+/* ── CATEGORIES (nếu có API) ──────────────────────────────────── */
+import CategoryService from "@/services/category.service";
 
 export function CategoriesPage() {
+  const { data, loading, refetch } = useFetch(() => CategoryService.getAll(), []);
+  const cats = Array.isArray(data) ? data : (data?.items ?? []);
+
   return (
     <div>
       <div className="page-filter">
@@ -19,29 +18,34 @@ export function CategoriesPage() {
       </div>
       <div className="card">
         <div className="card__head">
-          <span className="card__title">Danh mục sản phẩm ({CATS.length})</span>
+          <span className="card__title">Danh mục sản phẩm ({loading ? "..." : cats.length})</span>
         </div>
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Tên danh mục</th>
-                <th>Slug</th>
-                <th>Số sản phẩm</th>
-                <th>Trạng thái</th>
+                <th>Tên danh mục</th><th>Slug</th>
+                <th>Số sản phẩm</th><th>Trạng thái</th>
                 <th style={{ width: 40 }}></th>
               </tr>
             </thead>
             <tbody>
-              {CATS.map((c) => (
-                <tr key={c.slug}>
-                  <td style={{ fontWeight: 500 }}>{c.name}</td>
-                  <td style={{ color: "var(--g4)", fontFamily: "monospace", fontSize: 12 }}>{c.slug}</td>
-                  <td>{c.products}</td>
-                  <td><span className="badge badge-active">Hoạt động</span></td>
-                  <td><button className="btn btn-icon">✎</button></td>
-                </tr>
-              ))}
+              {loading
+                ? Array.from({ length: 4 }, (_, i) => (
+                    <tr key={i}>{Array.from({ length: 5 }, (_, j) => (
+                      <td key={j}><div className="skeleton-line" style={{ height: 14, borderRadius: 4 }} /></td>
+                    ))}</tr>
+                  ))
+                : cats.map((c) => (
+                    <tr key={c.id ?? c.slug}>
+                      <td style={{ fontWeight: 500 }}>{c.name}</td>
+                      <td style={{ color: "var(--g4)", fontFamily: "monospace", fontSize: 12 }}>{c.slug}</td>
+                      <td>{c.productCount ?? c.products ?? 0}</td>
+                      <td><span className="badge badge-active">Hoạt động</span></td>
+                      <td><button className="btn btn-icon">✎</button></td>
+                    </tr>
+                  ))
+              }
             </tbody>
           </table>
         </div>
@@ -50,65 +54,81 @@ export function CategoriesPage() {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   ORDERS
-══════════════════════════════════════════════════════ */
-const ORDERS = [
-  { id: "#ORD-001", customer: "Nguyễn Linh", items: 2, total: "2.350.000₫", voucher: "SUMMER25",  pay: { label: "Đã TT",   cls: "badge-paid" },    status: { label: "Đang giao",  cls: "badge-shipped" } },
-  { id: "#ORD-002", customer: "Trần Minh",   items: 1, total: "890.000₫",   voucher: "—",         pay: { label: "Chờ TT",  cls: "badge-pending" }, status: { label: "Chờ xử lý", cls: "badge-pending" } },
-  { id: "#ORD-003", customer: "Phạm Thu Hà", items: 3, total: "1.190.000₫", voucher: "NEWUSER10", pay: { label: "Đã TT",   cls: "badge-paid" },    status: { label: "Đang giao",  cls: "badge-shipped" } },
-  { id: "#ORD-004", customer: "Lê Văn An",   items: 1, total: "750.000₫",   voucher: "—",         pay: { label: "Hoàn TT", cls: "badge-cancel" },  status: { label: "Đã hủy",    cls: "badge-cancel" } },
-  { id: "#ORD-005", customer: "Võ Thị Bích", items: 2, total: "1.240.000₫", voucher: "FLASH50",   pay: { label: "Đã TT",   cls: "badge-paid" },    status: { label: "Hoàn tất",   cls: "badge-active" } },
-];
-
+/* ── ORDERS ───────────────────────────────────────────────────── */
 const ORDER_FILTERS = ["Tất cả", "Chờ xử lý", "Đang giao", "Hoàn tất", "Đã hủy"];
+
+// Map trạng thái backend → label hiển thị (tuỳ chỉnh theo API của bạn)
+const ORDER_STATUS = {
+  pending:   { label: "Chờ xử lý", cls: "badge-pending" },
+  shipping:  { label: "Đang giao",  cls: "badge-shipped" },
+  completed: { label: "Hoàn tất",   cls: "badge-active"  },
+  cancelled: { label: "Đã hủy",     cls: "badge-cancel"  },
+};
+const PAY_STATUS = {
+  paid:    { label: "Đã TT",   cls: "badge-paid"    },
+  pending: { label: "Chờ TT",  cls: "badge-pending" },
+  refunded:{ label: "Hoàn TT", cls: "badge-cancel"  },
+};
 
 export function OrdersPage() {
   const [active, setActive] = useState("Tất cả");
+  const { data, loading, error, refetch } = useFetch(() => OrderService.getAll(), []);
+  const orders = Array.isArray(data) ? data : (data?.items ?? []);
 
-  const filtered = ORDERS.filter((o) => {
+  const filtered = orders.filter((o) => {
     if (active === "Tất cả") return true;
-    return o.status.label === active;
+    return ORDER_STATUS[o.status]?.label === active;
   });
 
   return (
     <div>
       <div className="page-filter">
         {ORDER_FILTERS.map((f) => (
-          <button key={f} className={`filter-tab${active === f ? " active" : ""}`} onClick={() => setActive(f)}>{f}</button>
+          <button key={f} className={`filter-tab${active === f ? " active" : ""}`}
+            onClick={() => setActive(f)}>{f}</button>
         ))}
       </div>
       <div className="card">
         <div className="card__head">
-          <span className="card__title">Danh sách đơn hàng ({filtered.length})</span>
+          <span className="card__title">Đơn hàng ({loading ? "..." : filtered.length})</span>
         </div>
+        {error && <div style={{ padding: "16px 24px", color: "var(--red-text)", fontSize: 14 }}>⚠️ {error}</div>}
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Mã đơn</th>
-                <th>Khách hàng</th>
-                <th>SL</th>
-                <th>Tổng tiền</th>
-                <th>Voucher</th>
-                <th>Thanh toán</th>
-                <th>Trạng thái</th>
+                <th>Mã đơn</th><th>Khách hàng</th><th>SL</th>
+                <th>Tổng tiền</th><th>Voucher</th>
+                <th>Thanh toán</th><th>Trạng thái</th>
                 <th style={{ width: 40 }}></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((o) => (
-                <tr key={o.id}>
-                  <td style={{ fontWeight: 500 }}>{o.id}</td>
-                  <td>{o.customer}</td>
-                  <td>{o.items} SP</td>
-                  <td style={{ fontWeight: 500 }}>{o.total}</td>
-                  <td style={{ color: o.voucher === "—" ? "var(--g3)" : "inherit" }}>{o.voucher}</td>
-                  <td><span className={`badge ${o.pay.cls}`}>{o.pay.label}</span></td>
-                  <td><span className={`badge ${o.status.cls}`}>{o.status.label}</span></td>
-                  <td><button className="btn btn-icon">✎</button></td>
-                </tr>
-              ))}
+              {loading
+                ? Array.from({ length: 5 }, (_, i) => (
+                    <tr key={i}>{Array.from({ length: 8 }, (_, j) => (
+                      <td key={j}><div className="skeleton-line" style={{ height: 14, borderRadius: 4 }} /></td>
+                    ))}</tr>
+                  ))
+                : filtered.map((o) => {
+                    const st  = ORDER_STATUS[o.status]  ?? { label: o.status,        cls: "badge-inactive" };
+                    const pay = PAY_STATUS[o.payStatus ?? o.paymentStatus] ?? { label: "—", cls: "badge-inactive" };
+                    return (
+                      <tr key={o.id}>
+                        <td style={{ fontWeight: 500 }}>#{o.id ?? o.orderCode}</td>
+                        <td>{o.customerName ?? o.customer?.name}</td>
+                        <td>{o.itemCount ?? o.items?.length ?? "—"} SP</td>
+                        <td style={{ fontWeight: 500 }}>{Number(o.total ?? o.totalAmount).toLocaleString("vi-VN")}₫</td>
+                        <td style={{ color: o.voucherCode ? "inherit" : "var(--g3)" }}>
+                          {o.voucherCode ?? "—"}
+                        </td>
+                        <td><span className={`badge ${pay.cls}`}>{pay.label}</span></td>
+                        <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
+                        <td><button className="btn btn-icon">✎</button></td>
+                      </tr>
+                    );
+                  })
+              }
             </tbody>
           </table>
         </div>
@@ -117,66 +137,77 @@ export function OrdersPage() {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   VOUCHERS
-══════════════════════════════════════════════════════ */
-const VOUCHERS = [
-  { code: "SUMMER25",  type: "Phần trăm", value: "25%",      used: 48, limit: "100",  expires: "14/04/2025", statusLabel: "Sắp hết",   cls: "badge-pending" },
-  { code: "NEWUSER10", type: "Phần trăm", value: "10%",      used: 12, limit: "∞",    expires: "30/06/2025", statusLabel: "Còn hạn",   cls: "badge-active" },
-  { code: "FLASH50",   type: "Cố định",   value: "50.000₫",  used: 99, limit: "100",  expires: "12/04/2025", statusLabel: "Nguy hiểm", cls: "badge-cancel" },
-  { code: "WELCOME15", type: "Phần trăm", value: "15%",      used: 5,  limit: "∞",    expires: "31/12/2025", statusLabel: "Còn hạn",   cls: "badge-active" },
-];
-
+/* ── VOUCHERS ─────────────────────────────────────────────────── */
 const VOUCHER_FILTERS = ["Tất cả", "Còn hạn", "Sắp hết", "Hết hạn"];
+
+function getVoucherStatus(v) {
+  if (v.statusLabel) return v.statusLabel; // nếu backend trả sẵn
+  const now     = new Date();
+  const expires = new Date(v.expiresAt ?? v.expiredAt ?? v.expires);
+  const diffDays = Math.ceil((expires - now) / 86400000);
+  if (diffDays <= 0)  return "Hết hạn";
+  if (diffDays <= 3)  return "Sắp hết";
+  return "Còn hạn";
+}
+const VOUCHER_CLS = { "Còn hạn": "badge-active", "Sắp hết": "badge-pending", "Hết hạn": "badge-cancel" };
 
 export function VouchersPage() {
   const [active, setActive] = useState("Tất cả");
+  const { data, loading, error } = useFetch(() => VoucherService.getAll(), []);
+  const vouchers = Array.isArray(data) ? data : (data?.items ?? []);
 
-  const filtered = VOUCHERS.filter((v) => {
-    if (active === "Tất cả") return true;
-    return v.statusLabel === active;
-  });
+  const withStatus = vouchers.map((v) => ({ ...v, _status: getVoucherStatus(v) }));
+  const filtered   = withStatus.filter((v) => active === "Tất cả" || v._status === active);
 
   return (
     <div>
       <div className="page-filter">
         {VOUCHER_FILTERS.map((f) => (
-          <button key={f} className={`filter-tab${active === f ? " active" : ""}`} onClick={() => setActive(f)}>{f}</button>
+          <button key={f} className={`filter-tab${active === f ? " active" : ""}`}
+            onClick={() => setActive(f)}>{f}</button>
         ))}
         <div className="filter-gap" />
         <button className="btn btn-sm btn-dark">+ Tạo voucher</button>
       </div>
       <div className="card">
         <div className="card__head">
-          <span className="card__title">Danh sách voucher ({filtered.length})</span>
+          <span className="card__title">Voucher ({loading ? "..." : filtered.length})</span>
         </div>
+        {error && <div style={{ padding: "16px 24px", color: "var(--red-text)", fontSize: 14 }}>⚠️ {error}</div>}
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Mã voucher</th>
-                <th>Loại</th>
-                <th>Giá trị</th>
-                <th>Đã dùng</th>
-                <th>Giới hạn</th>
-                <th>Hết hạn</th>
-                <th>Trạng thái</th>
+                <th>Mã</th><th>Loại</th><th>Giá trị</th>
+                <th>Đã dùng</th><th>Giới hạn</th>
+                <th>Hết hạn</th><th>Trạng thái</th>
                 <th style={{ width: 40 }}></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((v) => (
-                <tr key={v.code}>
-                  <td style={{ fontFamily: "monospace", fontWeight: 600, fontSize: 13 }}>{v.code}</td>
-                  <td style={{ color: "var(--g4)" }}>{v.type}</td>
-                  <td style={{ fontWeight: 500 }}>{v.value}</td>
-                  <td>{v.used}</td>
-                  <td>{v.limit}</td>
-                  <td style={{ color: "var(--g4)" }}>{v.expires}</td>
-                  <td><span className={`badge ${v.cls}`}>{v.statusLabel}</span></td>
-                  <td><button className="btn btn-icon">✎</button></td>
-                </tr>
-              ))}
+              {loading
+                ? Array.from({ length: 4 }, (_, i) => (
+                    <tr key={i}>{Array.from({ length: 8 }, (_, j) => (
+                      <td key={j}><div className="skeleton-line" style={{ height: 14, borderRadius: 4 }} /></td>
+                    ))}</tr>
+                  ))
+                : filtered.map((v) => (
+                    <tr key={v.id ?? v.code}>
+                      <td style={{ fontFamily: "monospace", fontWeight: 600, fontSize: 13 }}>{v.code}</td>
+                      <td style={{ color: "var(--g4)" }}>{v.type === "percent" ? "Phần trăm" : "Cố định"}</td>
+                      <td style={{ fontWeight: 500 }}>
+                        {v.type === "percent" ? `${v.value}%` : `${Number(v.value).toLocaleString("vi-VN")}₫`}
+                      </td>
+                      <td>{v.usedCount ?? v.used ?? 0}</td>
+                      <td>{v.maxUsage ?? v.limit ?? "∞"}</td>
+                      <td style={{ color: "var(--g4)" }}>
+                        {new Date(v.expiresAt ?? v.expiredAt ?? v.expires).toLocaleDateString("vi-VN")}
+                      </td>
+                      <td><span className={`badge ${VOUCHER_CLS[v._status] ?? "badge-inactive"}`}>{v._status}</span></td>
+                      <td><button className="btn btn-icon">✎</button></td>
+                    </tr>
+                  ))
+              }
             </tbody>
           </table>
         </div>

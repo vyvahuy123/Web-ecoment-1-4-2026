@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import "../styles/layout.css";
+import api from "../../../api/axiosConfig";
 
-const NAV = [
+const NAV_TEMPLATE = [
   {
     group: "Tổng quan",
     items: [{ id: "dashboard", icon: "▦", label: "Dashboard" }],
@@ -11,22 +13,103 @@ const NAV = [
       { id: "users",      icon: "◎", label: "Người dùng" },
       { id: "products",   icon: "◈", label: "Sản phẩm" },
       { id: "categories", icon: "◉", label: "Danh mục SP" },
-      { id: "orders",     icon: "▤", label: "Đơn hàng",  badge: 12 },
+      { id: "orders",     icon: "▤", label: "Đơn hàng",  badgeKey: "orders" },
       { id: "vouchers",   icon: "⊘", label: "Voucher" },
     ],
   },
   {
     group: "Dịch vụ",
     items: [
-      { id: "chat",          icon: "◈", label: "Tin nhắn",   badge: 8 },
-      { id: "reviews",       icon: "◇", label: "Đánh giá",   badge: 5 },
+      { id: "chat",          icon: "◈", label: "Tin nhắn",   badgeKey: "chat" },
+      { id: "reviews",       icon: "◇", label: "Đánh giá",   badgeKey: "reviews" },
       { id: "payments",      icon: "◻", label: "Thanh toán" },
-      { id: "notifications", icon: "◌", label: "Thông báo",  badge: 3 },
+      { id: "notifications", icon: "◌", label: "Thông báo",  badgeKey: "notifications" },
     ],
   },
 ];
 
+// Decode JWT payload (không cần thư viện)
+function decodeToken(token) {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+// Lấy tên từ các claim phổ biến của .NET JWT
+function getUserFromToken(decoded) {
+  if (!decoded) return { name: "Admin", role: "Admin", initials: "AD" };
+
+  const name =
+    decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ??
+    decoded["name"] ??
+    decoded["unique_name"] ??
+    decoded["email"] ??
+    "Admin";
+
+  const role =
+    decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ??
+    decoded["role"] ??
+    "Admin";
+
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return { name, role, initials };
+}
+
 export default function Sidebar({ activePage, onNavigate }) {
+  const [badges, setBadges] = useState({});
+  const [user, setUser] = useState({ name: "Admin", role: "Admin", initials: "AD" });
+
+  // Lấy thông tin user từ JWT
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const decoded = decodeToken(token);
+    setUser(getUserFromToken(decoded));
+  }, []);
+
+  // Fetch badge counts từ API
+  useEffect(() => {
+  const fetchBadges = async () => {
+    try {
+      const [ordersRes, notifRes] = await Promise.allSettled([
+        api.get("/orders", { params: { page: 1, pageSize: 1, status: "pending" } }),
+        api.get("/notifications", { params: { page: 1, pageSize: 1 } }),
+      ]);
+
+      setBadges({
+        orders: ordersRes.status === "fulfilled"
+          ? (ordersRes.value.data?.totalCount ?? ordersRes.value.data?.total ?? 0)
+          : 0,
+
+        // Dùng field "unread" từ response của notifications
+        notifications: notifRes.status === "fulfilled"
+          ? (notifRes.value.data?.unread ?? 0)
+          : 0,
+
+        // Reviews và chat bỏ qua vì không có endpoint phù hợp
+        reviews: 0,
+        chat: 0,
+      });
+    } catch {
+      // giữ nguyên badge = 0
+    }
+  };
+
+  fetchBadges();
+  const interval = setInterval(fetchBadges, 60_000);
+  return () => clearInterval(interval);
+}, []);
+
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -35,31 +118,34 @@ export default function Sidebar({ activePage, onNavigate }) {
       </div>
 
       <nav className="sidebar-nav">
-        {NAV.map((section) => (
+        {NAV_TEMPLATE.map((section) => (
           <div key={section.group}>
             <div className="sidebar-group">{section.group}</div>
-            {section.items.map((item) => (
-              <div
-                key={item.id}
-                className={`sidebar-item${activePage === item.id ? " active" : ""}`}
-                onClick={() => onNavigate(item.id)}
-              >
-                <span className="sidebar-item__icon">{item.icon}</span>
-                <span className="sidebar-item__label">{item.label}</span>
-                {item.badge && (
-                  <span className="sidebar-badge">{item.badge}</span>
-                )}
-              </div>
-            ))}
+            {section.items.map((item) => {
+              const badgeCount = item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0;
+              return (
+                <div
+                  key={item.id}
+                  className={`sidebar-item${activePage === item.id ? " active" : ""}`}
+                  onClick={() => onNavigate(item.id)}
+                >
+                  <span className="sidebar-item__icon">{item.icon}</span>
+                  <span className="sidebar-item__label">{item.label}</span>
+                  {badgeCount > 0 && (
+                    <span className="sidebar-badge">{badgeCount}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ))}
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-avatar">AD</div>
+        <div className="sidebar-avatar">{user.initials}</div>
         <div className="sidebar-user">
-          <div className="sidebar-user__name">Admin</div>
-          <div className="sidebar-user__role">Super Admin</div>
+          <div className="sidebar-user__name">{user.name}</div>
+          <div className="sidebar-user__role">{user.role}</div>
         </div>
       </div>
     </aside>

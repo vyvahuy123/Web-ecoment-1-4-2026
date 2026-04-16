@@ -1,72 +1,81 @@
 import { useState } from "react";
+import ReviewService       from "@/services/review.service";
+import PaymentService      from "@/services/payment.service";
+import NotificationService from "@/services/notification.service";
+import { useFetch } from "@/hooks/useFetch";
 
-/* ══════════════════════════════════════════════════════
-   REVIEWS
-══════════════════════════════════════════════════════ */
-const REVIEWS = [
-  { user: "Nguyễn A", product: "Linen Blazer",      stars: 5, content: "Chất vải đẹp, may đo chuẩn, giao nhanh.", status: "pending" },
-  { user: "Trần B",   product: "Silk Slip Dress",   stars: 4, content: "Mặc rất thoải mái, màu đẹp y hình.",     status: "pending" },
-  { user: "Lê C",     product: "Structured Tote Bag",stars: 5, content: "Túi chắc chắn, khóa xịn, da mịn.",     status: "approved" },
-  { user: "Phạm D",   product: "Canvas Sneakers",   stars: 3, content: "Size hơi nhỏ, nên order lên 1 size.",   status: "approved" },
-];
-
+/* ── REVIEWS ──────────────────────────────────────────────────── */
 const REVIEW_FILTERS = ["Chờ duyệt", "Đã duyệt", "Bị ẩn"];
 
 export function ReviewsPage() {
   const [active, setActive] = useState("Chờ duyệt");
+  const { data, loading, error, refetch } = useFetch(() => ReviewService.getAll(), []);
+  const reviews = Array.isArray(data) ? data : (data?.items ?? []);
 
-  const filtered = REVIEWS.filter((r) => {
+  const filtered = reviews.filter((r) => {
     if (active === "Chờ duyệt") return r.status === "pending";
     if (active === "Đã duyệt")  return r.status === "approved";
     return r.status === "hidden";
   });
 
+  const handleApprove = async (id) => {
+    await ReviewService.approve(id);
+    refetch();
+  };
+  const handleHide = async (id) => {
+    await ReviewService.hide(id);
+    refetch();
+  };
+
   return (
     <div>
       <div className="page-filter">
         {REVIEW_FILTERS.map((f) => (
-          <button key={f} className={`filter-tab${active === f ? " active" : ""}`} onClick={() => setActive(f)}>{f}</button>
+          <button key={f} className={`filter-tab${active === f ? " active" : ""}`}
+            onClick={() => setActive(f)}>{f}</button>
         ))}
       </div>
       <div className="card">
         <div className="card__head">
-          <span className="card__title">Đánh giá sản phẩm ({filtered.length})</span>
+          <span className="card__title">Đánh giá ({loading ? "..." : filtered.length})</span>
         </div>
+        {error && <div style={{ padding: "16px 24px", color: "var(--red-text)", fontSize: 14 }}>⚠️ {error}</div>}
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Khách hàng</th>
-                <th>Sản phẩm</th>
-                <th>Sao</th>
-                <th>Nội dung</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
+                <th>Khách hàng</th><th>Sản phẩm</th><th>Sao</th>
+                <th>Nội dung</th><th>Trạng thái</th><th>Hành động</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r, i) => (
-                <tr key={i}>
-                  <td>{r.user}</td>
-                  <td>{r.product}</td>
-                  <td style={{ color: "#e6a817", letterSpacing: 1 }}>{"★".repeat(r.stars)}</td>
-                  <td style={{ maxWidth: 200, color: "var(--g4)", fontSize: 12, fontStyle: "italic" }}>
-                    {r.content}
-                  </td>
-                  <td>
-                    <span className={`badge ${r.status === "pending" ? "badge-pending" : "badge-active"}`}>
-                      {r.status === "pending" ? "Chờ duyệt" : "Đã duyệt"}
-                    </span>
-                  </td>
-                  <td style={{ display: "flex", gap: 6 }}>
-                    {r.status === "pending"
-                      ? <button className="btn btn-sm btn-dark">Duyệt</button>
-                      : <button className="btn btn-sm btn-outline">Ẩn</button>
-                    }
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
+              {loading
+                ? Array.from({ length: 4 }, (_, i) => (
+                    <tr key={i}>{Array.from({ length: 6 }, (_, j) => (
+                      <td key={j}><div className="skeleton-line" style={{ height: 14, borderRadius: 4 }} /></td>
+                    ))}</tr>
+                  ))
+                : filtered.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.userName ?? r.user?.name}</td>
+                      <td>{r.productName ?? r.product?.name}</td>
+                      <td style={{ color: "#e6a817", letterSpacing: 1 }}>{"★".repeat(r.rating ?? r.stars ?? 0)}</td>
+                      <td style={{ maxWidth: 200, color: "var(--g4)", fontSize: 12, fontStyle: "italic" }}>{r.content}</td>
+                      <td>
+                        <span className={`badge ${r.status === "pending" ? "badge-pending" : "badge-active"}`}>
+                          {r.status === "pending" ? "Chờ duyệt" : "Đã duyệt"}
+                        </span>
+                      </td>
+                      <td>
+                        {r.status === "pending"
+                          ? <button className="btn btn-sm btn-dark" onClick={() => handleApprove(r.id)}>Duyệt</button>
+                          : <button className="btn btn-sm btn-outline" onClick={() => handleHide(r.id)}>Ẩn</button>
+                        }
+                      </td>
+                    </tr>
+                  ))
+              }
+              {!loading && filtered.length === 0 && (
                 <tr><td colSpan={6} style={{ textAlign: "center", color: "var(--g3)", padding: "28px 20px" }}>Không có dữ liệu</td></tr>
               )}
             </tbody>
@@ -77,62 +86,69 @@ export function ReviewsPage() {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   PAYMENTS
-══════════════════════════════════════════════════════ */
-const PAYMENTS = [
-  { id: "#PAY-001", order: "#ORD-001", method: "VNPAY",  amount: "2.350.000₫", date: "10/04/2025", statusLabel: "Thành công", cls: "badge-paid" },
-  { id: "#PAY-002", order: "#ORD-003", method: "COD",    amount: "1.190.000₫", date: "09/04/2025", statusLabel: "Thành công", cls: "badge-paid" },
-  { id: "#PAY-003", order: "#ORD-004", method: "VNPAY",  amount: "750.000₫",   date: "08/04/2025", statusLabel: "Hoàn tiền",  cls: "badge-cancel" },
-  { id: "#PAY-004", order: "#ORD-002", method: "MoMo",   amount: "890.000₫",   date: "11/04/2025", statusLabel: "Chờ TT",     cls: "badge-pending" },
-  { id: "#PAY-005", order: "#ORD-005", method: "ZaloPay",amount: "1.240.000₫", date: "11/04/2025", statusLabel: "Thành công", cls: "badge-paid" },
-];
-
+/* ── PAYMENTS ─────────────────────────────────────────────────── */
 const PAY_FILTERS = ["Tất cả", "Thành công", "Chờ TT", "Hoàn tiền", "Thất bại"];
+const PAY_STATUS = {
+  success:  { label: "Thành công", cls: "badge-paid"    },
+  pending:  { label: "Chờ TT",     cls: "badge-pending" },
+  refunded: { label: "Hoàn tiền",  cls: "badge-cancel"  },
+  failed:   { label: "Thất bại",   cls: "badge-cancel"  },
+};
 
 export function PaymentsPage() {
   const [active, setActive] = useState("Tất cả");
+  const { data, loading, error } = useFetch(() => PaymentService.getAll(), []);
+  const payments = Array.isArray(data) ? data : (data?.items ?? []);
 
-  const filtered = PAYMENTS.filter((p) =>
-    active === "Tất cả" ? true : p.statusLabel === active
-  );
+  const filtered = payments.filter((p) => {
+    if (active === "Tất cả") return true;
+    return PAY_STATUS[p.status]?.label === active;
+  });
 
   return (
     <div>
       <div className="page-filter">
         {PAY_FILTERS.map((f) => (
-          <button key={f} className={`filter-tab${active === f ? " active" : ""}`} onClick={() => setActive(f)}>{f}</button>
+          <button key={f} className={`filter-tab${active === f ? " active" : ""}`}
+            onClick={() => setActive(f)}>{f}</button>
         ))}
       </div>
       <div className="card">
         <div className="card__head">
-          <span className="card__title">Lịch sử thanh toán ({filtered.length})</span>
+          <span className="card__title">Lịch sử thanh toán ({loading ? "..." : filtered.length})</span>
         </div>
+        {error && <div style={{ padding: "16px 24px", color: "var(--red-text)", fontSize: 14 }}>⚠️ {error}</div>}
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Mã GD</th>
-                <th>Đơn hàng</th>
-                <th>Phương thức</th>
-                <th>Số tiền</th>
-                <th>Ngày</th>
-                <th>Trạng thái</th>
+                <th>Mã GD</th><th>Đơn hàng</th><th>Phương thức</th>
+                <th>Số tiền</th><th>Ngày</th><th>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
-                  <td style={{ fontWeight: 500 }}>{p.id}</td>
-                  <td style={{ color: "var(--g4)" }}>{p.order}</td>
-                  <td>
-                    <span className="badge badge-inactive">{p.method}</span>
-                  </td>
-                  <td style={{ fontWeight: 500 }}>{p.amount}</td>
-                  <td style={{ color: "var(--g4)" }}>{p.date}</td>
-                  <td><span className={`badge ${p.cls}`}>{p.statusLabel}</span></td>
-                </tr>
-              ))}
+              {loading
+                ? Array.from({ length: 5 }, (_, i) => (
+                    <tr key={i}>{Array.from({ length: 6 }, (_, j) => (
+                      <td key={j}><div className="skeleton-line" style={{ height: 14, borderRadius: 4 }} /></td>
+                    ))}</tr>
+                  ))
+                : filtered.map((p) => {
+                    const st = PAY_STATUS[p.status] ?? { label: p.status, cls: "badge-inactive" };
+                    return (
+                      <tr key={p.id}>
+                        <td style={{ fontWeight: 500 }}>#{p.id ?? p.transactionId}</td>
+                        <td style={{ color: "var(--g4)" }}>#{p.orderId ?? p.orderCode}</td>
+                        <td><span className="badge badge-inactive">{p.method ?? p.paymentMethod}</span></td>
+                        <td style={{ fontWeight: 500 }}>{Number(p.amount).toLocaleString("vi-VN")}₫</td>
+                        <td style={{ color: "var(--g4)" }}>
+                          {new Date(p.createdAt ?? p.date).toLocaleDateString("vi-VN")}
+                        </td>
+                        <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
+                      </tr>
+                    );
+                  })
+              }
             </tbody>
           </table>
         </div>
@@ -141,63 +157,67 @@ export function PaymentsPage() {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   NOTIFICATIONS
-══════════════════════════════════════════════════════ */
-const NOTIFS = [
-  { icon: "📦", text: "Đơn hàng #ORD-002 cần xử lý",          time: "2 phút trước",  type: "new",  read: false },
-  { icon: "⭐", text: "Review mới từ Nguyễn A chờ duyệt",      time: "15 phút trước", type: "new",  read: false },
-  { icon: "✅", text: "Thanh toán #PAY-001 thành công",         time: "1 giờ trước",   type: "ok",   read: false },
-  { icon: "⚠️", text: "Voucher FLASH50 còn 1 ngày hết hạn",    time: "3 giờ trước",   type: "warn", read: true },
-  { icon: "🚚", text: "Đơn #ORD-003 đã được giao hàng",        time: "Hôm qua",       type: "ok",   read: true },
-  { icon: "👤", text: "Người dùng mới đăng ký: Võ Thị Bích",  time: "Hôm qua",       type: "info", read: true },
-];
-
+/* ── NOTIFICATIONS ────────────────────────────────────────────── */
 const NOTIF_BADGE = {
-  new:  { label: "Mới",     cls: "badge-new" },
-  ok:   { label: "OK",      cls: "badge-active" },
-  warn: { label: "Cảnh báo",cls: "badge-pending" },
+  new:  { label: "Mới",      cls: "badge-new"      },
+  ok:   { label: "OK",       cls: "badge-active"   },
+  warn: { label: "Cảnh báo", cls: "badge-pending"  },
   info: { label: "Thông tin",cls: "badge-inactive" },
 };
-
 const NOTIF_FILTERS = ["Tất cả", "Chưa đọc"];
 
 export function NotificationsPage() {
   const [active, setActive] = useState("Tất cả");
+  const { data, loading, error, refetch } = useFetch(() => NotificationService.getAll(), []);
+  const notifs = Array.isArray(data) ? data : (data?.items ?? []);
 
-  const filtered = NOTIFS.filter((n) =>
-    active === "Chưa đọc" ? !n.read : true
+  const filtered = notifs.filter((n) =>
+    active === "Chưa đọc" ? !n.isRead && !n.read : true
   );
+
+  const handleMarkAll = async () => {
+    await NotificationService.markAllRead();
+    refetch();
+  };
 
   return (
     <div>
       <div className="page-filter">
         {NOTIF_FILTERS.map((f) => (
-          <button key={f} className={`filter-tab${active === f ? " active" : ""}`} onClick={() => setActive(f)}>{f}</button>
+          <button key={f} className={`filter-tab${active === f ? " active" : ""}`}
+            onClick={() => setActive(f)}>{f}</button>
         ))}
         <div className="filter-gap" />
-        <button className="btn btn-sm btn-outline">Đánh dấu đã đọc</button>
+        <button className="btn btn-sm btn-outline" onClick={handleMarkAll}>Đánh dấu đã đọc</button>
       </div>
       <div className="card">
         <div className="card__head">
-          <span className="card__title">Thông báo hệ thống ({filtered.length})</span>
+          <span className="card__title">Thông báo ({loading ? "..." : filtered.length})</span>
         </div>
+        {error && <div style={{ padding: "16px 24px", color: "var(--red-text)", fontSize: 14 }}>⚠️ {error}</div>}
         <div className="list-rows">
-          {filtered.map((n, i) => (
-            <div
-              className="list-row"
-              key={i}
-              style={{ opacity: n.read ? 0.65 : 1 }}
-            >
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{n.icon}</span>
-              <div className="list-row__main">{n.text}</div>
-              <div className="list-row__time">{n.time}</div>
-              <span className={`badge ${NOTIF_BADGE[n.type].cls}`}>
-                {NOTIF_BADGE[n.type].label}
-              </span>
-            </div>
-          ))}
-          {filtered.length === 0 && (
+          {loading
+            ? Array.from({ length: 4 }, (_, i) => (
+                <div key={i} className="list-row">
+                  <div className="skeleton-line" style={{ height: 14, borderRadius: 4, flex: 1 }} />
+                </div>
+              ))
+            : filtered.map((n) => {
+                const badge = NOTIF_BADGE[n.type] ?? NOTIF_BADGE.info;
+                return (
+                  <div key={n.id} className="list-row" style={{ opacity: (n.isRead || n.read) ? 0.65 : 1 }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{n.icon ?? "🔔"}</span>
+                    <div className="list-row__main">{n.message ?? n.text}</div>
+                    <div className="list-row__time">{n.createdAt
+                      ? new Date(n.createdAt).toLocaleString("vi-VN")
+                      : n.time}
+                    </div>
+                    <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                  </div>
+                );
+              })
+          }
+          {!loading && filtered.length === 0 && (
             <div style={{ textAlign: "center", color: "var(--g3)", padding: "28px 0", fontSize: 13 }}>
               Không có thông báo nào
             </div>
