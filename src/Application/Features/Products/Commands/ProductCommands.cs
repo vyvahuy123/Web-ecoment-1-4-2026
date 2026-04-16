@@ -37,7 +37,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     }
 }
 
-public record UpdateProductCommand(Guid Id, string Name, decimal Price, string? Description, string? ImageUrl) : IRequest<ProductDto>;
+public record UpdateProductCommand(
+    Guid Id, string Name, decimal Price, string? Description, string? ImageUrl, Guid? CategoryId // FIX: Guid? nullable
+) : IRequest<ProductDto>;
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
@@ -46,6 +48,7 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
+        
     }
 }
 
@@ -53,11 +56,18 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 {
     private readonly IUnitOfWork _uow;
     public UpdateProductCommandHandler(IUnitOfWork uow) => _uow = uow;
+
     public async Task<ProductDto> Handle(UpdateProductCommand req, CancellationToken ct)
     {
-        var product = await _uow.Products.GetByIdAsync(req.Id, ct) ?? throw new NotFoundException(nameof(Product), req.Id);
-        var result = product.Update(req.Name, req.Price, req.Description, req.ImageUrl);
-        if (result.IsFailure) throw new Application.Common.Exceptions.ValidationException(new[] { new FluentValidation.Results.ValidationFailure("", result.Error!) });
+        var product = await _uow.Products.GetByIdAsync(req.Id, ct)
+            ?? throw new NotFoundException(nameof(Product), req.Id);
+
+        // FIX: truyền Guid? trực tiếp — product.Update giờ nhận nullable
+        var result = product.Update(req.Name, req.Price, req.Description, req.ImageUrl, req.CategoryId);
+
+        if (result.IsFailure)
+            throw new Exception(result.Error!);
+
         _uow.Products.Update(product);
         await _uow.SaveChangesAsync(ct);
         return ProductMapper.ToDto(product);

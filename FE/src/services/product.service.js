@@ -43,6 +43,15 @@ const ProductService = {
     const { data } = await api.put(`/products/${id}`, payload);
     return data;
   },
+  uploadImage: async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Axios sẽ tự động xử lý Content-Type và Boundary cho bạn
+  const { data } = await api.post("/upload/image", formData); 
+  
+  return data.url;
+},
 
   /**
    * Điều chỉnh tồn kho (nhập/xuất) - Admin

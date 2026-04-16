@@ -34,7 +34,6 @@ public static class AppDbContextSeed
     // ─────────────────────────────────────────
     private static async Task<List<User>> SeedUsersAsync(AppDbContext context)
     {
-        // Seed từng user riêng lẻ theo email để tránh trùng với admin đã seed từ Program.cs
         var seedDefs = new[]
         {
             (username: "binh",  email: "binh@example.com",  hash: BCrypt.Net.BCrypt.HashPassword("Binh@123456"),  fullName: "Trần Thị Bình",  role: "Customer"),
@@ -56,7 +55,6 @@ public static class AppDbContextSeed
 
         await context.SaveChangesAsync();
 
-        // Trả về đúng thứ tự: [0]=binh, [1]=cuong
         return await context.Users
             .Where(u => new[] { "binh@example.com", "cuong@example.com" }.Contains(u.Email.Value))
             .OrderBy(u => u.Email.Value == "binh@example.com" ? 0 : 1)
@@ -70,7 +68,6 @@ public static class AppDbContextSeed
     {
         if (await context.Categories.AnyAsync()) return await context.Categories.ToListAsync();
 
-        // Điều chỉnh theo factory method thực tế của Category
         var categories = new List<Category>
         {
             Category.Create("Áo",       "Áo thun, áo sơ mi, áo khoác các loại").Value,
@@ -91,11 +88,11 @@ public static class AppDbContextSeed
     {
         if (await context.Products.AnyAsync()) return await context.Products.ToListAsync();
 
-        var catAo = cats[0].Id; // Áo
-        var catQuan = cats[1].Id; // Quần
-        var catGiay = cats[2].Id; // Giày dép
-        var catTui = cats[3].Id; // Túi xách
-        var catPhuKien = cats[4].Id; // Phụ kiện
+        var catAo = cats[0].Id;
+        var catQuan = cats[1].Id;
+        var catGiay = cats[2].Id;
+        var catTui = cats[3].Id;
+        var catPhuKien = cats[4].Id;
 
         var productDefs = new[]
         {
@@ -144,7 +141,7 @@ public static class AppDbContextSeed
         foreach (var def in productDefs)
         {
             var p = Product.Create(def.name, def.price, def.stock, def.catId, def.desc).Value;
-            p.Update(def.name, def.price, def.desc, def.img); // set ImageUrl
+            p.Update(def.name, def.price, def.desc, def.img, def.catId); // set ImageUrl
             products.Add(p);
         }
 
@@ -262,13 +259,12 @@ public static class AppDbContextSeed
     {
         if (await context.Orders.AnyAsync()) return await context.Orders.ToListAsync();
 
-        var addr1 = addresses[0]; // Trần Thị Bình
-        var addr2 = addresses[1]; // Lê Văn Cường
-        var voucher = vouchers[1];  // SAVE50K
+        var addr1 = addresses[0];
+        var addr2 = addresses[1];
+        var voucher = vouchers[1];
 
-        // ── Order 1: Bình mua Áo Thun + Quần Jeans (đã giao) ──
-        var aoThun = products[0]; // Áo Thun Basic – 199.000đ
-        var quanJean = products[2]; // Quần Jeans Slim – 590.000đ
+        var aoThun = products[0];
+        var quanJean = products[2];
         var subTotal1 = aoThun.Price * 2 + quanJean.Price;
         var order1 = Order.Create(
             orderCode: "ORD-20250101-0001",
@@ -290,9 +286,8 @@ public static class AppDbContextSeed
         order1.Deliver();
         order1.MarkPaid();
 
-        // ── Order 2: Cường mua Giày Sneaker + Balo Da (đang xử lý) ──
-        var sneaker = products[4]; // Giày Sneaker – 850.000đ
-        var balo = products[7]; // Balo Da PU   – 720.000đ
+        var sneaker = products[4];
+        var balo = products[7];
         var order2 = Order.Create(
             orderCode: "ORD-20250401-0002",
             userId: users[1].Id,
@@ -310,7 +305,6 @@ public static class AppDbContextSeed
         var orders = new List<Order> { order1, order2 };
         await context.Orders.AddRangeAsync(orders);
 
-        // Payments
         var payment1 = Payment.Create(order1.Id, PaymentMethod.BankTransfer, order1.TotalAmount);
         payment1.MarkPaid("TXN-20250101-001");
 
@@ -328,9 +322,9 @@ public static class AppDbContextSeed
         if (await context.Carts.AnyAsync()) return;
 
         var cart = Cart.Create(users[0].Id);
-        cart.AddOrUpdateItem(products[1].Id, products[1].Price, 1); // Áo Sơ Mi Linen
-        cart.AddOrUpdateItem(products[5].Id, products[5].Price, 2); // Dép Sandal Quai Ngang
-        cart.AddOrUpdateItem(products[8].Id, products[8].Price, 1); // Mũ Bucket
+        cart.AddOrUpdateItem(products[1].Id, products[1].Price, 1);
+        cart.AddOrUpdateItem(products[5].Id, products[5].Price, 2);
+        cart.AddOrUpdateItem(products[8].Id, products[8].Price, 1);
 
         await context.Carts.AddAsync(cart);
     }
@@ -348,7 +342,6 @@ public static class AppDbContextSeed
 
         var reviews = new List<Review>
         {
-            // Bình review Áo Thun Basic (đơn 1 đã giao)
             Review.Create(
                 productId: products[0].Id,
                 userId:    users[0].Id,
@@ -356,7 +349,6 @@ public static class AppDbContextSeed
                 rating:    5,
                 comment:   "Vải mềm mịn, mặc rất thoải mái, màu đẹp đúng như ảnh. Sẽ mua thêm!"
             ),
-            // Bình review Quần Jeans (đơn 1 đã giao)
             Review.Create(
                 productId: products[2].Id,
                 userId:    users[0].Id,
@@ -415,8 +407,8 @@ public static class AppDbContextSeed
 
         var wishLists = new List<WishList>
         {
-            WishList.Create(users[0].Id, products[4].Id), // Bình thích Giày Sneaker Trắng
-            WishList.Create(users[1].Id, products[6].Id), // Cường thích Túi Tote Canvas
+            WishList.Create(users[0].Id, products[4].Id),
+            WishList.Create(users[1].Id, products[6].Id),
         };
 
         await context.WishLists.AddRangeAsync(wishLists);

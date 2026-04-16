@@ -20,8 +20,16 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
   const fileRef = useRef(null);
 
   useEffect(() => {
+    if (!open) return;
     setForm(initial
-      ? { name: initial.name ?? "", price: initial.price ?? "", description: initial.description ?? "", imageUrl: initial.imageUrl ?? "", imageFile: null, categoryId: initial.categoryId ?? "" }
+      ? {
+          name: initial.name ?? "",
+          price: initial.price ?? "",
+          description: initial.description ?? "",
+          imageUrl: initial.imageUrl ?? "",
+          imageFile: null,
+          categoryId: initial.categoryId != null ? String(initial.categoryId) : "",
+        }
       : EMPTY_FORM
     );
     setPreviewUrl(initial?.imageUrl ?? "");
@@ -52,7 +60,9 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
       await onSave(form);
       onClose();
     } catch (e) {
-      setErr(e?.message ?? "Lỗi khi lưu sản phẩm.");
+      // FIX: hiển thị lỗi chi tiết từ server nếu có
+      const serverMsg = e?.response?.data?.message ?? e?.response?.data ?? e?.message;
+      setErr(typeof serverMsg === "string" ? serverMsg : "Lỗi khi lưu sản phẩm.");
     } finally {
       setSaving(false);
     }
@@ -75,7 +85,7 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
           <select className="modal-input" value={form.categoryId} onChange={set("categoryId")}>
             <option value="">-- Chọn danh mục --</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={String(c.id)}>{c.name}</option>
             ))}
           </select>
           <label>Mô tả</label>
@@ -166,13 +176,25 @@ function StockModal({ open, onClose, onSave, product }) {
 // ── Modal xác nhận xóa ─────────────────────────────────────────────────────
 function DeleteModal({ open, onClose, onConfirm, product }) {
   const [deleting, setDeleting] = useState(false);
+  const [err, setErr] = useState(""); // FIX: thêm state lỗi để hiển thị nếu xóa thất bại
+  
+  useEffect(() => { setErr(""); }, [open]); // reset lỗi khi mở lại
+
   if (!open || !product) return null;
 
   const handleConfirm = async () => {
     setDeleting(true);
-    try { await onConfirm(product.id); onClose(); }
-    catch { /* error handled upstream */ }
-    finally { setDeleting(false); }
+    setErr("");
+    try {
+      await onConfirm(product.id);
+      onClose();
+    } catch (e) {
+      // FIX: hiển thị lỗi thay vì nuốt im lặng
+      const serverMsg = e?.response?.data?.message ?? e?.response?.data ?? e?.message;
+      setErr(typeof serverMsg === "string" ? serverMsg : "Xóa thất bại. Vui lòng thử lại.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -186,6 +208,8 @@ function DeleteModal({ open, onClose, onConfirm, product }) {
           <p style={{ fontSize: 14, color: "#555" }}>
             Bạn có chắc muốn xóa sản phẩm <strong>{product.name}</strong>? Hành động này không thể hoàn tác.
           </p>
+          {/* FIX: hiển thị lỗi nếu xóa thất bại */}
+          {err && <div className="modal-err" style={{ marginTop: 8 }}>{err}</div>}
         </div>
         <div className="modal-foot">
           <button className="btn btn-sm" onClick={onClose} disabled={deleting}>Hủy</button>
@@ -259,32 +283,44 @@ export default function ProductsPage() {
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleCreate = async (form) => {
-    await ProductService.create({
-      name: form.name,
-      price: Number(form.price),
-      description: form.description || null,
-      imageUrl: form.imageUrl || null,
-      categoryId: form.categoryId || null,
-    });
-    fetchProducts();
-  };
 
+  // FIX: categoryId truyền đúng — null nếu không chọn, giữ nguyên string (Guid) nếu có
+  const handleCreate = async (form) => {
+  const imageUrl = await resolveImageUrl(form);
+  await ProductService.create({
+    name: form.name,
+    price: Number(form.price),
+    description: form.description || null,
+    imageUrl,
+    categoryId: form.categoryId || null,
+  });
+  fetchProducts();
+};
+const resolveImageUrl = async (form) => {
+  if (form.imageFile) {
+    return await ProductService.uploadImage(form.imageFile);
+  }
+  return form.imageUrl || null;
+};
+  // FIX: tương tự handleCreate — categoryId nullable
   const handleUpdate = async (form) => {
-    await ProductService.update(editTarget.id, {
-      name: form.name,
-      price: Number(form.price),
-      description: form.description || null,
-      imageUrl: form.imageUrl || null,
-    });
-    fetchProducts();
-  };
+  const imageUrl = await resolveImageUrl(form);
+  await ProductService.update(editTarget.id, {
+    name: form.name,
+    price: Number(form.price),
+    description: form.description || null,
+    imageUrl,
+    categoryId: form.categoryId || null,
+  });
+  fetchProducts();
+};
 
   const handleAdjustStock = async (id, delta, reason) => {
     await ProductService.adjustStock(id, { delta, reason });
     fetchProducts();
   };
 
+  // FIX: để lỗi throw lên DeleteModal xử lý và hiển thị
   const handleDelete = async (id) => {
     await ProductService.delete(id);
     fetchProducts();

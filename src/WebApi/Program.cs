@@ -116,6 +116,7 @@ try
 
     app.UseHttpsRedirection();
     app.UseCors("Default");
+    app.UseStaticFiles();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

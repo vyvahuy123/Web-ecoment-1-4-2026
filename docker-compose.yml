@@ -49,7 +49,9 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
+      - uploads_data:/app/wwwroot/uploads  # ← lưu ảnh persistent
 
 volumes:
   sqlserver_data:
   redis_data:
+  uploads_data:  # ← thêm volume mới

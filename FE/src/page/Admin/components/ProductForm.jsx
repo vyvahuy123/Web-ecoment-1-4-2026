@@ -12,6 +12,7 @@ export default function ProductForm({ open, onClose, onSave, initial, categories
   const fileRef = useRef(null);
 
   useEffect(() => {
+    if (!open) return;
     setForm(
       initial
         ? {
@@ -20,7 +21,7 @@ export default function ProductForm({ open, onClose, onSave, initial, categories
             description: initial.description ?? "",
             imageUrl: initial.imageUrl ?? "",
             imageFile: null,
-            categoryId: initial.categoryId ?? "",
+            categoryId: initial.categoryId != null ? String(initial.categoryId) : "",
           }
         : EMPTY_FORM
     );
@@ -104,7 +105,7 @@ export default function ProductForm({ open, onClose, onSave, initial, categories
             <select className="modal-input" value={form.categoryId} onChange={set("categoryId")}>
               <option value="">-- Chọn danh mục --</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={String(c.id)}>{c.name}</option>
               ))}
             </select>
           </div>
