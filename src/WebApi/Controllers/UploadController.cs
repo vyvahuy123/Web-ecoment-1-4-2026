@@ -10,7 +10,8 @@ public class UploadController : ControllerBase
     [HttpPost("image")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UploadImage(
-        IFormFile file, CancellationToken ct)
+        [FromForm] IFormFile file,   // FIX: thêm [FromForm] để ASP.NET bind multipart/form-data đúng
+        CancellationToken ct)
     {
         if (file is null || file.Length == 0)
             return BadRequest("Không có file.");
@@ -23,7 +24,6 @@ public class UploadController : ControllerBase
         if (file.Length > 5 * 1024 * 1024)
             return BadRequest("File không được vượt quá 5MB.");
 
-        // Dùng path cố định — không phụ thuộc WebRootPath
         var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
         Directory.CreateDirectory(uploadsDir);
 

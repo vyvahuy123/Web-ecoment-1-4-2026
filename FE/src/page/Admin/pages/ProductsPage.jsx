@@ -11,6 +11,9 @@ const EMPTY_FORM = {
   name: "", price: "", description: "", imageUrl: "", imageFile: null, categoryId: "",
 };
 
+// ── Helper: chuẩn hoá id về string để so sánh an toàn ─────────────────────
+const sid = (v) => (v == null ? "" : String(v));
+
 // ── Modal thêm / sửa sản phẩm ──────────────────────────────────────────────
 function ProductModal({ open, onClose, onSave, initial, categories }) {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -23,12 +26,13 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
     if (!open) return;
     setForm(initial
       ? {
-          name: initial.name ?? "",
-          price: initial.price ?? "",
+          name:        initial.name        ?? "",
+          price:       initial.price       ?? "",
           description: initial.description ?? "",
-          imageUrl: initial.imageUrl ?? "",
-          imageFile: null,
-          categoryId: initial.categoryId != null ? String(initial.categoryId) : "",
+          imageUrl:    initial.imageUrl    ?? "",
+          imageFile:   null,
+          // FIX: dùng sid() thay vì toLowerCase() — id có thể là number hoặc UUID
+          categoryId:  sid(initial.categoryId),
         }
       : EMPTY_FORM
     );
@@ -60,7 +64,6 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
       await onSave(form);
       onClose();
     } catch (e) {
-      // FIX: hiển thị lỗi chi tiết từ server nếu có
       const serverMsg = e?.response?.data?.message ?? e?.response?.data ?? e?.message;
       setErr(typeof serverMsg === "string" ? serverMsg : "Lỗi khi lưu sản phẩm.");
     } finally {
@@ -77,32 +80,75 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
         </div>
         <div className="modal-body">
           {err && <div className="modal-err">{err}</div>}
+
           <label>Tên sản phẩm *</label>
-          <input className="modal-input" value={form.name} onChange={set("name")} placeholder="VD: Oversized Linen Blazer" />
+          <input
+            className="modal-input"
+            value={form.name}
+            onChange={set("name")}
+            placeholder="VD: Oversized Linen Blazer"
+          />
+
           <label>Giá (VNĐ) *</label>
-          <input className="modal-input" type="number" value={form.price} onChange={set("price")} placeholder="890000" />
+          <input
+            className="modal-input"
+            type="number"
+            value={form.price}
+            onChange={set("price")}
+            placeholder="890000"
+          />
+
           <label>Danh mục</label>
-          <select className="modal-input" value={form.categoryId} onChange={set("categoryId")}>
+          <select
+            className="modal-input"
+            value={form.categoryId}
+            onChange={set("categoryId")}
+          >
             <option value="">-- Chọn danh mục --</option>
+            {/* FIX: value dùng sid(c.id) để khớp với form.categoryId */}
             {categories.map((c) => (
-              <option key={c.id} value={String(c.id)}>{c.name}</option>
+              <option key={c.id} value={sid(c.id)}>{c.name}</option>
             ))}
           </select>
+
           <label>Mô tả</label>
-          <textarea className="modal-input modal-textarea" value={form.description} onChange={set("description")} placeholder="Mô tả ngắn về sản phẩm..." />
+          <textarea
+            className="modal-input modal-textarea"
+            value={form.description}
+            onChange={set("description")}
+            placeholder="Mô tả ngắn về sản phẩm..."
+            rows={3}
+          />
+
           <label>Ảnh sản phẩm</label>
           <div className="file-upload-area" onClick={() => fileRef.current?.click()}>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
             <span className="file-upload-icon">📁</span>
             <span className="file-upload-text">
               {form.imageFile ? form.imageFile.name : "Nhấn để chọn ảnh từ máy tính"}
             </span>
             <span className="file-upload-hint">PNG, JPG, WEBP tối đa 5MB</span>
           </div>
+
           {previewUrl && (
             <div className="form-img-preview">
-              <img src={previewUrl} alt="preview" onError={(e) => (e.target.style.display = "none")} />
-              <button className="btn btn-sm btn-danger" style={{ marginTop: 6, fontSize: 12 }} onClick={handleRemoveImage} type="button">
+              <img
+                src={previewUrl}
+                alt="preview"
+                onError={(e) => (e.target.style.display = "none")}
+              />
+              <button
+                className="btn btn-sm btn-danger"
+                style={{ marginTop: 6, fontSize: 12 }}
+                onClick={handleRemoveImage}
+                type="button"
+              >
                 Xóa ảnh
               </button>
             </div>
@@ -111,7 +157,7 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
         <div className="modal-foot">
           <button className="btn btn-sm" onClick={onClose} disabled={saving}>Hủy</button>
           <button className="btn btn-sm btn-dark" onClick={handleSave} disabled={saving}>
-            {saving ? "Đang lưu..." : "Lưu"}
+            {saving ? "Đang lưu..." : initial ? "Cập nhật" : "Thêm mới"}
           </button>
         </div>
       </div>
@@ -176,9 +222,9 @@ function StockModal({ open, onClose, onSave, product }) {
 // ── Modal xác nhận xóa ─────────────────────────────────────────────────────
 function DeleteModal({ open, onClose, onConfirm, product }) {
   const [deleting, setDeleting] = useState(false);
-  const [err, setErr] = useState(""); // FIX: thêm state lỗi để hiển thị nếu xóa thất bại
-  
-  useEffect(() => { setErr(""); }, [open]); // reset lỗi khi mở lại
+  const [err, setErr] = useState("");
+
+  useEffect(() => { setErr(""); }, [open]);
 
   if (!open || !product) return null;
 
@@ -189,7 +235,6 @@ function DeleteModal({ open, onClose, onConfirm, product }) {
       await onConfirm(product.id);
       onClose();
     } catch (e) {
-      // FIX: hiển thị lỗi thay vì nuốt im lặng
       const serverMsg = e?.response?.data?.message ?? e?.response?.data ?? e?.message;
       setErr(typeof serverMsg === "string" ? serverMsg : "Xóa thất bại. Vui lòng thử lại.");
     } finally {
@@ -208,7 +253,6 @@ function DeleteModal({ open, onClose, onConfirm, product }) {
           <p style={{ fontSize: 14, color: "#555" }}>
             Bạn có chắc muốn xóa sản phẩm <strong>{product.name}</strong>? Hành động này không thể hoàn tác.
           </p>
-          {/* FIX: hiển thị lỗi nếu xóa thất bại */}
           {err && <div className="modal-err" style={{ marginTop: 8 }}>{err}</div>}
         </div>
         <div className="modal-foot">
@@ -246,7 +290,8 @@ export default function ProductsPage() {
   useEffect(() => {
     CategoryService.getAll()
       .then((res) => {
-        const data = Array.isArray(res) ? res : res?.data;
+        // FIX: handle cả 2 shape: array trực tiếp hoặc { data: [] } hoặc { items: [] }
+        const data = Array.isArray(res) ? res : (res?.data ?? res?.items ?? []);
         setCategories(Array.isArray(data) ? data : []);
       })
       .catch(() => setCategories([]));
@@ -282,56 +327,54 @@ export default function ProductsPage() {
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  const resolveImageUrl = async (form) => {
+    if (form.imageFile) {
+      return await ProductService.uploadImage(form.imageFile);
+    }
+    return form.imageUrl || null;
+  };
 
-  // FIX: categoryId truyền đúng — null nếu không chọn, giữ nguyên string (Guid) nếu có
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCreate = async (form) => {
-  const imageUrl = await resolveImageUrl(form);
-  await ProductService.create({
-    name: form.name,
-    price: Number(form.price),
-    description: form.description || null,
-    imageUrl,
-    categoryId: form.categoryId || null,
-  });
-  fetchProducts();
-};
-const resolveImageUrl = async (form) => {
-  if (form.imageFile) {
-    return await ProductService.uploadImage(form.imageFile);
-  }
-  return form.imageUrl || null;
-};
-  // FIX: tương tự handleCreate — categoryId nullable
+    const imageUrl = await resolveImageUrl(form);
+    await ProductService.create({
+      name:        form.name,
+      price:       Number(form.price),
+      description: form.description || null,
+      imageUrl,
+      categoryId:  form.categoryId || null,
+    });
+    fetchProducts();
+  };
+
   const handleUpdate = async (form) => {
-  const imageUrl = await resolveImageUrl(form);
-  await ProductService.update(editTarget.id, {
-    name: form.name,
-    price: Number(form.price),
-    description: form.description || null,
-    imageUrl,
-    categoryId: form.categoryId || null,
-  });
-  fetchProducts();
-};
+    const imageUrl = await resolveImageUrl(form);
+    await ProductService.update(editTarget.id, {
+      name:        form.name,
+      price:       Number(form.price),
+      description: form.description || null,
+      imageUrl,
+      categoryId:  form.categoryId || null,
+    });
+    fetchProducts();
+  };
 
   const handleAdjustStock = async (id, delta, reason) => {
     await ProductService.adjustStock(id, { delta, reason });
     fetchProducts();
   };
 
-  // FIX: để lỗi throw lên DeleteModal xử lý và hiển thị
   const handleDelete = async (id) => {
     await ProductService.delete(id);
     fetchProducts();
   };
 
-  const openEdit = (p) => { setEditTarget(p); setModalOpen(true); };
-  const openCreate = () => { setEditTarget(null); setModalOpen(true); };
+  const openEdit   = (p) => { setEditTarget(p); setModalOpen(true); };
+  const openCreate = ()  => { setEditTarget(null); setModalOpen(true); };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-
-  const FILTERS = [{ id: null, name: "Tất cả" }, ...categories];
+  const FILTERS    = [{ id: null, name: "Tất cả" }, ...categories];
 
   return (
     <div>
@@ -402,7 +445,10 @@ const resolveImageUrl = async (form) => {
               ) : (
                 products.map((p) => {
                   const stock = p.stock ?? p.stockQuantity ?? 0;
-                  const catName = categories.find((c) => c.id === p.categoryId)?.name ?? p.categoryName ?? "—";
+                  // FIX: dùng sid() để so sánh id an toàn, tránh number vs string mismatch
+                  const catName = categories.find((c) => sid(c.id) === sid(p.categoryId))?.name
+                    ?? p.categoryName
+                    ?? "—";
                   return (
                     <tr key={p.id}>
                       <td style={{ fontWeight: 500, maxWidth: 220 }}>{p.name}</td>

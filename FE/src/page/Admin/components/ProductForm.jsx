@@ -16,12 +16,13 @@ export default function ProductForm({ open, onClose, onSave, initial, categories
     setForm(
       initial
         ? {
-            name: initial.name ?? "",
-            price: initial.price ?? "",
+            name:        initial.name        ?? "",
+            price:       initial.price       ?? "",
             description: initial.description ?? "",
-            imageUrl: initial.imageUrl ?? "",
-            imageFile: null,
-            categoryId: initial.categoryId != null ? String(initial.categoryId) : "",
+            imageUrl:    initial.imageUrl    ?? "",
+            imageFile:   null,
+            // FIX: normalize về lowercase để khớp với value của <option>
+            categoryId:  initial.categoryId != null ? String(initial.categoryId).toLowerCase() : "",
           }
         : EMPTY_FORM
     );
@@ -102,10 +103,15 @@ export default function ProductForm({ open, onClose, onSave, initial, categories
           {/* Row 2: Danh mục */}
           <div className="form-group">
             <label className="form-label">Danh mục</label>
-            <select className="modal-input" value={form.categoryId} onChange={set("categoryId")}>
+            <select
+              className="modal-input"
+              value={form.categoryId}
+              onChange={set("categoryId")}
+            >
               <option value="">-- Chọn danh mục --</option>
+              {/* FIX: normalize value về lowercase để khớp với form.categoryId */}
               {categories.map((c) => (
-                <option key={c.id} value={String(c.id)}>{c.name}</option>
+                <option key={c.id} value={String(c.id).toLowerCase()}>{c.name}</option>
               ))}
             </select>
           </div>

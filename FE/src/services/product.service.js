@@ -43,15 +43,27 @@ const ProductService = {
     const { data } = await api.put(`/products/${id}`, payload);
     return data;
   },
-  uploadImage: async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
 
-  // Axios sẽ tự động xử lý Content-Type và Boundary cho bạn
-  const { data } = await api.post("/upload/image", formData); 
-  
-  return data.url;
-},
+  /**
+   * Upload ảnh sản phẩm - Admin
+   * FIX: xóa Content-Type khỏi header để browser tự set multipart/form-data + boundary.
+   * Nếu axiosConfig set default Content-Type: application/json thì sẽ bị 415,
+   * dùng headers: { "Content-Type": undefined } để override lại đúng.
+   * @param {File} file
+   * @returns {string} url
+   */
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await api.post("/upload/image", formData, {
+      headers: {
+        "Content-Type": undefined, // bỏ application/json, để browser tự set multipart/form-data
+      },
+    });
+
+    return data.url;
+  },
 
   /**
    * Điều chỉnh tồn kho (nhập/xuất) - Admin
@@ -72,10 +84,11 @@ const ProductService = {
   delete: async (id) => {
     await api.delete(`/products/${id}`);
   },
+
   getTopSelling: async (limit = 8) => {
-  const { data } = await api.get("/products/top-selling", { params: { limit } });
-  return data;
-},
+    const { data } = await api.get("/products/top-selling", { params: { limit } });
+    return data;
+  },
 };
 
 export default ProductService;

@@ -12,7 +12,6 @@ using System.Text;
 using WebApi.Middlewares;
 using WebApi.Services;
 
-// ── Serilog bootstrap ─────────────────────────────────────────────────────────
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -21,24 +20,20 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // ── Serilog (full config từ appsettings) ──────────────────────────────────
     builder.Host.UseSerilog((ctx, lc) => lc
         .ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console()
         .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day));
 
-    // ── Application + Infrastructure layers ──────────────────────────────────
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
-    // ── WebApi services ───────────────────────────────────────────────────────
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
 
-    // ── JWT Authentication ────────────────────────────────────────────────────
     var jwtKey = builder.Configuration["Jwt:Key"]
         ?? throw new InvalidOperationException("JWT Key not configured.");
 
@@ -47,29 +42,32 @@ try
         {
             opt.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer           = true,
-                ValidateAudience         = true,
-                ValidateLifetime         = true,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer              = builder.Configuration["Jwt:Issuer"],
-                ValidAudience            = builder.Configuration["Jwt:Audience"],
-                IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
+                // FIX: báo cho ASP.NET biết role nằm ở claim tên "role" (short name)
+                // thay vì URI dài mặc định ClaimTypes.Role
+                RoleClaimType = "role",
             };
         });
 
     builder.Services.AddAuthorization();
 
-    // ── Swagger với JWT support ───────────────────────────────────────────────
     builder.Services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Clean Architecture API", Version = "v1" });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            Name         = "Authorization",
-            Type         = SecuritySchemeType.Http,
-            Scheme       = "bearer",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
             BearerFormat = "JWT",
-            In           = ParameterLocation.Header
+            In = ParameterLocation.Header
         });
         c.AddSecurityRequirement(new OpenApiSecurityRequirement
         {
@@ -83,27 +81,17 @@ try
         });
     });
 
-    // ── CORS ──────────────────────────────────────────────────────────────────
     builder.Services.AddCors(opt => opt.AddPolicy("Default", policy =>
         policy.WithOrigins("http://localhost:5173")
-      .AllowAnyMethod()
-      .AllowAnyHeader()
-      .AllowCredentials()));
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()));
 
-    // ═════════════════════════════════════════════════════════════════════════
     var app = builder.Build();
-    // ═════════════════════════════════════════════════════════════════════════
 
-    // ── Global exception handler (luôn phải đứng đầu) ─────────────────────────
     app.UseMiddleware<ExceptionHandlingMiddleware>();
-
     app.UseSerilogRequestLogging();
 
-    //if (app.Environment.IsDevelopment())
-    //{
-    //    app.UseSwagger();
-    //    app.UseSwaggerUI();
-    //}
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
@@ -121,7 +109,6 @@ try
     app.UseAuthorization();
     app.MapControllers();
 
-    // ── Auto migrate on startup (Development only) ────────────────────────────
     if (app.Environment.IsDevelopment())
     {
         using var scope = app.Services.CreateScope();
@@ -135,7 +122,7 @@ try
         var seedFullName = cfg["Seed:FullName"];
 
         if (!string.IsNullOrEmpty(seedEmail) &&
-            !await db.Users.AnyAsync(u => u.Email.Value ==seedEmail))
+            !await db.Users.AnyAsync(u => u.Email.Value == seedEmail))
         {
             var userResult = User.Create(
                 seedUsername!,

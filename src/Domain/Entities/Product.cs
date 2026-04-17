@@ -1,9 +1,11 @@
 using Domain.Common;
 using Domain.Events;
 using Domain.ValueObjects;
+
 namespace Domain.Entities;
+
 /// <summary>
-/// Product Entity - ví dụ domain thứ hai song song với User
+/// Product Entity
 /// </summary>
 public sealed class Product : AuditableEntity
 {
@@ -15,9 +17,12 @@ public sealed class Product : AuditableEntity
     public bool IsActive { get; private set; }
     public Guid CategoryId { get; private set; }
     public Category Category { get; private set; } = null!;
+
     private readonly List<ProductImage> _images = new();
     public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
+
     private Product() { }
+
     public static Result<Product> Create(
         string name, decimal price, int stock, Guid categoryId, string? description = null)
     {
@@ -29,6 +34,7 @@ public sealed class Product : AuditableEntity
             return Result.Failure<Product>("Giá không được âm.");
         if (stock < 0)
             return Result.Failure<Product>("Số lượng tồn kho không được âm.");
+
         var product = new Product
         {
             Name = name.Trim(),
@@ -38,17 +44,17 @@ public sealed class Product : AuditableEntity
             CategoryId = categoryId,
             IsActive = true
         };
+
         product.AddDomainEvent(new ProductCreatedEvent(product.Id, product.Name));
         return Result.Success(product);
     }
+
     public Result Update(string name, decimal price, string? description, string? imageUrl, Guid? categoryId)
     {
         if (string.IsNullOrWhiteSpace(name))
             return Result.Failure("Tên sản phẩm không được để trống.");
         if (price < 0)
             return Result.Failure("Giá không được âm.");
-
-        // FIX: chỉ validate nếu categoryId được truyền vào
         if (categoryId.HasValue && categoryId.Value == Guid.Empty)
             return Result.Failure("Category không hợp lệ.");
 
@@ -57,13 +63,13 @@ public sealed class Product : AuditableEntity
         Description = description?.Trim();
         ImageUrl = imageUrl;
 
-        // FIX: chỉ cập nhật CategoryId nếu có giá trị, giữ nguyên nếu null
         if (categoryId.HasValue)
             CategoryId = categoryId.Value;
 
         MarkAsUpdated();
         return Result.Success();
     }
+
     public Result AdjustStock(int delta)
     {
         if (Stock + delta < 0)
@@ -72,5 +78,25 @@ public sealed class Product : AuditableEntity
         MarkAsUpdated();
         return Result.Success();
     }
-    public void Deactivate() { IsActive = false; MarkAsUpdated(); }
+
+    /// <summary>
+    /// Soft-delete: set IsActive = false VÀ IsDeleted = true
+    /// để global query filter (p => !p.IsDeleted) lọc sản phẩm ra khỏi mọi query.
+    /// </summary>
+    public void Delete()
+    {
+        IsActive = false;
+        MarkAsDeleted(); // BaseEntity.MarkAsDeleted() → set IsDeleted = true
+        MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Chỉ ẩn sản phẩm (không hiển thị ở storefront) nhưng vẫn truy vấn được.
+    /// Giữ lại nếu cần dùng riêng; luồng xóa dùng Delete().
+    /// </summary>
+    public void Deactivate()
+    {
+        IsActive = false;
+        MarkAsUpdated();
+    }
 }
