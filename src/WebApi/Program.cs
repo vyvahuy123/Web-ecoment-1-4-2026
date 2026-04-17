@@ -40,6 +40,7 @@ try
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(opt =>
         {
+            opt.MapInboundClaims = false;
             opt.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -49,11 +50,22 @@ try
                 ValidIssuer = builder.Configuration["Jwt:Issuer"],
                 ValidAudience = builder.Configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-
-                // FIX: báo cho ASP.NET biết role nằm ở claim tên "role" (short name)
-                // thay vì URI dài mặc định ClaimTypes.Role
                 RoleClaimType = "role",
             };
+            opt.Events = new JwtBearerEvents
+            {
+                OnAuthenticationFailed = ctx =>
+                {
+                    Console.WriteLine($"[JWT FAIL] {ctx.Exception.GetType().Name}: {ctx.Exception.Message}");
+                    return Task.CompletedTask;
+                },
+                OnForbidden = ctx =>
+                {
+                    Console.WriteLine($"[JWT FORBIDDEN] User: {ctx.HttpContext.User.Identity?.Name}, Claims: {string.Join(", ", ctx.HttpContext.User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
+                    return Task.CompletedTask;
+                }
+            };
+
         });
 
     builder.Services.AddAuthorization();
