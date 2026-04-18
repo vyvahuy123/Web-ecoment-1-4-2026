@@ -78,10 +78,24 @@ public sealed class User : AuditableEntity
         MarkAsUpdated();
         AddDomainEvent(new UserDeactivatedEvent(Id));
     }
+    public void Activate()
+    {
+        IsActive = true;
+        MarkAsUpdated();
+        AddDomainEvent(new UserActivatedEvent(Id));
+    }
 
     public void AssignRole(string role)
     {
         if (!_roles.Contains(role))
             _roles.Add(role);
     }
+    public void SetRole(string role)
+    {
+        _roles.Clear();
+        if (!string.IsNullOrWhiteSpace(role))
+            _roles.Add(role);
+        MarkAsUpdated();
+    }
+
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/layout.css";
 import api from "../../../api/axiosConfig";
+import AuthService from "../../../services/auth.service";
 
 const NAV_TEMPLATE = [
   {
@@ -28,7 +30,6 @@ const NAV_TEMPLATE = [
   },
 ];
 
-// Decode JWT payload (không cần thư viện)
 function decodeToken(token) {
   try {
     const payload = token.split(".")[1];
@@ -39,7 +40,6 @@ function decodeToken(token) {
   }
 }
 
-// Lấy tên từ các claim phổ biến của .NET JWT
 function getUserFromToken(decoded) {
   if (!decoded) return { name: "Admin", role: "Admin", initials: "AD" };
 
@@ -68,8 +68,13 @@ function getUserFromToken(decoded) {
 export default function Sidebar({ activePage, onNavigate }) {
   const [badges, setBadges] = useState({});
   const [user, setUser] = useState({ name: "Admin", role: "Admin", initials: "AD" });
+  const navigate = useNavigate();
 
-  // Lấy thông tin user từ JWT
+  const handleLogout = async () => {
+    try { await AuthService.logout(); } catch {}
+    navigate("/dang-nhap");
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -77,38 +82,29 @@ export default function Sidebar({ activePage, onNavigate }) {
     setUser(getUserFromToken(decoded));
   }, []);
 
-  // Fetch badge counts từ API
   useEffect(() => {
-  const fetchBadges = async () => {
-    try {
-      const [ordersRes, notifRes] = await Promise.allSettled([
-        api.get("/orders", { params: { page: 1, pageSize: 1, status: "pending" } }),
-        api.get("/notifications", { params: { page: 1, pageSize: 1 } }),
-      ]);
-
-      setBadges({
-        orders: ordersRes.status === "fulfilled"
-          ? (ordersRes.value.data?.totalCount ?? ordersRes.value.data?.total ?? 0)
-          : 0,
-
-        // Dùng field "unread" từ response của notifications
-        notifications: notifRes.status === "fulfilled"
-          ? (notifRes.value.data?.unread ?? 0)
-          : 0,
-
-        // Reviews và chat bỏ qua vì không có endpoint phù hợp
-        reviews: 0,
-        chat: 0,
-      });
-    } catch {
-      // giữ nguyên badge = 0
-    }
-  };
-
-  fetchBadges();
-  const interval = setInterval(fetchBadges, 60_000);
-  return () => clearInterval(interval);
-}, []);
+    const fetchBadges = async () => {
+      try {
+        const [ordersRes, notifRes] = await Promise.allSettled([
+          api.get("/orders", { params: { page: 1, pageSize: 1, status: "pending" } }),
+          api.get("/notifications", { params: { page: 1, pageSize: 1 } }),
+        ]);
+        setBadges({
+          orders: ordersRes.status === "fulfilled"
+            ? (ordersRes.value.data?.totalCount ?? ordersRes.value.data?.total ?? 0)
+            : 0,
+          notifications: notifRes.status === "fulfilled"
+            ? (notifRes.value.data?.unread ?? 0)
+            : 0,
+          reviews: 0,
+          chat: 0,
+        });
+      } catch {}
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <aside className="sidebar">
@@ -147,6 +143,9 @@ export default function Sidebar({ activePage, onNavigate }) {
           <div className="sidebar-user__name">{user.name}</div>
           <div className="sidebar-user__role">{user.role}</div>
         </div>
+        <button className="sidebar-logout" onClick={handleLogout} title="Đăng xuất">
+          ⏻
+        </button>
       </div>
     </aside>
   );

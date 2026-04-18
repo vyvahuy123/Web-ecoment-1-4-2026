@@ -19,5 +19,6 @@ public record ProductSummaryDto(
     int Stock,
     bool IsActive,
     string? ImageUrl,
+    Guid? CategoryId,
     int TotalSold = 0
 );

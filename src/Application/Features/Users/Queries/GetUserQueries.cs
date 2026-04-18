@@ -39,7 +39,7 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedResult<U
             request.Page, request.PageSize, request.Search, ct);
 
         var dtos = items.Select(u =>
-            new UserSummaryDto(u.Id, u.Username, u.Email.Value, u.FullName, u.IsActive));
+        new UserSummaryDto(u.Id, u.Username, u.Email.Value, u.FullName, u.IsActive, u.Roles));
 
         return new PagedResult<UserSummaryDto>(dtos, total, request.Page, request.PageSize);
     }

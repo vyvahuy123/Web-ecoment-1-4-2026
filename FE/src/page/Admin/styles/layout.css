@@ -299,3 +299,19 @@
   padding: 30px 32px;
   min-height: 0;
 }
+.sidebar-logout {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.sidebar-logout:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}

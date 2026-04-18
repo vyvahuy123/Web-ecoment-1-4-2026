@@ -16,9 +16,9 @@ function AuthPage({ defaultTab }) {
   const navigate = useNavigate();
 
   const handleLoginSuccess = (data) => {
-    // Token đã được lưu vào localStorage bởi AuthService
-    // Redirect về trang chủ sau khi login/register thành công
-    setTimeout(() => navigate("/"), 1500);
+    const user = data.user;
+    const isAdmin = user?.roles?.includes("Admin");
+    setTimeout(() => navigate(isAdmin ? "/admin" : "/"), 1500);
   };
 
   return <Auth defaultTab={defaultTab} onLoginSuccess={handleLoginSuccess} />;

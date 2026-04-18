@@ -82,6 +82,18 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(new GetAllOrdersQuery(page, pageSize, status), ct);
         return Ok(result);
     }
+    /// <summary>Lấy orders của 1 user cụ thể - Admin only</summary>
+    [HttpGet("user/{userId:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetByUserId(
+        Guid userId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetMyOrdersQuery(userId, page, pageSize), ct);
+        return Ok(result);
+    }
 
     /// <summary>Cập nhật trạng thái đơn hàng - Admin</summary>
     [HttpPatch("{id:guid}/status")]
@@ -93,7 +105,9 @@ public class OrdersController : ControllerBase
         [FromBody] UpdateOrderStatusRequest req,
         CancellationToken ct)
         => Ok(await _mediator.Send(new UpdateOrderStatusCommand(id, req.NewStatus), ct));
+
 }
+
 
 // Request records
 public record CreateOrderRequest(

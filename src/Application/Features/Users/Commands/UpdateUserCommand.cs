@@ -61,3 +61,37 @@ public class DeactivateUserCommandHandler : IRequestHandler<DeactivateUserComman
         await _uow.SaveChangesAsync(ct);
     }
 }
+// ── Update Role Command ────────────────────────────────────────────────────
+public record UpdateUserRoleCommand(Guid Id, string Role) : IRequest;
+public class UpdateUserRoleCommandHandler : IRequestHandler<UpdateUserRoleCommand>
+{
+    private readonly IUnitOfWork _uow;
+    public UpdateUserRoleCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public async Task Handle(UpdateUserRoleCommand request, CancellationToken ct)
+    {
+        var user = await _uow.Users.GetByIdAsync(request.Id, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entities.User), request.Id);
+        user.SetRole(request.Role);
+        _uow.Users.Update(user);
+        await _uow.SaveChangesAsync(ct);
+    }
+}
+
+// ── Activate Command ──────────────────────────────────────────────────────────
+public record ActivateUserCommand(Guid Id) : IRequest;
+
+public class ActivateUserCommandHandler : IRequestHandler<ActivateUserCommand>
+{
+    private readonly IUnitOfWork _uow;
+    public ActivateUserCommandHandler(IUnitOfWork uow) => _uow = uow;
+
+    public async Task Handle(ActivateUserCommand request, CancellationToken ct)
+    {
+        var user = await _uow.Users.GetByIdAsync(request.Id, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entities.User), request.Id);
+
+        user.Activate();
+        _uow.Users.Update(user);
+        await _uow.SaveChangesAsync(ct);
+    }
+}
