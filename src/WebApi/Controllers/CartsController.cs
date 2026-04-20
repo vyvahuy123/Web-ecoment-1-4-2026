@@ -16,7 +16,7 @@ public class CartsController : ControllerBase
     private readonly IMediator _mediator;
     public CartsController(IMediator mediator) => _mediator = mediator;
 
-    private Guid UserId => Guid.Parse(User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+    private Guid UserId => Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
 
     /// <summary>Lấy giỏ hàng của user hiện tại</summary>
     [HttpGet]

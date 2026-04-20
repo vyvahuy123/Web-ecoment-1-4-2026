@@ -187,7 +187,6 @@ function Categories() {
   );
 }
 
-// Skeleton cho product card
 function ProductSkeleton() {
   return (
     <div className="ec-product-card">
@@ -200,34 +199,9 @@ function ProductSkeleton() {
         }}
       />
       <div className="ec-product-info">
-        <div
-          style={{
-            height: 12,
-            background: "#f0f0f0",
-            borderRadius: 4,
-            marginBottom: 8,
-            width: "40%",
-            animation: "shimmer 1.2s infinite",
-          }}
-        />
-        <div
-          style={{
-            height: 16,
-            background: "#f0f0f0",
-            borderRadius: 4,
-            marginBottom: 8,
-            animation: "shimmer 1.2s infinite",
-          }}
-        />
-        <div
-          style={{
-            height: 14,
-            background: "#f0f0f0",
-            borderRadius: 4,
-            width: "60%",
-            animation: "shimmer 1.2s infinite",
-          }}
-        />
+        <div style={{ height: 12, background: "#f0f0f0", borderRadius: 4, marginBottom: 8, width: "40%", animation: "shimmer 1.2s infinite" }} />
+        <div style={{ height: 16, background: "#f0f0f0", borderRadius: 4, marginBottom: 8, animation: "shimmer 1.2s infinite" }} />
+        <div style={{ height: 14, background: "#f0f0f0", borderRadius: 4, width: "60%", animation: "shimmer 1.2s infinite" }} />
       </div>
     </div>
   );
@@ -239,7 +213,6 @@ function Products({ onAddCart }) {
   const ref = useRef(null);
   const navigate = useNavigate();
 
-  // Re-observe sau khi products load xong
   useFadeUp(ref, [products]);
 
   useEffect(() => {
@@ -278,11 +251,7 @@ function Products({ onAddCart }) {
                       <img
                         src={p.imageUrl}
                         alt={p.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         onError={(e) => {
                           e.target.style.display = "none";
                           e.target.nextSibling.style.display = "flex";
@@ -296,7 +265,6 @@ function Products({ onAddCart }) {
                       🛍️
                     </div>
 
-                    {/* Badge bán chạy nếu totalSold > 0 */}
                     {p.totalSold > 0 && (
                       <span className="ec-product-badge badge-hot">
                         🔥 {p.totalSold} đã bán
@@ -304,12 +272,19 @@ function Products({ onAddCart }) {
                     )}
 
                     <div className="ec-product-actions">
-                      <button
-                        className="ec-add-cart"
-                        onClick={() => onAddCart(p)}
-                      >
-                        Thêm vào giỏ
-                      </button>
+                      {p.stock > 0 ? (
+                        <button className="ec-add-cart" onClick={() => onAddCart(p)}>
+                          Thêm vào giỏ
+                        </button>
+                      ) : (
+                        <button
+                          className="ec-add-cart"
+                          disabled
+                          style={{ background: "#ccc", cursor: "not-allowed", color: "#888", opacity: 0.7 }}
+                        >
+                          Hết hàng
+                        </button>
+                      )}
                       <button className="ec-wishlist">♡</button>
                     </div>
                   </div>
@@ -353,9 +328,7 @@ function Banner() {
             className="ec-btn ec-btn-outline fade-up"
             onClick={(e) => {
               e.preventDefault();
-              document
-                .querySelector("#products")
-                ?.scrollIntoView({ behavior: "smooth" });
+              document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" });
             }}
           >
             Khám phá ngay
@@ -371,12 +344,7 @@ function Testimonials() {
   const ref = useRef(null);
   useFadeUp(ref);
   const initials = (n) =>
-    n
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   return (
     <section className="ec-section" ref={ref}>
       <div className="container">
@@ -423,13 +391,10 @@ function Newsletter() {
       <div className="container">
         <h2>Đăng ký nhận ưu đãi</h2>
         <p>
-          Nhận thông tin bộ sưu tập mới và ưu đãi độc quyền dành riêng cho thành
-          viên.
+          Nhận thông tin bộ sưu tập mới và ưu đãi độc quyền dành riêng cho thành viên.
         </p>
         {done ? (
-          <p style={{ color: "#0a0a0a", fontWeight: 500 }}>
-            ✓ Cảm ơn bạn đã đăng ký!
-          </p>
+          <p style={{ color: "#0a0a0a", fontWeight: 500 }}>✓ Cảm ơn bạn đã đăng ký!</p>
         ) : (
           <form className="ec-newsletter-form" onSubmit={submit}>
             <input
@@ -442,135 +407,21 @@ function Newsletter() {
             <button type="submit">Đăng ký</button>
           </form>
         )}
-        <p className="ec-newsletter-note">
-          Bạn có thể hủy đăng ký bất cứ lúc nào.
-        </p>
+        <p className="ec-newsletter-note">Bạn có thể hủy đăng ký bất cứ lúc nào.</p>
       </div>
     </section>
   );
 }
 
-function CartDrawer({ open, onClose, items, onUpdateQty, onRemove }) {
-  const total = items.reduce((sum, i) => sum + Number(i.price) * i.qty, 0);
-  return (
-    <>
-      <div
-        className={`ec-cart-overlay ${open ? "open" : ""}`}
-        onClick={onClose}
-      />
-      <div className={`ec-cart-drawer ${open ? "open" : ""}`}>
-        <div className="ec-cart-header">
-          <h3>Giỏ hàng ({items.length})</h3>
-          <button className="ec-cart-close" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-        <div className="ec-cart-items">
-          {items.length === 0 ? (
-            <p
-              style={{
-                color: "#b0b0b0",
-                fontSize: 14,
-                textAlign: "center",
-                marginTop: 40,
-              }}
-            >
-              Giỏ hàng trống
-            </p>
-          ) : (
-            items.map((item) => (
-              <div className="ec-cart-item" key={item.id ?? item.name}>
-                <div className="ec-cart-item-img">
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : (
-                    "🛍️"
-                  )}
-                </div>
-                <div className="ec-cart-item-info">
-                  <h4>{item.name}</h4>
-                  <div className="ec-cart-item-footer">
-                    <div className="ec-qty">
-                      <button
-                        onClick={() => onUpdateQty(item.id ?? item.name, -1)}
-                      >
-                        −
-                      </button>
-                      <span>{item.qty}</span>
-                      <button
-                        onClick={() => onUpdateQty(item.id ?? item.name, 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <button
-                      className="ec-remove"
-                      onClick={() => onRemove(item.id ?? item.name)}
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                  <p style={{ fontSize: 13, fontWeight: 500, marginTop: 6 }}>
-                    {Number(item.price).toLocaleString("vi-VN")}₫
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        {items.length > 0 && (
-          <div className="ec-cart-footer">
-            <div className="ec-cart-total">
-              <span>Tổng cộng</span>
-              <span>{total.toLocaleString("vi-VN")}₫</span>
-            </div>
-            <button className="ec-checkout-btn">Tiến hành thanh toán</button>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
-
-export default function Home({
-  cartOpen,
-  setCartOpen,
-  cartItems,
-  setCartItems,
-}) {
-  const addToCart = (product) => {
-    setCartItems((prev) => {
-      const key = product.id ?? product.name;
-      const exists = prev.find((i) => (i.id ?? i.name) === key);
-      if (exists)
-        return prev.map((i) =>
-          (i.id ?? i.name) === key ? { ...i, qty: i.qty + 1 } : i,
-        );
-      return [...prev, { ...product, qty: 1 }];
-    });
-    setCartOpen(true);
+export default function Home() {
+  const addToCart = async (p) => {
+    try {
+      const { default: CartService } = await import("@/services/cart.service.js");
+      await CartService.addItem({ productId: p.id, quantity: 1 });
+    } catch (e) {
+      console.error("Thêm vào giỏ thất bại", e);
+    }
   };
-
-  const updateQty = (key, delta) => {
-    setCartItems((prev) =>
-      prev.map((i) =>
-        (i.id ?? i.name) === key
-          ? { ...i, qty: Math.max(1, i.qty + delta) }
-          : i,
-      ),
-    );
-  };
-
-  const removeItem = (key) =>
-    setCartItems((prev) => prev.filter((i) => (i.id ?? i.name) !== key));
 
   return (
     <>
@@ -583,13 +434,6 @@ export default function Home({
       <Banner />
       <Testimonials />
       <Newsletter />
-      <CartDrawer
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-        items={cartItems}
-        onUpdateQty={updateQty}
-        onRemove={removeItem}
-      />
     </>
   );
 }

@@ -46,9 +46,19 @@ function ProductCard({ p, onAddCart, delay }) {
           🛍️
         </div>
         <div className="pd-card-actions">
-          <button className="pd-btn-cart" onClick={() => onAddCart(p)}>
-            Thêm vào giỏ
-          </button>
+          {p.stock > 0 ? (
+            <button className="pd-btn-cart" onClick={() => onAddCart(p)}>
+              Thêm vào giỏ
+            </button>
+          ) : (
+            <button
+              className="pd-btn-cart"
+              disabled
+              style={{ background: "#ccc", cursor: "not-allowed", color: "#888", opacity: 0.7 }}
+            >
+              Hết hàng
+            </button>
+          )}
           <button className="pd-btn-wish">♡</button>
         </div>
       </div>
@@ -146,7 +156,6 @@ export default function Products({ onAddCart }) {
 
   useFadeUp(ref, [products]);
 
-  // Fetch categories
   useEffect(() => {
     setCatsLoading(true);
     CategoryService.getAll()
@@ -158,7 +167,6 @@ export default function Products({ onAddCart }) {
       .finally(() => setCatsLoading(false));
   }, []);
 
-  // Reset page khi đổi category
   useEffect(() => {
     setPage(1);
     setSearch("");
@@ -217,7 +225,6 @@ export default function Products({ onAddCart }) {
       <CategoryHero categoryName={selectedCategoryName} />
 
       <div className="pd-main">
-        {/* Toolbar */}
         <div className="pd-controls">
           <div className="pd-toolbar">
             <div className="pd-search-wrap">
@@ -245,7 +252,6 @@ export default function Products({ onAddCart }) {
           </div>
         </div>
 
-        {/* Layout: sidebar + grid */}
         <div className="pd-content-layout">
           <CategorySidebar
             categories={categories}
