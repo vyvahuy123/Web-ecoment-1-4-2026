@@ -35,7 +35,8 @@ public class Order : BaseEntity
     public PaymentStatus PaymentStatus { get; private set; } = PaymentStatus.Unpaid;
 
     public string? Note { get; private set; }               // Ghi chú của khách
-    public string? CancelReason { get; private set; }       // Lý do huỷ
+    public string? CancelReason { get; private set; }       // Lý do huỷ (admin duyệt)
+    public string? CancellationReason { get; private set; } // Lý do user yêu cầu huỷ
     public DateTime? PaidAt { get; private set; }
     public DateTime? ShippedAt { get; private set; }
     public DateTime? DeliveredAt { get; private set; }
@@ -97,6 +98,15 @@ public class Order : BaseEntity
     public void Deliver() { Status = OrderStatus.Delivered; DeliveredAt = DateTime.UtcNow; UpdatedAt = DateTime.UtcNow; }
     public void MarkPaid() { PaymentStatus = PaymentStatus.Paid; PaidAt = DateTime.UtcNow; UpdatedAt = DateTime.UtcNow; }
 
+    /// <summary>User yêu cầu huỷ — chờ admin duyệt</summary>
+    public void RequestCancellation(string reason)
+    {
+        Status = OrderStatus.PendingCancellation;
+        CancellationReason = reason;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Admin duyệt huỷ — mới thực sự cancel</summary>
     public void Cancel(string reason)
     {
         Status = OrderStatus.Cancelled;

@@ -14,7 +14,7 @@ public record CreateReviewCommand(
     string? Comment = null,
     string? ImageUrls = null) : IRequest<ReviewDto>;
 
-public class CreateReviewCommandHandler
+public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, ReviewDto>
 {
     private readonly IUnitOfWork _uow;
     public CreateReviewCommandHandler(IUnitOfWork uow) => _uow = uow;

@@ -3,6 +3,7 @@ using Application.Common.Interfaces;
 using Domain.Entities;
 using Infrastructure;
 using Infrastructure.Persistence;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -92,7 +93,7 @@ try
             }
         });
     });
-
+    builder.Services.AddScoped<Application.Interfaces.IVNPayService, Infrastructure.Services.VNPayService>();
     builder.Services.AddCors(opt => opt.AddPolicy("Default", policy =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyMethod()

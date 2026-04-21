@@ -5,7 +5,7 @@ namespace Application.Features.Payments.Commands;
 
 public record RefundPaymentCommand(Guid PaymentId, decimal RefundAmount, string Reason) : IRequest;
 
-public class RefundPaymentCommandHandler
+public class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentCommand>
 {
     private readonly IUnitOfWork _uow;
     public RefundPaymentCommandHandler(IUnitOfWork uow) => _uow = uow;

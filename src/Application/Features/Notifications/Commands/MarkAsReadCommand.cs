@@ -5,7 +5,7 @@ namespace Application.Features.Notifications.Commands;
 
 public record MarkAsReadCommand(Guid UserId, Guid NotificationId) : IRequest;
 
-public class MarkAsReadCommandHandler
+public class MarkAsReadCommandHandler : IRequestHandler<MarkAsReadCommand>
 {
     private readonly IUnitOfWork _uow;
     public MarkAsReadCommandHandler(IUnitOfWork uow) => _uow = uow;

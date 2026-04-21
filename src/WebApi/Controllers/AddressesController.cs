@@ -16,10 +16,10 @@ public class AddressesController : ControllerBase
     private readonly IMediator _mediator;
     public AddressesController(IMediator mediator) => _mediator = mediator;
 
-    private Guid UserId => Guid.Parse(User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+    private Guid UserId => Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
 
     /// <summary>Lấy danh sách địa chỉ của user</summary>
-    [HttpGet]
+    [HttpGet("my")]
     [ProducesResponseType(typeof(List<AddressDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyAddresses(CancellationToken ct)
         => Ok(await _mediator.Send(new GetMyAddressesQuery(UserId), ct));

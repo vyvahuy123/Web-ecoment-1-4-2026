@@ -6,7 +6,7 @@ namespace Application.Features.Vouchers.Queries;
 
 public record ValidateVoucherQuery(string Code, Guid UserId, decimal OrderAmount) : IRequest<ValidateVoucherDto>;
 
-public class ValidateVoucherQueryHandler
+public class ValidateVoucherQueryHandler : IRequestHandler<ValidateVoucherQuery, ValidateVoucherDto>
 {
     private readonly IUnitOfWork _uow;
     public ValidateVoucherQueryHandler(IUnitOfWork uow) => _uow = uow;

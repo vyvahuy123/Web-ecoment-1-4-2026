@@ -5,7 +5,7 @@ namespace Application.Features.Reviews.Commands;
 
 public record ReplyReviewCommand(Guid ReviewId, string AdminReply) : IRequest;
 
-public class ReplyReviewCommandHandler
+public class ReplyReviewCommandHandler : IRequestHandler<ReplyReviewCommand>
 {
     private readonly IUnitOfWork _uow;
     public ReplyReviewCommandHandler(IUnitOfWork uow) => _uow = uow;

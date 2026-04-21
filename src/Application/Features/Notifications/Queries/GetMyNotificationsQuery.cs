@@ -7,7 +7,7 @@ namespace Application.Features.Notifications.Queries;
 
 public record GetMyNotificationsQuery(Guid UserId, int Page = 1, int PageSize = 20) : IRequest<(List<NotificationDto> Items, int Total, int UnreadCount)>;
 
-public class GetMyNotificationsQueryHandler
+public class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotificationsQuery, (List<NotificationDto> Items, int Total, int UnreadCount)>
 {
     private readonly IUnitOfWork _uow;
     public GetMyNotificationsQueryHandler(IUnitOfWork uow) => _uow = uow;

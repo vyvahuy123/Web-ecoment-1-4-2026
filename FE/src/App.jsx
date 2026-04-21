@@ -11,6 +11,8 @@ import Auth from "./page/Auth/Auth.jsx";
 import AdminDashboard from "./page/Admin/AdminDashboard";
 import Cart from "./page/Cart/Cart";
 import Orders from "./page/Orders/Orders";
+import Checkout from "./page/Checkout/Checkout";
+import OrderSuccess from "./page/OrderSuccess/OrderSuccess";
 import CartDrawer from "./components/CartDrawer.jsx";
 
 function AuthPage({ defaultTab }) {
@@ -45,6 +47,8 @@ function AppInner() {
           <Route path="/gioi-thieu" element={<About />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success/:orderCode" element={<OrderSuccess />} />
         </Route>
         <Route element={<AuthLayout />}>
           <Route path="/dang-nhap" element={<AuthPage defaultTab="login" />} />

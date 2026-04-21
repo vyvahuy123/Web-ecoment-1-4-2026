@@ -13,7 +13,7 @@ public record CreateAddressCommand(
     string Ward, string Street,
     bool IsDefault) : IRequest<AddressDto>;
 
-public class CreateAddressCommandHandler
+public class CreateAddressCommandHandler : IRequestHandler<CreateAddressCommand, AddressDto>
 {
     private readonly IUnitOfWork _uow;
     public CreateAddressCommandHandler(IUnitOfWork uow) => _uow = uow;

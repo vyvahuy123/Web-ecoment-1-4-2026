@@ -8,13 +8,14 @@ namespace Domain.Enums
 {
     public enum OrderStatus
     {
-        Pending = 0,        // Chờ xác nhận
-        Confirmed = 1,      // Đã xác nhận
-        Processing = 2,     // Đang xử lý
-        Shipped = 3,        // Đã giao vận chuyển
-        Delivered = 4,      // Đã giao thành công
-        Cancelled = 5,      // Đã huỷ
-        Refunded = 6        // Đã hoàn tiền
+        Pending = 0,
+        Confirmed = 1,
+        Processing = 2,
+        Shipped = 3,
+        Delivered = 4,
+        Cancelled = 5,
+        Refunded = 6,
+        PendingCancellation = 7,  
     }
     public enum PaymentMethod
     {

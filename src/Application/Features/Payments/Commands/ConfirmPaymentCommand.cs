@@ -5,7 +5,7 @@ namespace Application.Features.Payments.Commands;
 
 public record ConfirmPaymentCommand(Guid PaymentId, string? TransactionId, string? GatewayResponse = null) : IRequest;
 
-public class ConfirmPaymentCommandHandler
+public class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymentCommand>
 {
     private readonly IUnitOfWork _uow;
     public ConfirmPaymentCommandHandler(IUnitOfWork uow) => _uow = uow;

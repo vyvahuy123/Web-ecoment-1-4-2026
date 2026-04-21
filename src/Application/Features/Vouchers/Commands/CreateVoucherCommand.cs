@@ -19,7 +19,7 @@ public record CreateVoucherCommand(
     int MaxUsagePerUser = 1,
     string? Description = null) : IRequest<VoucherDto>;
 
-public class CreateVoucherCommandHandler
+public class CreateVoucherCommandHandler : IRequestHandler<CreateVoucherCommand, VoucherDto>
 {
     private readonly IUnitOfWork _uow;
     public CreateVoucherCommandHandler(IUnitOfWork uow) => _uow = uow;

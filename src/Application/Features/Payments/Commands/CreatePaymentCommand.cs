@@ -9,7 +9,7 @@ namespace Application.Features.Payments.Commands;
 
 public record CreatePaymentCommand(Guid OrderId, PaymentMethod Method) : IRequest<PaymentDto>;
 
-public class CreatePaymentCommandHandler
+public class CreatePaymentCommandHandler : IRequestHandler<CreatePaymentCommand, PaymentDto>
 {
     private readonly IUnitOfWork _uow;
     public CreatePaymentCommandHandler(IUnitOfWork uow) => _uow = uow;

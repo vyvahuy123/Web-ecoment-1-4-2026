@@ -9,14 +9,14 @@ public record UpdateAddressCommand(
     string FullName, string Phone,
     string Province, string District,
     string Ward, string Street,
-    bool IsDefault) : IRequest;
+    bool IsDefault) : IRequest<Unit>;
 
-public class UpdateAddressCommandHandler
+public class UpdateAddressCommandHandler : IRequestHandler<UpdateAddressCommand, Unit>
 {
     private readonly IUnitOfWork _uow;
     public UpdateAddressCommandHandler(IUnitOfWork uow) => _uow = uow;
 
-    public async Task Handle(UpdateAddressCommand request, CancellationToken ct)
+    public async Task<Unit> Handle(UpdateAddressCommand request, CancellationToken ct)
     {
         var address = await _uow.Addresses.GetByIdAsync(request.AddressId)
             ?? throw new Exception("Address not found.");
@@ -41,5 +41,6 @@ public class UpdateAddressCommandHandler
         if (request.IsDefault) address.SetAsDefault();
         _uow.Addresses.Update(address);
         await _uow.SaveChangesAsync(ct);
+        return Unit.Value;
     }
 }

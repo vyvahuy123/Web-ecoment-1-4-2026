@@ -5,7 +5,7 @@ namespace Application.Features.WishLists.Commands;
 
 public record RemoveFromWishListCommand(Guid UserId, Guid ProductId) : IRequest;
 
-public class RemoveFromWishListCommandHandler
+public class RemoveFromWishListCommandHandler : IRequestHandler<RemoveFromWishListCommand>
 {
     private readonly IUnitOfWork _uow;
     public RemoveFromWishListCommandHandler(IUnitOfWork uow) => _uow = uow;

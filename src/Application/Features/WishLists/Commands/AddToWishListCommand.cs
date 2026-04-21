@@ -8,7 +8,7 @@ namespace Application.Features.WishLists.Commands;
 
 public record AddToWishListCommand(Guid UserId, Guid ProductId) : IRequest<WishListDto>;
 
-public class AddToWishListCommandHandler
+public class AddToWishListCommandHandler : IRequestHandler<AddToWishListCommand, WishListDto>
 {
     private readonly IUnitOfWork _uow;
     public AddToWishListCommandHandler(IUnitOfWork uow) => _uow = uow;

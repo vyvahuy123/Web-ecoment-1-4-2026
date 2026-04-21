@@ -94,6 +94,13 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(new GetMyOrdersQuery(userId, page, pageSize), ct);
         return Ok(result);
     }
+    /// <summary>Admin duyệt yêu cầu huỷ đơn từ user</summary>
+    [HttpPatch("{id:guid}/approve-cancellation")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ApproveCancellation(Guid id, CancellationToken ct)
+        => Ok(await _mediator.Send(new ApproveCancellationCommand(id), ct));
 
     /// <summary>Cập nhật trạng thái đơn hàng - Admin</summary>
     [HttpPatch("{id:guid}/status")]

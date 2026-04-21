@@ -32,13 +32,16 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Ord
         if (order.UserId != req.UserId)
             throw new UnauthorizedException("Bạn không có quyền huỷ đơn hàng này.");
 
+        // Chỉ cho phép request hủy khi đơn đang Pending hoặc Confirmed
         if (order.Status != Domain.Enums.OrderStatus.Pending &&
             order.Status != Domain.Enums.OrderStatus.Confirmed)
             throw new ValidationException(new[] {
-                new FluentValidation.Results.ValidationFailure("Status", "Không thể huỷ đơn hàng ở trạng thái này.")
+                new FluentValidation.Results.ValidationFailure("Status",
+                    "Chỉ có thể yêu cầu huỷ đơn hàng ở trạng thái Chờ xác nhận hoặc Đã xác nhận.")
             });
 
-        order.Cancel(req.Reason);
+        // User không hủy trực tiếp — chỉ chuyển sang PendingCancellation
+        order.RequestCancellation(req.Reason);
         _uow.Orders.Update(order);
         await _uow.SaveChangesAsync(ct);
         return OrderMapper.ToDto(order);

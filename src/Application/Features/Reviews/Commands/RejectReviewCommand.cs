@@ -5,7 +5,7 @@ namespace Application.Features.Reviews.Commands;
 
 public record RejectReviewCommand(Guid ReviewId) : IRequest;
 
-public class RejectReviewCommandHandler
+public class RejectReviewCommandHandler : IRequestHandler<RejectReviewCommand>
 {
     private readonly IUnitOfWork _uow;
     public RejectReviewCommandHandler(IUnitOfWork uow) => _uow = uow;
