@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import { CartProvider, useCart } from "./contexts/CartContext.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
 import AuthLayout from "./layouts/AuthLayout.jsx";
 import Home from "./page/Home/Home.jsx";
@@ -11,7 +12,6 @@ import AdminDashboard from "./page/Admin/AdminDashboard";
 import Cart from "./page/Cart/Cart";
 import Orders from "./page/Orders/Orders";
 import CartDrawer from "./components/CartDrawer.jsx";
-import CartService from "./services/cart.service.js";
 
 function AuthPage({ defaultTab }) {
   const navigate = useNavigate();
@@ -23,26 +23,23 @@ function AuthPage({ defaultTab }) {
   return <Auth defaultTab={defaultTab} onLoginSuccess={handleLoginSuccess} />;
 }
 
-export default function App() {
-  const [cartOpen, setCartOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+function AppInner() {
+  const { cartCount, setCartOpen, addItem } = useCart();
 
-  const handleCartCountChange = useCallback((count) => setCartCount(count), []);
-  const addToCart = useCallback(async (product) => {
-  try {
-    await CartService.addItem({ productId: product.id, quantity: 1 });
-    setCartCount((c) => c + 1);
-  } catch (err) {
-    console.error("Thêm vào giỏ thất bại", err);
-  }
-}, []);
+  const addToCart = useCallback(async (p) => {
+    try {
+      await addItem(p.id, 1);
+    } catch (e) {
+      console.error("Thêm vào giỏ thất bại", e);
+    }
+  }, [addItem]);
 
   return (
-    <BrowserRouter>
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCartCountChange={handleCartCountChange} />
+    <>
+      <CartDrawer />
       <Routes>
         <Route element={<MainLayout cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home addToCart={addToCart} />} />
           <Route path="/lien-he" element={<Contact />} />
           <Route path="/san-pham" element={<Products onAddCart={addToCart} />} />
           <Route path="/gioi-thieu" element={<About />} />
@@ -55,6 +52,16 @@ export default function App() {
           <Route path="/admin/*" element={<AdminDashboard />} />
         </Route>
       </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <CartProvider>
+        <AppInner />
+      </CartProvider>
     </BrowserRouter>
   );
 }
