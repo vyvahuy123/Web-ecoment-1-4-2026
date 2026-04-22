@@ -65,7 +65,7 @@ export default function Checkout() {
     if (!voucherCode.trim()) return;
     setVoucherLoading(true); setVoucherError(""); setVoucherResult(null);
     try {
-      const result = await VoucherService.validate({ code: voucherCode.trim(), orderAmount: subTotal });
+      const result = await VoucherService.validate(voucherCode.trim(), subTotal);
       setVoucherResult(result);
     } catch (err) {
       setVoucherError(err?.response?.data?.message || "Mã voucher không hợp lệ.");

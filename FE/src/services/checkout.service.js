@@ -14,7 +14,7 @@ export const AddressService = {
 };
 
 export const VoucherService = {
-  validate: (data) => API.post("/vouchers/validate", data).then((r) => r.data),
+  validate: (code, orderAmount) => API.get("/vouchers/validate", { params: { code, orderAmount } }).then((r) => r.data),
 };
 
 export const OrderService = {

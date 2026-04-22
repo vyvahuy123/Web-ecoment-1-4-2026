@@ -422,10 +422,10 @@
   bottom: 0;
   background: rgba(0, 0, 0, .35);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
+  padding: 80px 20px 20px;
   animation: overlay-in .18s ease;
 }
 
@@ -444,7 +444,7 @@
   flex-direction: column;
   max-height: 90vh;
   animation: modal-in .2s cubic-bezier(.34,1.56,.64,1);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 @keyframes modal-in {
