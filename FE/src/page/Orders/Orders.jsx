@@ -1,18 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import "./Orders.css";
 import OrderService from "@/services/order.service";
+import ReviewService from "@/services/review.service";
 
 const BASE_URL = "http://localhost:5000";
 
 // Map OrderStatus enum từ backend
 const STATUS_MAP = {
-  0: { label: "Chờ xác nhận", cls: "status-pending",  trackStep: 0 },
-  1: { label: "Đã xác nhận",  cls: "status-pending",  trackStep: 1 },
-  2: { label: "Đang xử lý",   cls: "status-shipping", trackStep: 1 },
-  3: { label: "Đang giao",    cls: "status-shipping", trackStep: 2 },
-  4: { label: "Đã giao",      cls: "status-done",     trackStep: 3 },
-  5: { label: "Đã hủy",       cls: "status-cancel",   trackStep: -1 },
-  6: { label: "Hoàn tiền",    cls: "status-cancel",   trackStep: -1 },
+  Pending:             { label: 'Chờ xác nhận',  cls: 'status-pending',  trackStep: 0 },
+  Confirmed:           { label: 'Đã xác nhận',   cls: 'status-pending',  trackStep: 1 },
+  Processing:          { label: 'Đang xử lý',    cls: 'status-shipping', trackStep: 1 },
+  Shipped:             { label: 'Đang giao',      cls: 'status-shipping', trackStep: 2 },
+  Delivered:           { label: 'Đã giao',        cls: 'status-done',     trackStep: 3 },
+  Cancelled:           { label: 'Đã hủy',         cls: 'status-cancel',   trackStep: -1 },
+  Refunded:            { label: 'Hoàn tiền',      cls: 'status-cancel',   trackStep: -1 },
+  PendingCancellation: { label: 'Chờ duyệt hủy', cls: 'status-pending',  trackStep: -1 },
 };
 
 const PAYMENT_METHOD_MAP = {
@@ -80,7 +84,76 @@ function Tracker({ step }) {
   );
 }
 
-function OrderCard({ order, onCancel }) {
+
+function ReviewModal({ order, item, onClose, onSuccess }) {
+  const [rating, setRating] = useState(5);
+  const [hover, setHover] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState("");
+  const BASE = "http://localhost:5000";
+  const imgUrl = item.productImageUrl?.startsWith("http")
+    ? item.productImageUrl
+    : item.productImageUrl ? BASE + item.productImageUrl : null;
+
+  const handleSubmit = async () => {
+    if (!rating) return setErr("Vui long chon so sao.");
+    setSubmitting(true); setErr("");
+    try {
+      await ReviewService.create({ productId: item.productId, orderId: order.id, rating, comment });
+      onSuccess();
+      onClose();
+    } catch (e) {
+      setErr(e?.response?.data?.errors?.detail?.[0] ?? e?.response?.data?.message ?? "Loi gui danh gia.");
+    } finally { setSubmitting(false); }
+  };
+
+  return createPortal(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose}>
+      <div style={{background:"#fff",borderRadius:16,padding:32,width:480,maxWidth:"95vw",maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h3 style={{margin:0,fontSize:18,fontWeight:700}}>Danh gia san pham</h3>
+          <button onClick={onClose} style={{background:"none",border:"none",fontSize:22,cursor:"pointer"}}>x</button>
+        </div>
+        <div style={{display:"flex",gap:14,alignItems:"center",background:"#f8f8f8",borderRadius:10,padding:14,marginBottom:20}}>
+          {imgUrl && <img src={imgUrl} alt={item.productName} style={{width:72,height:72,objectFit:"cover",borderRadius:8}}/>}
+          <div>
+            <div style={{fontWeight:600,fontSize:15}}>{item.productName}</div>
+            <div style={{color:"#888",fontSize:13,marginTop:4}}>x{item.quantity} - {Number(item.unitPrice).toLocaleString("vi-VN")} VND</div>
+          </div>
+        </div>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:8}}>Chat luong san pham</div>
+          <div style={{display:"flex",gap:6}}>
+            {[1,2,3,4,5].map(s=>(
+              <span key={s} style={{fontSize:32,cursor:"pointer",color:s<=(hover||rating)?"#f5a623":"#ddd"}}
+                onMouseEnter={()=>setHover(s)} onMouseLeave={()=>setHover(0)} onClick={()=>setRating(s)}>*</span>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:8}}>Nhan xet</div>
+          <textarea value={comment} onChange={e=>setComment(e.target.value)}
+            placeholder="Chia se cam nhan cua ban..."
+            style={{width:"100%",minHeight:100,borderRadius:8,border:"1px solid #e0e0e0",padding:"10px 12px",fontSize:14,resize:"vertical",boxSizing:"border-box"}}/>
+        </div>
+        {err && <div style={{color:"#e74c3c",fontSize:13,marginBottom:12}}>{err}</div>}
+        <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+          <button onClick={onClose} style={{padding:"10px 24px",borderRadius:8,border:"1px solid #ddd",background:"#fff",cursor:"pointer"}}>Huy</button>
+          <button onClick={handleSubmit} disabled={submitting}
+            style={{padding:"10px 24px",borderRadius:8,border:"none",background:"#111",color:"#fff",cursor:"pointer",opacity:submitting?0.7:1}}>
+            {submitting?"Dang gui...":"Gui danh gia"}
+          </button>
+        </div>
+      </div>
+    </div>
+  , document.body);
+}
+
+function OrderCard({ order, onCancel, reviewedOrders = [] }) {
+  const navigate = useNavigate();
+  const [reviewItem, setReviewItem] = useState(null);
+  const [reviewed, setReviewed] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [detail, setDetail] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -138,7 +211,7 @@ function OrderCard({ order, onCancel }) {
       </div>
 
       {/* Tracker */}
-      {order.status !== 5 && order.status !== 6 && (
+      {order.status !== 'Cancelled' && order.status !== 'Refunded' && (
         <Tracker step={status.trackStep} />
       )}
 
@@ -253,12 +326,22 @@ function OrderCard({ order, onCancel }) {
           <strong>{fmt(order.totalAmount)}₫</strong>
         </div>
         <div className="order-card__actions">
-          {order.status === 4 && (
-            <button className="ec-btn ec-btn-outline" style={{ padding: "8px 20px", fontSize: 11 }}>
+          {order.status === 'Delivered' && (
+            <button className="ec-btn ec-btn-outline" style={{ padding: "8px 20px", fontSize: 11, opacity: reviewed ? 0.5 : 1, cursor: reviewed ? "not-allowed" : "pointer" }} disabled={reviewed} onClick={async () => {
+                if (detail) { setReviewItem(detail.items?.[0]); return; }
+                try {
+                  const d = await OrderService.getById(order.id);
+                  setDetail(d);
+                  setReviewItem(d.items?.[0]);
+                } catch {}
+              }}>
               Đánh giá
             </button>
           )}
-          {(order.status === 0 || order.status === 1) && (
+          {reviewItem && (
+        <ReviewModal order={order} item={reviewItem} onClose={()=>setReviewItem(null)} onSuccess={()=>{ setReviewItem(null); setReviewed(true); }} />
+      )}
+      {(order.status === 'Pending' || order.status === 'Confirmed') && (
             <button
               className="ec-btn ec-btn-outline"
               style={{ padding: "8px 20px", fontSize: 11, color: "#c0392b", borderColor: "#c0392b" }}
@@ -284,6 +367,7 @@ function OrderCard({ order, onCancel }) {
 export default function Orders() {
   const [tab, setTab] = useState("all");
   const [orders, setOrders] = useState([]);
+  const [reviewedOrders, setReviewedOrders] = useState(() => JSON.parse(localStorage.getItem("reviewedOrders") || "[]"));
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -310,9 +394,9 @@ export default function Orders() {
 
   const filtered = tab === "all"
     ? orders
-    : orders.filter(o => String(o.status) === tab);
+    : orders.filter(o => o.status === tab);
 
-  const tabCount = (statusId) => orders.filter(o => String(o.status) === statusId).length;
+  const tabCount = (statusId) => orders.filter(o => o.status === statusId).length;
 
   return (
     <div className="orders-page">
@@ -361,7 +445,7 @@ export default function Orders() {
           ) : (
             <>
               {filtered.map((o) => (
-                <OrderCard key={o.id} order={o} onCancel={handleCancel} />
+                <OrderCard key={o.id} order={o} onCancel={handleCancel} reviewedOrders={reviewedOrders} />
               ))}
 
               {/* Pagination */}

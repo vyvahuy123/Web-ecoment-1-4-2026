@@ -13,6 +13,7 @@ public interface IOrderRepository
         int page, int pageSize, OrderStatus? status = null, CancellationToken ct = default);
     void Add(Order order);
     void Update(Order order);
+    Task<bool> HasUserPurchasedProductAsync(Guid userId, Guid productId, CancellationToken ct = default);
 }
 
 public interface IAddressRepository

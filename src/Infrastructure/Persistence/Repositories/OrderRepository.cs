@@ -58,4 +58,9 @@ public class OrderRepository : IOrderRepository
 
     public void Add(Order order) => _ctx.Orders.Add(order);
     public void Update(Order order) => _ctx.Orders.Update(order);
+    public async Task<bool> HasUserPurchasedProductAsync(Guid userId, Guid productId, CancellationToken ct = default)
+        => await _ctx.Orders
+            .AnyAsync(o => o.UserId == userId
+                && o.Status == OrderStatus.Delivered
+                && o.Items.Any(i => i.ProductId == productId), ct);
 }

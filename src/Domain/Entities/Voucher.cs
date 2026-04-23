@@ -82,4 +82,23 @@ public class Voucher : BaseEntity
     public void IncrementUsage() { UsedQuantity++; UpdatedAt = DateTime.UtcNow; }
     public void Deactivate() { IsActive = false; UpdatedAt = DateTime.UtcNow; }
     public void Delete() { IsDeleted = true; UpdatedAt = DateTime.UtcNow; }
+
+    public void Update(string code, VoucherType type, decimal discountValue,
+    int totalQuantity, DateTime startDate, DateTime endDate,
+    decimal minOrderAmount, decimal? maxDiscountAmount,
+    int maxUsagePerUser, bool isActive, string? description)
+    {
+        Code = code.ToUpper().Trim();
+        Type = type;
+        DiscountValue = discountValue;
+        TotalQuantity = totalQuantity;
+        StartDate = startDate;
+        EndDate = endDate;
+        MinOrderAmount = minOrderAmount;
+        MaxDiscountAmount = maxDiscountAmount;
+        MaxUsagePerUser = maxUsagePerUser;
+        IsActive = isActive;
+        Description = description;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

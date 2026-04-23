@@ -16,7 +16,7 @@ public class WishListsController : ControllerBase
     private readonly IMediator _mediator;
     public WishListsController(IMediator mediator) => _mediator = mediator;
 
-    private Guid UserId => Guid.Parse(User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+    private Guid UserId => Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
 
     /// <summary>Lấy danh sách yêu thích</summary>
     [HttpGet]

@@ -15,7 +15,7 @@ public class ReviewsController : ControllerBase
     private readonly IMediator _mediator;
     public ReviewsController(IMediator mediator) => _mediator = mediator;
 
-    private Guid UserId => Guid.Parse(User.FindFirst("sub")?.Value ?? Guid.Empty.ToString());
+    private Guid UserId => Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
 
     /// <summary>Lấy reviews của sản phẩm</summary>
     [HttpGet("product/{productId:guid}")]
