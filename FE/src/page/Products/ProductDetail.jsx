@@ -94,6 +94,21 @@ export default function ProductDetail() {
   const [addingCart, setAddingCart] = useState(false);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const isAdmin = (() => { try { const u = localStorage.getItem("user"); return u ? JSON.parse(u)?.roles?.includes("Admin") ?? false : false; } catch { return false; } })();
+  const [replyingId, setReplyingId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const handleAdminReply = async (reviewId) => {
+    if (!replyText.trim()) return;
+    setReplyLoading(true);
+    try {
+      await ReviewService.reply(reviewId, replyText.trim());
+      setReplyingId(null);
+      setReplyText('');
+      fetchReviews(reviewPage);
+    } catch(e) { console.error(e); }
+    finally { setReplyLoading(false); }
+  };
 
   const isLiked = product ? isWishlisted(product.id) : false;
 
@@ -282,13 +297,37 @@ export default function ProductDetail() {
                   {review.comment && <p style={{ fontSize: 14, color: "#444", lineHeight: 1.6, marginBottom: 8 }}>{review.comment}</p>}
                   {review.adminReply && (
                     <div style={{ background: "#f8f7f5", borderRadius: 8, padding: "10px 14px", marginTop: 8, borderLeft: "3px solid #111" }}>
-                      <p style={{ fontSize: 11, fontWeight: 600, color: "#999", marginBottom: 4 }}>PHẢN HỒI TỪ SHOP</p>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: "#999", marginBottom: 4 }}>PHAN HOI TU SHOP</p>
                       <p style={{ fontSize: 13, color: "#444" }}>{review.adminReply}</p>
                     </div>
                   )}
+                  {isAdmin && (
+                    replyingId === review.id ? (
+                      <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+                        <textarea rows={2} value={replyText} onChange={e => setReplyText(e.target.value)}
+                          placeholder="Nhap phan hoi tu shop..."
+                          style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", resize: "none" }} />
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button disabled={replyLoading} onClick={() => handleAdminReply(review.id)}
+                            style={{ padding: "7px 18px", background: "#111", color: "#fff", border: "none", borderRadius: 6, fontSize: 13, cursor: "pointer" }}>
+                            {replyLoading ? "..." : "Gui phan hoi"}
+                          </button>
+                          <button onClick={() => { setReplyingId(null); setReplyText(""); }}
+                            style={{ padding: "7px 18px", background: "none", border: "1px solid #ddd", borderRadius: 6, fontSize: 13, cursor: "pointer" }}>
+                            Huy
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setReplyingId(review.id); setReplyText(review.adminReply || ""); }}
+                        style={{ marginTop: 8, padding: "5px 14px", background: "none", border: "1px solid #ddd", borderRadius: 6, fontSize: 12, cursor: "pointer", color: "#666" }}>
+                        {review.adminReply ? "Sua phan hoi" : "Phan hoi"}
+                      </button>
+                    )
+                  )}
+
                 </div>
               ))}
-
               {/* Pagination */}
               {totalPages > 1 && (
                 <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 24 }}>

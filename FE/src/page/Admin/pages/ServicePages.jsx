@@ -5,78 +5,88 @@ import NotificationService from "@/services/notification.service";
 import { useFetch } from "@/hooks/useFetch";
 
 /* ── REVIEWS ──────────────────────────────────────────────────── */
-const REVIEW_FILTERS = ["Chờ duyệt", "Đã duyệt", "Bị ẩn"];
-
 export function ReviewsPage() {
-  const [active, setActive] = useState("Chờ duyệt");
+  const [active, setActive] = useState('Tat ca');
+  const [replyingId, setReplyingId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
   const { data, loading, error, refetch } = useFetch(() => ReviewService.getAll(), []);
   const reviews = Array.isArray(data) ? data : (data?.items ?? []);
 
   const filtered = reviews.filter((r) => {
-    if (active === "Chờ duyệt") return r.status === "pending";
-    if (active === "Đã duyệt")  return r.status === "approved";
-    return r.status === "hidden";
+    if (active === 'Chua phan hoi') return !r.adminReply;
+    if (active === 'Da phan hoi') return !!r.adminReply;
+    return true;
   });
 
-  const handleApprove = async (id) => {
-    await ReviewService.approve(id);
-    refetch();
-  };
-  const handleHide = async (id) => {
-    await ReviewService.hide(id);
-    refetch();
+  const handleReply = async (id) => {
+    if (!replyText.trim()) return;
+    setReplyLoading(true);
+    try {
+      await ReviewService.reply(id, replyText.trim());
+      setReplyingId(null);
+      setReplyText('');
+      refetch();
+    } catch (e) { console.error(e); }
+    finally { setReplyLoading(false); }
   };
 
   return (
     <div>
-      <div className="page-filter">
-        {REVIEW_FILTERS.map((f) => (
-          <button key={f} className={`filter-tab${active === f ? " active" : ""}`}
-            onClick={() => setActive(f)}>{f}</button>
+      <div className='page-filter'>
+        {['Tat ca', 'Chua phan hoi', 'Da phan hoi'].map((f) => (
+          <button key={f} className={'filter-tab' + (active === f ? ' active' : '')} onClick={() => setActive(f)}>{f}</button>
         ))}
       </div>
-      <div className="card">
-        <div className="card__head">
-          <span className="card__title">Đánh giá ({loading ? "..." : filtered.length})</span>
+      <div className='card'>
+        <div className='card__head'>
+          <span className='card__title'>Danh gia ({loading ? '...' : filtered.length})</span>
         </div>
-        {error && <div style={{ padding: "16px 24px", color: "var(--red-text)", fontSize: 14 }}>⚠️ {error}</div>}
-        <div className="table-wrap">
-          <table className="table">
+        {error && <div style={{ padding: '16px 24px', color: 'var(--red-text)', fontSize: 14 }}>loi {error}</div>}
+        <div className='table-wrap'>
+          <table className='table'>
             <thead>
               <tr>
-                <th>Khách hàng</th><th>Sản phẩm</th><th>Sao</th>
-                <th>Nội dung</th><th>Trạng thái</th><th>Hành động</th>
+                <th>Khach hang</th><th>San pham</th><th>Sao</th><th>Noi dung</th><th>Phan hoi admin</th><th>Hanh dong</th>
               </tr>
             </thead>
             <tbody>
-              {loading
-                ? Array.from({ length: 4 }, (_, i) => (
-                    <tr key={i}>{Array.from({ length: 6 }, (_, j) => (
-                      <td key={j}><div className="skeleton-line" style={{ height: 14, borderRadius: 4 }} /></td>
-                    ))}</tr>
-                  ))
-                : filtered.map((r) => (
-                    <tr key={r.id}>
-                      <td>{r.userName ?? r.user?.name}</td>
-                      <td>{r.productName ?? r.product?.name}</td>
-                      <td style={{ color: "#e6a817", letterSpacing: 1 }}>{"★".repeat(r.rating ?? r.stars ?? 0)}</td>
-                      <td style={{ maxWidth: 200, color: "var(--g4)", fontSize: 12, fontStyle: "italic" }}>{r.content}</td>
-                      <td>
-                        <span className={`badge ${r.status === "pending" ? "badge-pending" : "badge-active"}`}>
-                          {r.status === "pending" ? "Chờ duyệt" : "Đã duyệt"}
-                        </span>
-                      </td>
-                      <td>
-                        {r.status === "pending"
-                          ? <button className="btn btn-sm btn-dark" onClick={() => handleApprove(r.id)}>Duyệt</button>
-                          : <button className="btn btn-sm btn-outline" onClick={() => handleHide(r.id)}>Ẩn</button>
-                        }
-                      </td>
-                    </tr>
-                  ))
-              }
+              {loading ? Array.from({ length: 4 }, (_, i) => (
+                <tr key={i}>{Array.from({ length: 6 }, (_, j) => (
+                  <td key={j}><div className='skeleton-line' style={{ height: 14, borderRadius: 4 }} /></td>
+                ))}</tr>
+              )) : filtered.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.userName}</td>
+                  <td style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.productName}</td>
+                  <td style={{ color: '#e6a817' }}>{'star'.repeat(r.rating ?? 0).split('').map(() => '*').join('')}{r.rating ?? 0} sao</td>
+                  <td style={{ maxWidth: 160, color: 'var(--g4)', fontSize: 12, fontStyle: 'italic' }}>{r.comment}</td>
+                  <td style={{ maxWidth: 200 }}>
+                    {replyingId === r.id ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <textarea rows={2} value={replyText} onChange={e => setReplyText(e.target.value)}
+                          placeholder='Nhap phan hoi...'
+                          style={{ width: '100%', fontSize: 12, padding: '6px 8px', borderRadius: 6, border: '1px solid #ddd', resize: 'none' }} />
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button className='btn btn-sm btn-dark' disabled={replyLoading} onClick={() => handleReply(r.id)}>{replyLoading ? '...' : 'Gui'}</button>
+                          <button className='btn btn-sm btn-outline' onClick={() => { setReplyingId(null); setReplyText(''); }}>Huy</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: r.adminReply ? 'var(--g4)' : '#bbb', fontStyle: r.adminReply ? 'normal' : 'italic' }}>
+                        {r.adminReply ?? 'Chua phan hoi'}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <button className='btn btn-sm btn-dark' onClick={() => { setReplyingId(r.id); setReplyText(r.adminReply ?? ''); }}>
+                      {r.adminReply ? 'Sua' : 'Phan hoi'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign: "center", color: "var(--g3)", padding: "28px 20px" }}>Không có dữ liệu</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--g3)', padding: '28px 20px' }}>Khong co du lieu</td></tr>
               )}
             </tbody>
           </table>

@@ -23,7 +23,6 @@ const NAV_TEMPLATE = [
     group: "Dịch vụ",
     items: [
       { id: "chat",          icon: "◈", label: "Tin nhắn",   badgeKey: "chat" },
-      { id: "reviews",       icon: "◇", label: "Đánh giá",   badgeKey: "reviews" },
       { id: "payments",      icon: "◻", label: "Thanh toán" },
       { id: "notifications", icon: "◌", label: "Thông báo",  badgeKey: "notifications" },
     ],

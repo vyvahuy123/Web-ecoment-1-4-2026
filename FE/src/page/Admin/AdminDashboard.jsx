@@ -12,7 +12,8 @@ import UsersPage     from "./pages/UsersPage";
 import ProductsPage  from "./pages/ProductsPage";
 import ChatPage      from "./pages/ChatPage";
 import { CategoriesPage, OrdersPage, VouchersPage }     from "./pages/CatalogPages";
-import { ReviewsPage, PaymentsPage, NotificationsPage } from "./pages/ServicePages";
+import { PaymentsPage, NotificationsPage } from "./pages/ServicePages";
+
 
 const PAGES = {
   dashboard:     DashboardPage,
@@ -22,7 +23,7 @@ const PAGES = {
   orders:        OrdersPage,
   vouchers:      VouchersPage,
   chat:          ChatPage,
-  reviews:       ReviewsPage,
+
   payments:      PaymentsPage,
   notifications: NotificationsPage,
 };

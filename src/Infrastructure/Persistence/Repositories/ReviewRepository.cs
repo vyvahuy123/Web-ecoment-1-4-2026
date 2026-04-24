@@ -1,8 +1,7 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Persistence.Repositories;
-
 public class ReviewRepository : IReviewRepository
 {
     private readonly AppDbContext _context;
@@ -25,6 +24,13 @@ public class ReviewRepository : IReviewRepository
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+
+    public async Task<List<Review>> GetAllAsync(CancellationToken ct = default)
+        => await _context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Product)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync(ct);
 
     public async Task<List<Review>> GetPendingAsync()
         => await _context.Reviews
