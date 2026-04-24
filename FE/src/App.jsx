@@ -48,7 +48,7 @@ function AppInner() {
           <Route path="/gioi-thieu" element={<About />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<Orders />} />
-          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/yeu-thich" element={<Wishlist />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success/:orderCode" element={<OrderSuccess />} />
         </Route>
