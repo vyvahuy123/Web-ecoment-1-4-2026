@@ -88,7 +88,7 @@ function UserMenu({ onLogout }) {
   );
 }
 
-export default function Navbar({ cartCount, onCartOpen }) {
+export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -157,7 +157,7 @@ export default function Navbar({ cartCount, onCartOpen }) {
         <div className="ec-nav-actions">
           <button className="ec-cart-btn" style={{position:"relative"}} onClick={() => navigate("/yeu-thich")}>
             <span style={{fontSize:18, lineHeight:1}}>♡</span>
-            {wishlist.length > 0 && <span className="ec-cart-count">{wishlist.length}</span>}
+            {wishlistCount > 0 && <span className="ec-cart-count">{wishlistCount}</span>}
           </button>
           <button className="ec-cart-btn" onClick={onCartOpen}>
             <span className="ec-cart-icon" />
