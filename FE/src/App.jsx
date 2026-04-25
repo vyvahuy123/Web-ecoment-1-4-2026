@@ -17,6 +17,8 @@ import Wishlist from "./page/Wishlist/Wishlist.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 import Checkout from "./page/Checkout/Checkout.jsx";
 import OrderSuccess from "./page/OrderSuccess/OrderSuccess.jsx";
+import NewsPage from "./page/News/NewsPage.jsx";
+import NewsDetailPage from "./page/News/NewsDetailPage.jsx";
 
 function AuthPage({ defaultTab }) {
   const navigate = useNavigate();
@@ -49,6 +51,8 @@ function AppInner() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/yeu-thich" element={<Wishlist />} />
+          <Route path="/tin-tuc" element={<NewsPage />} />
+          <Route path="/tin-tuc/:id" element={<NewsDetailPage />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success/:orderCode" element={<OrderSuccess />} />
         </Route>

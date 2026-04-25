@@ -7,7 +7,7 @@ import AuthService from "@/services/auth.service";
 const NAV_LINKS_LEFT = [
   ["Trang chủ", "/"],
   ["Giới thiệu", "/gioi-thieu"],
-  ["Tin tức", "/"],
+  ["Tin tức", "/tin-tuc"],   // ← sửa từ "/" thành "/tin-tuc"
   ["Sản phẩm", "/san-pham"],
 ];
 

@@ -32,6 +32,8 @@ public class AppDbContext : DbContext
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<WishList> WishLists => Set<WishList>();
+    public DbSet<News> News => Set<News>();
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

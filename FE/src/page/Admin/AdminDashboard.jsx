@@ -13,6 +13,7 @@ import ProductsPage  from "./pages/ProductsPage";
 import ChatPage      from "./pages/ChatPage";
 import { CategoriesPage, OrdersPage, VouchersPage }     from "./pages/CatalogPages";
 import { PaymentsPage, NotificationsPage } from "./pages/ServicePages";
+import NewsAdminPage from "./pages/NewsAdminPage";
 
 
 const PAGES = {
@@ -26,6 +27,7 @@ const PAGES = {
 
   payments:      PaymentsPage,
   notifications: NotificationsPage,
+  news: NewsAdminPage,
 };
 
 export default function AdminDashboard() {

@@ -17,6 +17,7 @@ const NAV_TEMPLATE = [
       { id: "categories", icon: "◉", label: "Danh mục SP" },
       { id: "orders",     icon: "▤", label: "Đơn hàng",  badgeKey: "orders" },
       { id: "vouchers",   icon: "⊘", label: "Voucher" },
+      { id: "news", icon: "◎", label: "Tin tức" },
     ],
   },
   {

@@ -50,6 +50,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./uploads:/app/wwwroot/uploads
+      - ./wwwroot/images:/app/wwwroot/images
 
 volumes:
   sqlserver_data:

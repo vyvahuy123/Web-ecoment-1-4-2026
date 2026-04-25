@@ -24,6 +24,7 @@ public interface IUnitOfWork
     ICartRepository Carts { get; }
     IReviewRepository Reviews { get; }
     ICategoryRepository Categories { get; }
+    INewsRepository News { get; }
 
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
