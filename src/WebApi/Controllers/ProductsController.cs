@@ -60,7 +60,7 @@ public class ProductsController : ControllerBase
         Guid id, [FromBody] UpdateProductRequest req, CancellationToken ct)
     {
         var result = await _mediator.Send(
-            new UpdateProductCommand(id, req.Name, req.Price, req.Description, req.ImageUrl), ct);
+            new UpdateProductCommand(id, req.Name, req.Price, req.Description, req.ImageUrl, req.CategoryId), ct);
         return Ok(result);
     }
 
@@ -86,10 +86,20 @@ public class ProductsController : ControllerBase
         await _mediator.Send(new DeleteProductCommand(id), ct);
         return NoContent();
     }
+
+    [HttpGet("top-selling")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopSelling(
+        [FromQuery] int limit = 8, CancellationToken ct = default)
+        => Ok(await _mediator.Send(new GetTopSellingProductsQuery(limit), ct));
 }
 
+// FIX: CategoryId đổi thành Guid? (nullable) để frontend có thể gửi null khi không chọn danh mục
 public record UpdateProductRequest(
-    string Name, decimal Price,
-    string? Description, string? ImageUrl);
+    string Name,
+    decimal Price,
+    string? Description,
+    string? ImageUrl,
+    Guid? CategoryId);   // ← nullable
 
 public record AdjustStockRequest(int Delta, string Reason);

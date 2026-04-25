@@ -14,7 +14,7 @@ logs/
 ## Environment
 appsettings.*.json
 !appsettings.json
-!appsettings.Development.json
+appsettings.Development.json
 .env
 
 ## Docker

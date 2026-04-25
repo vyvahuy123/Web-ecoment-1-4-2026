@@ -14,7 +14,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 
         builder.Property(r => r.ProductId).HasColumnName("product_id");
         builder.Property(r => r.UserId).HasColumnName("user_id");
-        builder.Property(r => r.OrderId).HasColumnName("order_id");
+        builder.Property(r => r.OrderId).HasColumnName("order_id").IsRequired(false);
 
         builder.Property(r => r.Rating)
             .HasColumnName("rating")
@@ -58,6 +58,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.HasOne(r => r.Order)
             .WithMany()
             .HasForeignKey(r => r.OrderId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasQueryFilter(r => !r.IsDeleted);

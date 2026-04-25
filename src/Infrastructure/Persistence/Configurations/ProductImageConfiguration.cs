@@ -32,8 +32,8 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImage>
         builder.HasIndex(p => p.ProductId);
 
         builder.HasOne(p => p.Product)
-            .WithMany()
+            .WithMany(p => p.Images)  // ← sửa từ WithMany("_images")
             .HasForeignKey(p => p.ProductId)
-            .OnDelete(DeleteBehavior.Cascade);  // Xoá product → xoá hết ảnh
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

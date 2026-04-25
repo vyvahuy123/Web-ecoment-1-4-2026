@@ -16,5 +16,6 @@ public record UserSummaryDto(
     string Username,
     string Email,
     string? FullName,
-    bool IsActive
+    bool IsActive,
+    IEnumerable<string> Roles
 );

@@ -75,7 +75,25 @@ public class UsersController : ControllerBase
         await _mediator.Send(new DeactivateUserCommand(id), ct);
         return NoContent();
     }
+    /// <summary>Kích hoạt lại user</summary>
+    [HttpPatch("{id:guid}/activate")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Activate(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new ActivateUserCommand(id), ct);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/role")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new UpdateUserRoleCommand(id, request.Role), ct);
+        return NoContent();
+    }
 }
 
 // Request DTO riêng cho PUT để tránh id trong body
 public record UpdateUserRequest(string? FullName, string? Email);
+public record UpdateRoleRequest(string Role);
