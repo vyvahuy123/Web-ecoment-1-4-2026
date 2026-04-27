@@ -65,7 +65,7 @@ function getUserFromToken(decoded) {
   return { name, role, initials };
 }
 
-export default function Sidebar({ activePage, onNavigate }) {
+export default function Sidebar({ activePage, onNavigate, open }) {
   const [badges, setBadges] = useState({});
   const [user, setUser] = useState({ name: "Admin", role: "Admin", initials: "AD" });
   const navigate = useNavigate();

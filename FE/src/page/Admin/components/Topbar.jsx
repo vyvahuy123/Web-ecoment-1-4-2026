@@ -10,7 +10,7 @@ const PAGE_TITLES = {
   notifications: "Thông báo",
 };
 
-export default function Topbar({ activePage }) {
+export default function Topbar({ activePage, onMenuClick }) {
   return (
     <header className="topbar">
       <div className="topbar__title">{PAGE_TITLES[activePage] ?? "Dashboard"}</div>

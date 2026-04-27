@@ -32,6 +32,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<WishList> WishLists => Set<WishList>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<News> News => Set<News>();
 
 
@@ -41,6 +42,12 @@ public class AppDbContext : DbContext
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
         base.OnModelCreating(builder);
+
+        builder.Entity<ChatMessage>(b => {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Content).HasMaxLength(2000).IsRequired();
+            b.HasIndex(x => new { x.SenderId, x.ReceiverId, x.SentAt });
+        });
 
         // SOFT DELETE GLOBAL FILTER
         builder.Entity<Product>()

@@ -1,4 +1,4 @@
-using Application;
+﻿using Application;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Infrastructure;
@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
+using WebApi.Hubs;
 using WebApi.Middlewares;
 using WebApi.Services;
 
@@ -59,6 +60,14 @@ try
             };
             opt.Events = new JwtBearerEvents
             {
+                OnMessageReceived = ctx =>
+                {
+                    var token = ctx.Request.Query["access_token"];
+                    var path = ctx.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/hubs"))
+                        ctx.Token = token;
+                    return Task.CompletedTask;
+                },
                 OnAuthenticationFailed = ctx =>
                 {
                     Console.WriteLine($"[JWT FAIL] {ctx.Exception.GetType().Name}: {ctx.Exception.Message}");
@@ -104,6 +113,7 @@ try
               .AllowAnyHeader()
               .AllowCredentials()));
 
+    builder.Services.AddSignalR();
     var app = builder.Build();
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -118,12 +128,12 @@ try
             c.RoutePrefix = string.Empty;
         });
     }
-
     app.UseHttpsRedirection();
     app.UseCors("Default");
     app.UseStaticFiles();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.MapHub<ChatHub>("/hubs/chat");
     app.MapControllers();
 
     if (app.Environment.IsDevelopment())

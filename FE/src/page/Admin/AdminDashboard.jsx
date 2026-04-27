@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     <div className="admin-layout">
       <Sidebar activePage={page} onNavigate={handleNavigate} />
       <div className="main-area">
-        <Topbar activePage={page} />
+        <Topbar activePage={page} onMenuClick={() => setSidebarOpen((v) => !v)} />
         <main className="content-area">
           <div key={animKey} className="page-enter">
             <PageComponent />
