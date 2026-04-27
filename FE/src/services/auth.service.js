@@ -10,7 +10,8 @@ const AuthService = {
   login: async (email, password) => {
   const { data } = await api.post("/auth/login", { email, password });
   localStorage.setItem("token", data.accessToken);
-  localStorage.setItem("user", JSON.stringify(data.user)); // ← thêm dòng này
+  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("userId", data.user?.id ?? "");
   return data;
 },
 
@@ -22,7 +23,8 @@ const AuthService = {
   register: async (payload) => {
   const { data } = await api.post("/auth/register", payload);
   localStorage.setItem("token", data.accessToken);
-  localStorage.setItem("user", JSON.stringify(data.user)); // ← thêm dòng này
+  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("userId", data.user?.id ?? "");
   return data;
 },
 
