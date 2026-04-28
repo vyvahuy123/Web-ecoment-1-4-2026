@@ -178,7 +178,7 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
         <div className="ec-nav-actions">
           {localStorage.getItem("token") && (
             <div style={{ position: "relative" }} ref={notifRef}>
-              <button className="ec-cart-btn" style={{ position: "relative" }} onClick={() => { setNotifOpen(v => !v); setUnreadNotif(0); }}>
+              <button className="ec-cart-btn" style={{ position: "relative" }} onClick={() => { setNotifOpen(v => !v); if (unreadNotif > 0) { setUnreadNotif(0); notificationService.markAllRead().catch(() => {}); } }}>
                 <span style={{ fontSize: 18, lineHeight: 1 }}>🔔</span>
                 {unreadNotif > 0 && <span className="ec-cart-count">{unreadNotif > 99 ? "99+" : unreadNotif}</span>}
               </button>

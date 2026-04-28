@@ -393,7 +393,7 @@ export default function Orders() {
   // Lắng nghe notification real-time → refetch orders
   useEffect(() => {
     const handler = (e) => {
-      if (e.detail?.type === "Order") {
+      if (e.detail?.type === "Order" || e.detail?.type === "ORDER_STATUS_UPDATED" || e.detail?.type === "ORDER_CREATED") {
         fetchOrders();
         // Auto open đơn hàng mới nếu có referenceId
         if (e.detail?.referenceId) {

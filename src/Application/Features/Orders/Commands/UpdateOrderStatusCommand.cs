@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Features.Orders.DTOs;
 using Domain.Entities;
@@ -15,7 +15,13 @@ public record UpdateOrderStatusCommand(Guid OrderId, OrderStatus NewStatus) : IR
 public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatusCommand, OrderDto>
 {
     private readonly IUnitOfWork _uow;
-    public UpdateOrderStatusCommandHandler(IUnitOfWork uow) => _uow = uow;
+    private readonly INotificationSender _notifSender;
+
+    public UpdateOrderStatusCommandHandler(IUnitOfWork uow, INotificationSender notifSender)
+    {
+        _uow = uow;
+        _notifSender = notifSender;
+    }
 
     public async Task<OrderDto> Handle(UpdateOrderStatusCommand req, CancellationToken ct)
     {
@@ -23,32 +29,31 @@ public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatus
             ?? throw new NotFoundException(nameof(Order), req.OrderId);
 
         string notifTitle, notifMessage;
-
         switch (req.NewStatus)
         {
             case OrderStatus.Confirmed:
                 order.Confirm();
-                notifTitle = "Đơn hàng đã được xác nhận";
-                notifMessage = $"Đơn hàng {order.OrderCode} đã được xác nhận và đang chuẩn bị.";
+                notifTitle = "Don hang da duoc xac nhan";
+                notifMessage = $"Don hang {order.OrderCode} da duoc xac nhan va dang chuan bi.";
                 break;
             case OrderStatus.Processing:
                 order.StartProcessing();
-                notifTitle = "Đơn hàng đang được xử lý";
-                notifMessage = $"Đơn hàng {order.OrderCode} đang được đóng gói và chuẩn bị giao.";
+                notifTitle = "Don hang dang duoc xu ly";
+                notifMessage = $"Don hang {order.OrderCode} dang duoc dong goi va chuan bi giao.";
                 break;
             case OrderStatus.Shipped:
                 order.Ship();
-                notifTitle = "Đơn hàng đang được giao";
-                notifMessage = $"Đơn hàng {order.OrderCode} đã được bàn giao cho đơn vị vận chuyển.";
+                notifTitle = "Don hang dang duoc giao";
+                notifMessage = $"Don hang {order.OrderCode} da duoc ban giao cho don vi van chuyen.";
                 break;
             case OrderStatus.Delivered:
                 order.Deliver();
-                notifTitle = "Đơn hàng đã giao thành công";
-                notifMessage = $"Đơn hàng {order.OrderCode} đã được giao thành công. Cảm ơn bạn đã mua hàng!";
+                notifTitle = "Don hang da giao thanh cong";
+                notifMessage = $"Don hang {order.OrderCode} da duoc giao thanh cong. Cam on ban da mua hang!";
                 break;
             default:
                 throw new ValidationException(new[] {
-                    new FluentValidation.Results.ValidationFailure("Status", "Trạng thái không hợp lệ.")
+                    new FluentValidation.Results.ValidationFailure("Status", "Trang thai khong hop le.")
                 });
         }
 
@@ -60,9 +65,20 @@ public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatus
             notifTitle,
             notifMessage,
             order.Id.ToString());
-        _uow.Notifications.Add(notification);
 
+        _uow.Notifications.Add(notification);
         await _uow.SaveChangesAsync(ct);
+
+        await _notifSender.SendAsync(order.UserId.ToString(), new
+        {
+            type = "ORDER_STATUS_UPDATED",
+            title = notifTitle,
+            message = notifMessage,
+            orderId = order.Id,
+            orderCode = order.OrderCode,
+            newStatus = req.NewStatus.ToString()
+        });
+
         return OrderMapper.ToDto(order);
     }
 }

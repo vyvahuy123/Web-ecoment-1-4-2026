@@ -40,7 +40,6 @@ export default function Topbar({ activePage, onMenuClick, onUnreadChange, onNavi
     } catch {}
   };
 
-  // Click outside đóng dropdown
   useEffect(() => {
     const handler = (e) => {
       if (dropRef.current && !dropRef.current.contains(e.target)) setOpen(false);
@@ -49,7 +48,15 @@ export default function Topbar({ activePage, onMenuClick, onUnreadChange, onNavi
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleBellClick = () => setOpen(v => !v);
+  const handleBellClick = () => {
+    setOpen(v => !v);
+    if (unread > 0) {
+      notificationService.markAllRead().catch(() => {});
+      setUnread(0);
+      onUnreadChange?.(0);
+      setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
+    }
+  };
 
   const handleMarkAll = async () => {
     await notificationService.markAllRead();
@@ -124,8 +131,8 @@ export default function Topbar({ activePage, onMenuClick, onUnreadChange, onNavi
                   }}>
                     <div style={{ fontSize: 13, color: "#111", marginBottom: 4 }}>
                       <div onClick={() => { setOpen(false); onNavigate?.("orders"); }}>
-                    {n.message ?? n.text}
-                  </div>
+                        {n.message ?? n.text}
+                      </div>
                     </div>
                     <div style={{ fontSize: 11, color: "#999" }}>
                       {n.createdAt ? new Date(n.createdAt).toLocaleString("vi-VN") : n.time}
