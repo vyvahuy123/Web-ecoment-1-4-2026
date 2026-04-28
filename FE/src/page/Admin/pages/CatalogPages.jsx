@@ -264,7 +264,7 @@ export function OrdersPage() {
     setDetailLoading(true);
     setDetailOrder({ _loading: true });
     try {
-      const data = await OrderService.getById(id);
+      const data = await OrderService.getByIdAdmin(id);
       setDetailOrder(data);
     } catch {
       setDetailOrder(null);

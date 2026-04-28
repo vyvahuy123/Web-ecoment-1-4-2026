@@ -1,11 +1,11 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Features.Orders.DTOs;
 using Domain.Interfaces;
 using MediatR;
 
 namespace Application.Features.Orders.Queries;
 
-public record GetOrderByIdQuery(Guid OrderId, Guid UserId) : IRequest<OrderDto>;
+public record GetOrderByIdQuery(Guid OrderId, Guid UserId, bool IsAdmin = false) : IRequest<OrderDto>;
 
 public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDto>
 {
@@ -17,8 +17,8 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
         var order = await _uow.Orders.GetByIdAsync(req.OrderId, ct)
             ?? throw new NotFoundException(nameof(Domain.Entities.Order), req.OrderId);
 
-        if (order.UserId != req.UserId)
-            throw new UnauthorizedException("Bạn không có quyền xem đơn hàng này.");
+        if (!req.IsAdmin && order.UserId != req.UserId)
+            throw new UnauthorizedException("Ban khong co quyen xem don hang nay.");
 
         return OrderMapper.ToDto(order);
     }

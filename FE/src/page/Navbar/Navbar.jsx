@@ -187,8 +187,8 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
                   <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontWeight: 600, fontSize: 14 }}>Thong bao</div>
                   <div style={{ maxHeight: 320, overflowY: "auto" }}>
                     {notifs.length === 0 && <div style={{ padding: "24px 16px", textAlign: "center", color: "#999", fontSize: 13 }}>Khong co thong bao</div>}
-                    {notifs.map((n) => (
-                      <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #f5f5f5", background: n.isRead ? "#fff" : "#f0f7ff", cursor: "pointer" }}
+                    {notifs.map((n, idx) => (
+                      <div key={n.id ?? idx} style={{ padding: "12px 16px", borderBottom: "1px solid #f5f5f5", background: n.isRead ? "#fff" : "#f0f7ff", cursor: "pointer" }}
                         onClick={() => { setNotifOpen(false); if (n.type === "Order") navigate("/orders?orderId=" + (n.referenceId ?? "")); }}>
                         <div style={{ fontSize: 13, color: "#111", marginBottom: 4 }}>{n.message ?? n.text}</div>
                         <div style={{ fontSize: 11, color: "#999" }}>{n.createdAt ? new Date(n.createdAt).toLocaleString("vi-VN") : ""}</div>

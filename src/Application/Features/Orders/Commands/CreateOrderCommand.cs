@@ -124,6 +124,19 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             orderId = order.Id,
             orderCode = order.OrderCode
         });
+        // Push notification cho admins
+        var admins = await _uow.Users.GetAdminsAsync(ct);
+        foreach (var admin in admins)
+        {
+            await _notifSender.SendAsync(admin.Id.ToString(), new
+            {
+                type = "NEW_ORDER",
+                message = $"Don hang moi {order.OrderCode} vua duoc dat.",
+                orderId = order.Id,
+                orderCode = order.OrderCode
+            });
+        }
+
         return OrderMapper.ToDto(order);
     }
 }
