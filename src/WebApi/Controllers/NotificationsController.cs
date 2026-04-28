@@ -42,6 +42,17 @@ public class NotificationsController : ControllerBase
         return Ok(new { items, total, unread });
     }
 
+    /// <summary>Đếm thông báo chưa đọc</summary>
+    [HttpGet("unread-count")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUnreadCount(CancellationToken ct)
+    {
+        if (UserId is null) return Unauthorized();
+        var (_, _, unread) = await _mediator.Send(
+            new GetMyNotificationsQuery(UserId.Value, 1, 1), ct);
+        return Ok(new { count = unread });
+    }
+
     /// <summary>Đánh dấu 1 thông báo đã đọc</summary>
     [HttpPatch("{id:guid}/read")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -1,4 +1,6 @@
 ﻿using Application.Common.Exceptions;
+using Application.Common.Interfaces;
+using Domain.Enums;
 using Application.Features.Orders.DTOs;
 using Domain.Entities;
 using Domain.Enums;
@@ -38,7 +40,12 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderDto>
 {
     private readonly IUnitOfWork _uow;
-    public CreateOrderCommandHandler(IUnitOfWork uow) => _uow = uow;
+    private readonly INotificationSender _notifSender;
+    public CreateOrderCommandHandler(IUnitOfWork uow, INotificationSender notifSender)
+    {
+        _uow = uow;
+        _notifSender = notifSender;
+    }
 
     public async Task<OrderDto> Handle(CreateOrderCommand req, CancellationToken ct)
     {
@@ -109,6 +116,14 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
 
         _uow.Orders.Add(order);
         await _uow.SaveChangesAsync(ct);
+
+        await _notifSender.SendAsync(req.UserId.ToString(), new
+        {
+            type = "ORDER_CREATED",
+            message = $"Don hang {order.OrderCode} da duoc tao thanh cong.",
+            orderId = order.Id,
+            orderCode = order.OrderCode
+        });
         return OrderMapper.ToDto(order);
     }
 }

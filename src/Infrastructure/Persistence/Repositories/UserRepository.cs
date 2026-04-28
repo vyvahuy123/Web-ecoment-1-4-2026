@@ -54,4 +54,10 @@ public class UserRepository : IUserRepository
     public void Add(User user) => _ctx.Users.Add(user);
     public void Update(User user) => _ctx.Users.Update(user);
     public void Remove(User user) => _ctx.Users.Remove(user);
+    public async Task<IEnumerable<Domain.Entities.User>> GetAdminsAsync(CancellationToken ct = default)
+    {
+        return await _ctx.Users
+            .Where(u => u.Roles.Contains("Admin") && u.IsActive)
+            .ToListAsync(ct);
+    }
 }

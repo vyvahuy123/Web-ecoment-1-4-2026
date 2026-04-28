@@ -18,4 +18,5 @@ public interface IUserRepository
     void Add(User user);
     void Update(User user);
     void Remove(User user);
+    Task<IEnumerable<Domain.Entities.User>> GetAdminsAsync(CancellationToken ct = default);
 }

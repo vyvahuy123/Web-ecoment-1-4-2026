@@ -25,7 +25,7 @@ const NAV_TEMPLATE = [
     items: [
       { id: "chat",          icon: "◈", label: "Tin nhắn",   badgeKey: "chat" },
       { id: "payments",      icon: "◻", label: "Thanh toán" },
-      { id: "notifications", icon: "◌", label: "Thông báo",  badgeKey: "notifications" },
+      { id: "notifications", icon: "◌", label: "Thong bao",  badgeKey: "notifications" },
     ],
   },
 ];
@@ -65,7 +65,7 @@ function getUserFromToken(decoded) {
   return { name, role, initials };
 }
 
-export default function Sidebar({ activePage, onNavigate, open }) {
+export default function Sidebar({ activePage, onNavigate, open, notifCount }) {
   const [badges, setBadges] = useState({});
   const [user, setUser] = useState({ name: "Admin", role: "Admin", initials: "AD" });
   const navigate = useNavigate();
@@ -118,7 +118,7 @@ export default function Sidebar({ activePage, onNavigate, open }) {
           <div key={section.group}>
             <div className="sidebar-group">{section.group}</div>
             {section.items.map((item) => {
-              const badgeCount = item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0;
+              const badgeCount = item.id === "notifications" ? (notifCount ?? 0) : (item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0);
               return (
                 <div
                   key={item.id}

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "./Orders.css";
 import OrderService from "@/services/order.service";
 import ReviewService from "@/services/review.service";
@@ -192,7 +192,7 @@ function OrderCard({ order, onCancel, reviewedOrders = [] }) {
   const items = detail?.items ?? [];
 
   return (
-    <div className="order-card">
+    <div className="order-card" id={"order-" + order.id}>
       {/* Header */}
       <div className="order-card__head">
         <div className="order-card__meta">
@@ -366,6 +366,9 @@ function OrderCard({ order, onCancel, reviewedOrders = [] }) {
 
 export default function Orders() {
   const [tab, setTab] = useState("all");
+  const [searchParams] = useSearchParams();
+  const autoOpenId = searchParams.get("orderId");
+  const autoOpenRef = useRef(false);
   const [orders, setOrders] = useState([]);
   const [reviewedOrders, setReviewedOrders] = useState(() => JSON.parse(localStorage.getItem("reviewedOrders") || "[]"));
   const [loading, setLoading] = useState(true);
@@ -386,6 +389,36 @@ export default function Orders() {
   }, [page]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // Lắng nghe notification real-time → refetch orders
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.type === "Order") {
+        fetchOrders();
+        // Auto open đơn hàng mới nếu có referenceId
+        if (e.detail?.referenceId) {
+          autoOpenRef.current = false;
+          setTimeout(() => {
+            const el = document.getElementById("order-" + e.detail.referenceId);
+            if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.click(); }
+          }, 500);
+        }
+      }
+    };
+    window.addEventListener("newNotification", handler);
+    return () => window.removeEventListener("newNotification", handler);
+  }, [fetchOrders]);
+
+  // Auto scroll & open đơn hàng từ notification
+  useEffect(() => {
+    if (!autoOpenId || autoOpenRef.current || orders.length === 0) return;
+    const el = document.getElementById("order-" + autoOpenId);
+    if (el) {
+      autoOpenRef.current = true;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.click();
+    }
+  }, [orders, autoOpenId]);
 
   const handleCancel = async (id, reason) => {
     await OrderService.cancel(id, reason);

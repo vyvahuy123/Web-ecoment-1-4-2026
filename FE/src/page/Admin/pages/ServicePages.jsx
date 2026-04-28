@@ -176,7 +176,7 @@ const NOTIF_BADGE = {
 };
 const NOTIF_FILTERS = ["Tất cả", "Chưa đọc"];
 
-export function NotificationsPage() {
+export function NotificationsPage({ onNavigate }) {
   const [active, setActive] = useState("Tất cả");
   const { data, loading, error, refetch } = useFetch(() => NotificationService.getAll(), []);
   const notifs = Array.isArray(data) ? data : (data?.items ?? []);
@@ -215,7 +215,7 @@ export function NotificationsPage() {
             : filtered.map((n) => {
                 const badge = NOTIF_BADGE[n.type] ?? NOTIF_BADGE.info;
                 return (
-                  <div key={n.id} className="list-row" style={{ opacity: (n.isRead || n.read) ? 0.65 : 1 }}>
+                  <div key={n.id} className="list-row" style={{ cursor: "pointer" }} onClick={() => { if (n.type === "Order") onNavigate?.("orders"); }} style={{ opacity: (n.isRead || n.read) ? 0.65 : 1 }}>
                     <span style={{ fontSize: 16, flexShrink: 0 }}>{n.icon ?? "🔔"}</span>
                     <div className="list-row__main">{n.message ?? n.text}</div>
                     <div className="list-row__time">{n.createdAt

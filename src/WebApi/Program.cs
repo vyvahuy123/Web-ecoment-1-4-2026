@@ -114,6 +114,7 @@ try
               .AllowCredentials()));
 
     builder.Services.AddSignalR();
+builder.Services.AddScoped<Application.Common.Interfaces.INotificationSender, WebApi.Services.SignalRNotificationSender>();
     var app = builder.Build();
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -134,6 +135,7 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapHub<ChatHub>("/hubs/chat");
+    app.MapHub<NotificationHub>("/hubs/notifications");
     app.MapControllers();
 
     if (app.Environment.IsDevelopment())

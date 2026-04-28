@@ -3,6 +3,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import AuthService from "@/services/auth.service";
+import { notificationService } from "@/services/notification.service";
 
 const NAV_LINKS_LEFT = [
   ["Trang chủ", "/"],
@@ -89,6 +90,10 @@ function UserMenu({ onLogout }) {
 }
 
 export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
+  const [unreadNotif, setUnreadNotif] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const notifRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -115,6 +120,22 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    notificationService.getUnreadCount().then(n => setUnreadNotif(n)).catch(() => {});
+    notificationService.getAll({ page: 1, pageSize: 10 }).then(d => setNotifs(d?.items ?? [])).catch(() => {});
+    notificationService.connect((notif) => {
+      setUnreadNotif(prev => prev + 1);
+      setNotifs(prev => [notif, ...prev].slice(0, 10));
+      // Dispatch event để Orders page tự refresh
+      window.dispatchEvent(new CustomEvent("newNotification", { detail: notif }));
+    }).catch(() => {});
+    const handler = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => { notificationService.disconnect(); document.removeEventListener("mousedown", handler); };
   }, []);
 
   const go = (href) => {
@@ -155,6 +176,32 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
         </div>
 
         <div className="ec-nav-actions">
+          {localStorage.getItem("token") && (
+            <div style={{ position: "relative" }} ref={notifRef}>
+              <button className="ec-cart-btn" style={{ position: "relative" }} onClick={() => { setNotifOpen(v => !v); setUnreadNotif(0); }}>
+                <span style={{ fontSize: 18, lineHeight: 1 }}>🔔</span>
+                {unreadNotif > 0 && <span className="ec-cart-count">{unreadNotif > 99 ? "99+" : unreadNotif}</span>}
+              </button>
+              {notifOpen && (
+                <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 320, background: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 1000, overflow: "hidden" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontWeight: 600, fontSize: 14 }}>Thong bao</div>
+                  <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                    {notifs.length === 0 && <div style={{ padding: "24px 16px", textAlign: "center", color: "#999", fontSize: 13 }}>Khong co thong bao</div>}
+                    {notifs.map((n) => (
+                      <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #f5f5f5", background: n.isRead ? "#fff" : "#f0f7ff", cursor: "pointer" }}
+                        onClick={() => { setNotifOpen(false); if (n.type === "Order") navigate("/orders?orderId=" + (n.referenceId ?? "")); }}>
+                        <div style={{ fontSize: 13, color: "#111", marginBottom: 4 }}>{n.message ?? n.text}</div>
+                        <div style={{ fontSize: 11, color: "#999" }}>{n.createdAt ? new Date(n.createdAt).toLocaleString("vi-VN") : ""}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: "10px 16px", textAlign: "center", borderTop: "1px solid #f0f0f0" }}>
+                    <button onClick={() => { setNotifOpen(false); navigate("/orders"); }} style={{ background: "none", border: "none", fontSize: 13, color: "#3182ce", cursor: "pointer" }}>Xem tat ca don hang</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <button className="ec-cart-btn" style={{position:"relative"}} onClick={() => navigate("/yeu-thich")}>
             <span style={{fontSize:18, lineHeight:1}}>♡</span>
             {wishlistCount > 0 && <span className="ec-cart-count">{wishlistCount}</span>}
