@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./styles/global.css";
 import "./styles/layout.css";
 import "./styles/components.css";
+import "./styles/AdminDashboard.css";
 import Sidebar from "./components/Sidebar";
 import Topbar  from "./components/Topbar";
 import DashboardPage    from "./pages/DashboardPage";

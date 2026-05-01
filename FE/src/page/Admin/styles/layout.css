@@ -207,8 +207,8 @@
 .topbar {
   height: var(--topbar-h);
   min-height: var(--topbar-h);
-  background: var(--white);
-  border-bottom: 1px solid var(--g2);
+  background: #0d1117;
+  border-bottom: 1px solid #30363d;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -219,6 +219,7 @@
 .topbar__title {
   font-size: 20px;             /* tăng từ 17 → 20 */
   font-weight: 500;
+  color: #e6edf3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
