@@ -10,7 +10,7 @@ public class Review : BaseEntity
 {
     public Guid ProductId { get; private set; }
     public Guid UserId { get; private set; }
-    public Guid OrderId { get; private set; }           // Chứng minh đã mua hàng
+    public Guid? OrderId { get; private set; }           // Chứng minh đã mua hàng
     public int Rating { get; private set; }             // 1–5 sao
     public string? Comment { get; private set; }
     public string? ImageUrls { get; private set; }      // JSON array ảnh đính kèm (tuỳ chọn)
@@ -28,7 +28,7 @@ public class Review : BaseEntity
     public static Review Create(
         Guid productId,
         Guid userId,
-        Guid orderId,
+        Guid? orderId,
         int rating,
         string? comment = null,
         string? imageUrls = null)

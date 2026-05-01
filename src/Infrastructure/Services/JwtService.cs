@@ -12,16 +12,14 @@ namespace Infrastructure.Services;
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _config;
-
     public JwtService(IConfiguration config) => _config = config;
 
     public string GenerateAccessToken(User user)
     {
-        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        var creds   = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.UtcNow.AddMinutes(_config.GetValue<int>("Jwt:ExpiresInMinutes", 60));
 
-        // Các claims sẽ được nhúng vào token - React đọc được bằng jwt-decode
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -33,15 +31,18 @@ public class JwtService : IJwtService
                 ClaimValueTypes.Integer64),
         };
 
-        // Thêm roles vào claims
+        // FIX: dùng "role" thay vì ClaimTypes.Role để tránh URI dài
+        // ClaimTypes.Role → "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        // ASP.NET JWT middleware mặc định KHÔNG map URI này về "role" khi RoleClaimType không set
+        // → dùng short name "role" và config RoleClaimType trong Program.cs
         foreach (var role in user.Roles)
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim("role", role));
 
         var token = new JwtSecurityToken(
-            issuer:   _config["Jwt:Issuer"],
+            issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
-            claims:   claims,
-            expires:  expires,
+            claims: claims,
+            expires: expires,
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -49,7 +50,6 @@ public class JwtService : IJwtService
 
     public string GenerateRefreshToken()
     {
-        // Random 64 bytes → base64 string, đủ entropy để không đoán được
         var bytes = RandomNumberGenerator.GetBytes(64);
         return Convert.ToBase64String(bytes);
     }
@@ -58,26 +58,25 @@ public class JwtService : IJwtService
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-
         try
         {
-            // Validate tất cả NGOẠI TRỪ lifetime (token đã expired là chuyện bình thường khi refresh)
             tokenHandler.ValidateToken(accessToken, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey        = key,
-                ValidateIssuer          = true,
-                ValidIssuer             = _config["Jwt:Issuer"],
-                ValidateAudience        = true,
-                ValidAudience           = _config["Jwt:Audience"],
-                ValidateLifetime        = false,  // ← điểm mấu chốt
-                ClockSkew               = TimeSpan.Zero
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = _config["Jwt:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = _config["Jwt:Audience"],
+                ValidateLifetime = false,
+                ClockSkew = TimeSpan.Zero,
+                // FIX: phải set RoleClaimType khớp với tên claim trong token
+                RoleClaimType = "role",
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
             var userIdStr = jwtToken.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
             return Guid.TryParse(userIdStr, out var userId) ? userId : null;
         }
         catch

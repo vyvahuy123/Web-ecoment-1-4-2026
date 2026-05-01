@@ -10,5 +10,5 @@ internal static class ProductMapper
         p.Stock, p.ImageUrl, p.IsActive, p.CategoryId, p.CreatedAt);
 
     public static ProductSummaryDto ToSummary(Product p) => new(
-        p.Id, p.Name, p.Price, p.Stock, p.IsActive, p.ImageUrl);
+    p.Id, p.Name, p.Price, p.Stock, p.IsActive, p.ImageUrl, p.CategoryId);
 }

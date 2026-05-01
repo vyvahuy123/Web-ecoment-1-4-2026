@@ -2,6 +2,7 @@ using Domain.Common;
 using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Persistence;
 
@@ -31,12 +32,28 @@ public class AppDbContext : DbContext
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<WishList> WishLists => Set<WishList>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<News> News => Set<News>();
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        // Tự động apply tất cả IEntityTypeConfiguration trong assembly này
+        // Tự động apply tất cả configuration
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
         base.OnModelCreating(builder);
+
+        builder.Entity<ChatMessage>(b => {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Content).HasMaxLength(2000).IsRequired();
+            b.HasIndex(x => new { x.SenderId, x.ReceiverId, x.SentAt });
+        });
+
+        // SOFT DELETE GLOBAL FILTER
+        builder.Entity<Product>()
+            .HasQueryFilter(p => !p.IsDeleted);
+
+        // Nếu có entity khác cũng soft delete, thêm tiếp ở đây
     }
 
     // Override SaveChangesAsync để dispatch domain events sau khi save
@@ -59,6 +76,9 @@ public class AppDbContext : DbContext
         entities.ForEach(e => e.ClearDomainEvents());
 
         foreach (var evt in events)
-            await _mediator.Publish(evt, ct);
+        {
+            if (evt is INotification notification)  // ← chỉ publish nếu implement INotification
+                await _mediator.Publish(notification, ct);
+        }
     }
 }
