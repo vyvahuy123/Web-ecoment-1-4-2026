@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Domain.Enums;
 using Application.Features.Orders.DTOs;
@@ -28,11 +28,11 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     {
         RuleFor(x => x.UserId).NotEmpty();
         RuleFor(x => x.ShippingAddressId).NotEmpty();
-        RuleFor(x => x.Items).NotEmpty().WithMessage("Đơn hàng phải có ít nhất 1 sản phẩm.");
+        RuleFor(x => x.Items).NotEmpty().WithMessage("��n h�ng ph?i c� �t nh?t 1 s?n ph?m.");
         RuleForEach(x => x.Items).ChildRules(item =>
         {
             item.RuleFor(x => x.ProductId).NotEmpty();
-            item.RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("Số lượng phải lớn hơn 0.");
+            item.RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("S? l�?ng ph?i l?n h�n 0.");
         });
     }
 }
@@ -49,11 +49,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
 
     public async Task<OrderDto> Handle(CreateOrderCommand req, CancellationToken ct)
     {
-        // Lấy địa chỉ giao hàng
+        // L?y �?a ch? giao h�ng
         var address = await _uow.Addresses.GetByIdAsync(req.ShippingAddressId, ct)
             ?? throw new NotFoundException(nameof(Address), req.ShippingAddressId);
 
-        // Tính tiền hàng
+        // T�nh ti?n h�ng
         decimal subTotal = 0;
         var orderItems = new List<(Product product, int quantity)>();
 
@@ -65,14 +65,14 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             if (product.Stock < item.Quantity)
                 throw new ValidationException(new[] {
                     new FluentValidation.Results.ValidationFailure(
-                        "Stock", $"Sản phẩm '{product.Name}' không đủ hàng.")
+                        "Stock", $"S?n ph?m '{product.Name}' kh�ng �? h�ng.")
                 });
 
             subTotal += product.Price * item.Quantity;
             orderItems.Add((product, item.Quantity));
         }
 
-        // Xử lý voucher
+        // X? l? voucher
         Voucher? voucher = null;
         decimal discountAmount = 0;
         if (!string.IsNullOrWhiteSpace(req.VoucherCode))
@@ -82,23 +82,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
 
             if (!voucher.IsValid(subTotal, DateTime.UtcNow))
                 throw new ValidationException(new[] {
-                    new FluentValidation.Results.ValidationFailure("VoucherCode", "Voucher không hợp lệ hoặc đã hết hạn.")
+                    new FluentValidation.Results.ValidationFailure("VoucherCode", "Voucher kh�ng h?p l? ho?c �? h?t h?n.")
                 });
 
             discountAmount = voucher.CalculateDiscount(subTotal);
         }
 
-        // Tạo mã đơn hàng
+        // T?o m? ��n h�ng
         var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
 
-        // Tạo đơn hàng
+        // T?o ��n h�ng
         var order = Order.Create(
             orderCode, req.UserId, address,
             subTotal, shippingFee: 30000,
             discountAmount, req.PaymentMethod,
             voucher?.Id, voucher?.Code, req.Note);
 
-        // Thêm items + trừ tồn kho
+        // Th�m items + tr? t?n kho
         foreach (var (product, quantity) in orderItems)
         {
             order.AddItem(OrderItem.Create(order.Id, product, quantity));
@@ -106,7 +106,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             _uow.Products.Update(product);
         }
 
-        // Ghi lịch sử dùng voucher
+        // Ghi l?ch s? d�ng voucher
         if (voucher != null)
         {
             voucher.IncrementUsage();
@@ -115,6 +115,10 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
         }
 
         _uow.Orders.Add(order);
+
+        // Tao payment record
+        var payment = Payment.Create(order.Id, req.PaymentMethod, order.TotalAmount);
+        _uow.Payments.Add(payment);
         await _uow.SaveChangesAsync(ct);
 
         await _notifSender.SendAsync(req.UserId.ToString(), new

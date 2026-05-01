@@ -16,17 +16,17 @@ public class PaymentRepository : IPaymentRepository
         => await _ctx.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId, ct);
 
     public async Task<(IEnumerable<Payment> Items, int Total)> GetPagedAsync(
-        int page, int pageSize, CancellationToken ct = default)
-    {
-        var query = _ctx.Payments.AsNoTracking();
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-        return (items, total);
-    }
+    int page, int pageSize, CancellationToken ct = default)
+{
+    var query = _ctx.Payments.AsNoTracking().Include(p => p.Order);
+    var total = await query.CountAsync(ct);
+    var items = await query
+        .OrderByDescending(p => p.CreatedAt)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync(ct);
+    return (items, total);
+}
 
     public void Add(Payment payment) => _ctx.Payments.Add(payment);
     public void Update(Payment payment) => _ctx.Payments.Update(payment);

@@ -25,16 +25,19 @@ export default function Topbar({ activePage, onMenuClick, onUnreadChange, onNavi
     loadUnread();
     notificationService.connect((notif) => {
       setNotifs(prev => [notif, ...prev].slice(0, 10));
-      setUnread(prev => { const n = prev + 1; onUnreadChange?.(n); return n; });
+      setUnread(prev => prev + 1);
     }).catch(() => {});
     return () => notificationService.disconnect();
   }, []);
+
+  useEffect(() => {
+    onUnreadChange?.(unread);
+  }, [unread]);
 
   const loadUnread = async () => {
     try {
       const count = await notificationService.getUnreadCount();
       setUnread(count);
-      onUnreadChange?.(count);
       const data = await notificationService.getAll({ page: 1, pageSize: 10 });
       setNotifs(data?.items ?? []);
     } catch {}

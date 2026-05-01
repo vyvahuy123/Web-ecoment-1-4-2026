@@ -11,6 +11,7 @@ public interface IOrderRepository
         Guid userId, int page, int pageSize, CancellationToken ct = default);
     Task<(IEnumerable<Order> Items, int Total)> GetPagedAsync(
         int page, int pageSize, OrderStatus? status = null, CancellationToken ct = default);
+        Task<List<Order>> GetAllForDashboardAsync(int year, CancellationToken ct = default);
     void Add(Order order);
     void Update(Order order);
     Task<bool> HasUserPurchasedProductAsync(Guid userId, Guid productId, CancellationToken ct = default);

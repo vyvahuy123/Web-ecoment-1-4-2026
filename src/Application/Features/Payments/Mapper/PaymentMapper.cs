@@ -13,6 +13,7 @@ public static class PaymentMapper
         Status = p.Status,
         Amount = p.Amount,
         TransactionId = p.TransactionId,
-        PaidAt = p.PaidAt
+        PaidAt = p.PaidAt,
+        OrderCode = p.Order?.OrderCode
     };
 }

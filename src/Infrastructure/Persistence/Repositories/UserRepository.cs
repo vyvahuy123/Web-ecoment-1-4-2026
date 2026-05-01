@@ -13,12 +13,10 @@ public class UserRepository : IUserRepository
         => await _ctx.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
-        => await _ctx.Users
-            .FirstOrDefaultAsync(u => u.Email.Value == email.ToLower(), ct);
+        => await _ctx.Users.FirstOrDefaultAsync(u => u.Email.Value == email.ToLower(), ct);
 
     public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
-        => await _ctx.Users
-            .FirstOrDefaultAsync(u => u.Username == username.ToLower(), ct);
+        => await _ctx.Users.FirstOrDefaultAsync(u => u.Username == username.ToLower(), ct);
 
     public async Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default)
         => await _ctx.Users.AnyAsync(u => u.Email.Value == email.ToLower(), ct);
@@ -53,11 +51,26 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetAdminsAsync(CancellationToken ct = default)
     {
-        // Load active users vào memory trước, rồi filter Roles (computed property)
-        var users = await _ctx.Users
-            .Where(u => u.IsActive)
-            .ToListAsync(ct);
-
+        var users = await _ctx.Users.Where(u => u.IsActive).ToListAsync(ct);
         return users.Where(u => u.Roles.Contains("Admin"));
+    }
+
+    public async Task<int> GetTotalCustomersAsync(CancellationToken ct = default)
+    {
+        var users = await _ctx.Users.Where(u => u.IsActive).ToListAsync(ct);
+        return users.Count(u => !u.Roles.Contains("Admin"));
+    }
+
+    public async Task<int> GetNewCustomersAsync(int year, int? quarter, CancellationToken ct = default)
+    {
+        var query = _ctx.Users.Where(u => u.CreatedAt.Year == year && u.IsActive);
+        if (quarter.HasValue)
+        {
+            var startMonth = (quarter.Value - 1) * 3 + 1;
+            var endMonth = startMonth + 2;
+            query = query.Where(u => u.CreatedAt.Month >= startMonth && u.CreatedAt.Month <= endMonth);
+        }
+        var users = await query.ToListAsync(ct);
+        return users.Count(u => !u.Roles.Contains("Admin"));
     }
 }

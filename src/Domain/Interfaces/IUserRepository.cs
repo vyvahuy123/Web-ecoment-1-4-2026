@@ -19,4 +19,6 @@ public interface IUserRepository
     void Update(User user);
     void Remove(User user);
     Task<IEnumerable<Domain.Entities.User>> GetAdminsAsync(CancellationToken ct = default);
+    Task<int> GetTotalCustomersAsync(CancellationToken ct = default);
+    Task<int> GetNewCustomersAsync(int year, int? quarter, CancellationToken ct = default);
 }

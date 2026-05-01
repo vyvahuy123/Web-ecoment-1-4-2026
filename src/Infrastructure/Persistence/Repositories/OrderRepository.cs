@@ -63,4 +63,12 @@ public class OrderRepository : IOrderRepository
             .AnyAsync(o => o.UserId == userId
                 && o.Status == OrderStatus.Delivered
                 && o.Items.Any(i => i.ProductId == productId), ct);
+                public async Task<List<Order>> GetAllForDashboardAsync(int year, CancellationToken ct = default)
+{
+    return await _ctx.Orders
+        .AsNoTracking()
+        .Include(o => o.Items)
+        .Where(o => o.CreatedAt.Year == year)
+        .ToListAsync(ct);
+}
 }
