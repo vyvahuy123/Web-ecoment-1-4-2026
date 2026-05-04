@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import ProductService from "@/services/product.service";
 
-const SLIDES = [
+const SLIDES_FALLBACK = [
   {
     tag: "New Collection 2025",
     title: "Effortless\nElegance",
     desc: "Discover pieces crafted for the modern wardrobe — timeless silhouettes, refined details.",
     btn: "Shop Now",
     href: "#products",
+    backgroundColor: "#f0ece6",
+    emoji: "🧥",
   },
   {
     tag: "Limited Edition",
@@ -17,6 +19,8 @@ const SLIDES = [
     desc: "Fewer pieces, more meaning. Our curated edit for the discerning few.",
     btn: "Explore",
     href: "#products",
+    backgroundColor: "#e8ecf0",
+    emoji: "👗",
   },
   {
     tag: "Summer Edit",
@@ -24,6 +28,8 @@ const SLIDES = [
     desc: "Linen, cotton, and silk. The fabrics that define the season.",
     btn: "View Collection",
     href: "#products",
+    backgroundColor: "#f0e8e8",
+    emoji: "👔",
   },
 ];
 
@@ -74,47 +80,83 @@ function Topbar() {
 }
 
 function Hero() {
+  const [slides, setSlides] = useState(SLIDES_FALLBACK);
   const [cur, setCur] = useState(0);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const t = setInterval(() => setCur((c) => (c + 1) % SLIDES.length), 5500);
-    return () => clearInterval(t);
+    fetch("http://localhost:5000/api/banners")
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setSlides(data);
+      })
+      .catch(() => {});
   }, []);
-  const bgs = ["#f0ece6", "#e8ecf0", "#f0e8e8"];
-  const emojis = ["🧥", "👗", "👔"];
+
+  useEffect(() => {
+    const t = setInterval(() => setCur((c) => (c + 1) % slides.length), 3000);
+    return () => clearInterval(t);
+  }, [slides.length]);
+
+  const getTitle = (s) => s.title ?? s.Title ?? "";
+  const getTag = (s) => s.tag ?? s.Tag ?? "";
+  const getDesc = (s) => s.description ?? s.desc ?? "";
+  const getBtn = (s) => s.buttonText ?? s.btn ?? "Xem ngay";
+  const getHref = (s) => s.buttonHref ?? s.href ?? "#products";
+  const getBg = (s) => s.backgroundColor ?? "#f0ece6";
+  const getImg = (s) => s.imageUrl ?? null;
+  const getEmoji = (s, i) => s.emoji ?? ["🧥", "👗", "👔"][i % 3];
+
   return (
     <section id="home" className="ec-hero">
-      {SLIDES.map((s, i) => (
-        <div key={i} className={`ec-slide ${i === cur ? "active" : ""}`} style={{ background: bgs[i] }}>
+      {slides.map((s, i) => (
+        <div key={i} className={`ec-slide ${i === cur ? "active" : ""}`}
+          style={{
+            background: getImg(s)
+              ? `url(${getImg(s)}) center/cover no-repeat`
+              : getBg(s)
+          }}>
           <div className="ec-slide-content">
-            <p className="tag">{s.tag}</p>
+            <p className="tag">{getTag(s)}</p>
             <h1>
-              {s.title.split("\n").map((line, j) => (
+              {getTitle(s).split("\n").map((line, j) => (
                 <span key={j}>{line}<br /></span>
               ))}
             </h1>
-            <p>{s.desc}</p>
+            <p>{getDesc(s)}</p>
             <a
-              href={s.href}
+              href={getHref(s)}
               className="ec-btn ec-btn-dark"
               onClick={(e) => {
                 e.preventDefault();
-                document.querySelector(s.href)?.scrollIntoView({ behavior: "smooth" });
+                const href = getHref(s);
+                if (href.startsWith("#")) {
+                  document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+                } else {
+                  navigate(href);
+                }
               }}
             >
-              {s.btn}
+              {getBtn(s)}
             </a>
           </div>
-          <div style={{ position: "absolute", right: "10%", top: "50%", transform: "translateY(-50%)", fontSize: 180, opacity: 0.15, pointerEvents: "none", userSelect: "none" }}>
-            {emojis[i]}
-          </div>
+          {!getImg(s) && (
+            <div style={{
+              position: "absolute", right: "10%", top: "50%",
+              transform: "translateY(-50%)", fontSize: 180,
+              opacity: 0.15, pointerEvents: "none", userSelect: "none"
+            }}>
+              {getEmoji(s, i)}
+            </div>
+          )}
         </div>
       ))}
       <div className="ec-hero-dots">
-        {SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <button key={i} className={`ec-dot ${i === cur ? "active" : ""}`} onClick={() => setCur(i)} />
         ))}
       </div>
-      <div className="ec-hero-counter">0{cur + 1} / 0{SLIDES.length}</div>
+      <div className="ec-hero-counter">0{cur + 1} / 0{slides.length}</div>
     </section>
   );
 }
@@ -203,20 +245,14 @@ function Products({ onAddCart }) {
                       />
                     ) : null}
                     <div className="ec-product-img-inner" style={{ display: p.imageUrl ? "none" : "flex" }}>🛍️</div>
-
                     {p.totalSold > 0 && (
                       <span className="ec-product-badge badge-hot">🔥 {p.totalSold} đã bán</span>
                     )}
-
                     <div className="ec-product-actions">
                       {p.stock > 0 ? (
-                        <button className="ec-add-cart" onClick={() => onAddCart?.(p)}>
-                          Thêm vào giỏ
-                        </button>
+                        <button className="ec-add-cart" onClick={() => onAddCart?.(p)}>Thêm vào giỏ</button>
                       ) : (
-                        <button className="ec-add-cart" disabled style={{ background: "#ccc", cursor: "not-allowed", color: "#888", opacity: 0.7 }}>
-                          Hết hàng
-                        </button>
+                        <button className="ec-add-cart" disabled style={{ background: "#ccc", cursor: "not-allowed", color: "#888", opacity: 0.7 }}>Hết hàng</button>
                       )}
                       <button className="ec-wishlist">♡</button>
                     </div>
@@ -236,7 +272,7 @@ function Products({ onAddCart }) {
   );
 }
 
-function Banner() {
+function BannerSection() {
   const ref = useRef(null);
   useFadeUp(ref);
   return (
@@ -247,7 +283,8 @@ function Banner() {
           <p className="fade-up">
             Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi hình thức và chức năng hòa làm một.
           </p>
-          <a href="#products" className="ec-btn ec-btn-outline fade-up" onClick={(e) => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
+          <a href="#products" className="ec-btn ec-btn-outline fade-up"
+            onClick={(e) => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
             Khám phá ngay
           </a>
         </div>
@@ -317,7 +354,7 @@ export default function Home({ addToCart }) {
         <Categories />
         <Products onAddCart={addToCart} />
       </div>
-      <Banner />
+      <BannerSection />
       <Testimonials />
       <Newsletter />
     </>

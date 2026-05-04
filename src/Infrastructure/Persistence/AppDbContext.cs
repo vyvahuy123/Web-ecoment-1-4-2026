@@ -34,6 +34,7 @@ public class AppDbContext : DbContext
     public DbSet<WishList> WishLists => Set<WishList>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<News> News => Set<News>();
+    public DbSet<Banner> Banners => Set<Banner>();
 
 
     protected override void OnModelCreating(ModelBuilder builder)

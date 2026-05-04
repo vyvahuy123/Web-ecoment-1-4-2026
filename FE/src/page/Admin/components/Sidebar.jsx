@@ -18,6 +18,7 @@ const NAV_TEMPLATE = [
       { id: "orders",     icon: "▤", label: "Đơn hàng",  badgeKey: "orders" },
       { id: "vouchers",   icon: "⊘", label: "Voucher" },
       { id: "news", icon: "◎", label: "Tin tức" },
+      { id: "banners", icon: "🖼", label: "Banner" },
     ],
   },
   {

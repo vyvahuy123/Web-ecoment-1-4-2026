@@ -25,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
     private ICategoryRepository? _categories;
     private INewsRepository? _news; 
 
+
     public UnitOfWork(AppDbContext ctx) => _ctx = ctx;
 
     public IUserRepository Users => _users ??= new UserRepository(_ctx);
@@ -41,7 +42,8 @@ public class UnitOfWork : IUnitOfWork
     public ICartRepository Carts => _carts ??= new CartRepository(_ctx);
     public IReviewRepository Reviews => _reviews ??= new ReviewRepository(_ctx);
     public ICategoryRepository Categories => _categories ??= new CategoryRepository(_ctx);
-    public INewsRepository News => _news ??= new NewsRepository(_ctx); 
+    public INewsRepository News => _news ??= new NewsRepository(_ctx);
+    public IBannerRepository Banners => new BannerRepository(_ctx);
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         => await _ctx.SaveChangesAsync(ct);

@@ -3,6 +3,7 @@ import "./styles/global.css";
 import "./styles/layout.css";
 import "./styles/components.css";
 import "./styles/AdminDashboard.css";
+import BannersPage from "./pages/BannersPage";
 import Sidebar from "./components/Sidebar";
 import Topbar  from "./components/Topbar";
 import DashboardPage    from "./pages/DashboardPage";
@@ -24,6 +25,7 @@ const PAGES = {
   payments:      PaymentsPage,
   news:          NewsAdminPage,
   notifications: NotificationsPage,
+  banners: BannersPage,
 };
 
 export default function AdminDashboard() {

@@ -41,3 +41,12 @@ public interface IWishListRepository
     void Add(WishList wishList);
     void Remove(WishList wishList);
 }
+public interface IBannerRepository
+{
+    Task<IEnumerable<Banner>> GetAllActiveAsync(CancellationToken ct = default);
+    Task<IEnumerable<Banner>> GetAllAsync(CancellationToken ct = default);
+    Task<Banner?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    void Add(Banner banner);
+    void Update(Banner banner);
+    void Remove(Banner banner);
+}
