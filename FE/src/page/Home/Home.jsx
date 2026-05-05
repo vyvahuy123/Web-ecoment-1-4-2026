@@ -88,7 +88,8 @@ function Hero() {
     fetch("http://localhost:5000/api/banners")
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) setSlides(data);
+        const heroes = (data || []).filter(b => b.type === "hero" && b.isActive);
+        if (heroes.length > 0) setSlides(heroes);
       })
       .catch(() => {});
   }, []);
@@ -98,7 +99,7 @@ function Hero() {
     return () => clearInterval(t);
   }, [slides.length]);
 
-  const getTitle = (s) => s.title ?? s.Title ?? "";
+  const getTitle = (s) => (s.title ?? s.Title ?? "").replace(/\\n/g, "\n");
   const getTag = (s) => s.tag ?? s.Tag ?? "";
   const getDesc = (s) => s.description ?? s.desc ?? "";
   const getBtn = (s) => s.buttonText ?? s.btn ?? "Xem ngay";
@@ -273,22 +274,108 @@ function Products({ onAddCart }) {
 }
 
 function BannerSection() {
+  const [banners, setBanners] = useState([]);
+  const [cur, setCur] = useState(0);
   const ref = useRef(null);
   useFadeUp(ref);
-  return (
-    <section className="ec-banner" ref={ref}>
-      <div className="ec-banner-inner">
-        <div>
-          <h2 className="fade-up">Bộ sưu tập<br />Thu Đông 2025</h2>
-          <p className="fade-up">
-            Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi hình thức và chức năng hòa làm một.
-          </p>
-          <a href="#products" className="ec-btn ec-btn-outline fade-up"
-            onClick={(e) => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/banners")
+      .then(r => r.json())
+      .then(data => {
+        const features = (data || [])
+          .filter(b => b.type === "feature" && b.isActive)
+          .sort((a, b) => a.sortOrder - b.sortOrder);
+        if (features.length > 0) setBanners(features);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const t = setInterval(() => setCur(c => (c + 1) % banners.length), 3000);
+    return () => clearInterval(t);
+  }, [banners.length]);
+
+  // Fallback khi chưa có data
+  if (banners.length === 0) return (
+    <section className="ec-feature-section" ref={ref}>
+      <div className="ec-feature-inner">
+        <div className="ec-feature-text fade-up">
+          <p className="ec-feature-tag">Thu Đông 2025</p>
+          <h2 className="ec-feature-title">Bộ sưu tập<br />Thu Đông 2025</h2>
+          <p className="ec-feature-desc">Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi hình thức và chức năng hòa làm một.</p>
+          <a href="#products" className="ec-btn ec-btn-dark"
+            onClick={e => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
             Khám phá ngay
           </a>
         </div>
-        <div className="ec-banner-visual fade-up">🍂</div>
+        <div className="ec-feature-slides fade-up">
+          <div className="ec-feature-slide active" style={{ background: "#f0ece6" }}>
+            <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const active = banners[cur];
+  const title = (active?.title ?? "").replace(/\\n/g, "\n");
+  const desc = active?.description ?? "";
+  const btn = active?.buttonText ?? "Khám phá ngay";
+  const href = active?.buttonHref ?? "#products";
+
+  return (
+    <section className="ec-feature-section" ref={ref}>
+      <div className="ec-feature-inner">
+        {/* Text bên trái — thay đổi theo slide */}
+        <div className="ec-feature-text fade-up">
+          <p className="ec-feature-tag">{active?.tag}</p>
+          <h2 className="ec-feature-title" key={`title-${cur}`}>
+            {title.split("\n").map((l, i) => <span key={i}>{l}<br /></span>)}
+          </h2>
+          <p className="ec-feature-desc" key={`desc-${cur}`}>{desc}</p>
+          <a
+            href={href}
+            className="ec-btn ec-btn-dark"
+            onClick={e => {
+              e.preventDefault();
+              if (href.startsWith("#")) document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            {btn}
+          </a>
+          {banners.length > 1 && (
+            <div className="ec-feature-dots">
+              {banners.map((_, i) => (
+                <button
+                  key={i}
+                  className={`ec-dot ${i === cur ? "active" : ""}`}
+                  onClick={() => setCur(i)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Slideshow ảnh bên phải */}
+        <div className="ec-feature-slides fade-up">
+          {banners.map((b, i) => (
+            <div
+              key={b.id}
+              className={`ec-feature-slide ${i === cur ? "active" : ""}`}
+              style={{
+                background: b.imageUrl
+                  ? `url(${b.imageUrl}) center/cover no-repeat`
+                  : (b.backgroundColor ?? "#f0ece6"),
+              }}
+            >
+              {!b.imageUrl && (
+                <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

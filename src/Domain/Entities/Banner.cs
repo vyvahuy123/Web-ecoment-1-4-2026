@@ -1,9 +1,4 @@
 ﻿using Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Entities;
 
@@ -18,11 +13,13 @@ public class Banner : BaseEntity
     public string BackgroundColor { get; private set; } = "#f0f0f0";
     public int SortOrder { get; private set; } = 0;
     public bool IsActive { get; private set; } = true;
+    public string Type { get; private set; } = "hero";
 
     private Banner() { }
 
     public static Banner Create(string tag, string title, string description,
-        string buttonText, string buttonHref, string? imageUrl, string backgroundColor, int sortOrder)
+        string buttonText, string buttonHref, string? imageUrl,
+        string backgroundColor, int sortOrder, string type = "hero")
         => new()
         {
             Id = Guid.NewGuid(),
@@ -35,12 +32,14 @@ public class Banner : BaseEntity
             BackgroundColor = backgroundColor,
             SortOrder = sortOrder,
             IsActive = true,
+            Type = type,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
 
     public void Update(string tag, string title, string description,
-        string buttonText, string buttonHref, string? imageUrl, string backgroundColor, int sortOrder)
+        string buttonText, string buttonHref, string? imageUrl,
+        string backgroundColor, int sortOrder, string type = "hero")
     {
         Tag = tag;
         Title = title;
@@ -50,6 +49,7 @@ public class Banner : BaseEntity
         ImageUrl = imageUrl;
         BackgroundColor = backgroundColor;
         SortOrder = sortOrder;
+        Type = type;
         UpdatedAt = DateTime.UtcNow;
     }
 

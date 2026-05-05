@@ -5,7 +5,7 @@ const EMPTY = {
   tag: "", title: "", description: "",
   buttonText: "Shop Now", buttonHref: "#products",
   imageUrl: "", backgroundColor: "#f0f0f0",
-  sortOrder: 0, isActive: true,
+  sortOrder: 0, isActive: true, type: "hero",
 };
 
 export default function BannersPage() {
@@ -17,14 +17,14 @@ export default function BannersPage() {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
-  const fetch = async () => {
+  const fetchBanners = async () => {
     setLoading(true);
     try { setBanners(await BannerService.getAll()); }
     catch { setBanners([]); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetchBanners(); }, []);
 
   const openCreate = () => { setEditTarget(null); setForm(EMPTY); setErr(""); setModalOpen(true); };
   const openEdit = (b) => {
@@ -33,7 +33,7 @@ export default function BannersPage() {
       tag: b.tag, title: b.title, description: b.description,
       buttonText: b.buttonText, buttonHref: b.buttonHref,
       imageUrl: b.imageUrl ?? "", backgroundColor: b.backgroundColor,
-      sortOrder: b.sortOrder, isActive: b.isActive,
+      sortOrder: b.sortOrder, isActive: b.isActive, type: b.type ?? "hero",
     });
     setErr("");
     setModalOpen(true);
@@ -46,21 +46,26 @@ export default function BannersPage() {
       if (editTarget) await BannerService.update(editTarget.id, form);
       else await BannerService.create(form);
       setModalOpen(false);
-      fetch();
+      fetchBanners();
     } catch { setErr("Lỗi lưu banner"); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
     if (!confirm("Xóa banner này?")) return;
-    try { await BannerService.delete(id); fetch(); }
+    try { await BannerService.delete(id); fetchBanners(); }
     catch { alert("Lỗi xóa banner"); }
   };
 
   const handleToggle = async (b) => {
     try {
-      await BannerService.update(b.id, { ...b, imageUrl: b.imageUrl ?? "", isActive: !b.isActive });
-      fetch();
+      await BannerService.update(b.id, {
+        tag: b.tag, title: b.title, description: b.description,
+        buttonText: b.buttonText, buttonHref: b.buttonHref,
+        imageUrl: b.imageUrl ?? "", backgroundColor: b.backgroundColor,
+        sortOrder: b.sortOrder, isActive: !b.isActive, type: b.type ?? "hero",
+      });
+      fetchBanners();
     } catch {}
   };
 
@@ -76,7 +81,7 @@ export default function BannersPage() {
         <div>
           <h1 className="page-title">Quản lý Banner</h1>
           <p style={{ fontSize: 13, color: "var(--g4)", marginTop: 4 }}>
-            Quản lý các slide hero trên trang chủ
+            Quản lý các slide hero và section feature trên trang chủ
           </p>
         </div>
         <button className="btn btn-dark" onClick={openCreate}>+ Thêm banner</button>
@@ -97,6 +102,7 @@ export default function BannersPage() {
                 <th>Preview</th>
                 <th>Tiêu đề</th>
                 <th>Tag</th>
+                <th>Loại</th>
                 <th>Nút</th>
                 <th>Thứ tự</th>
                 <th>Trạng thái</th>
@@ -124,6 +130,11 @@ export default function BannersPage() {
                     </div>
                   </td>
                   <td><span className="badge badge-inactive">{b.tag}</span></td>
+                  <td>
+                    <span className={`badge ${b.type === "feature" ? "badge-info" : "badge-pending"}`}>
+                      {b.type === "feature" ? "Feature" : "Hero"}
+                    </span>
+                  </td>
                   <td style={{ fontSize: 12 }}>{b.buttonText}</td>
                   <td style={{ textAlign: "center", fontWeight: 600 }}>{b.sortOrder}</td>
                   <td>
@@ -159,6 +170,13 @@ export default function BannersPage() {
             </div>
             <div className="modal-body">
               {err && <div className="modal-err">{err}</div>}
+
+              <label>Loại banner</label>
+              <select className="modal-input" value={form.type}
+                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option value="hero">Hero (slide trang chủ)</option>
+                <option value="feature">Feature (section giữa trang)</option>
+              </select>
 
               <label>Tag (ví dụ: New Collection 2025)</label>
               <input {...inp("tag")} placeholder="Tag hiển thị trên slide" />
@@ -211,7 +229,6 @@ export default function BannersPage() {
                 </label>
               </div>
 
-              {/* Preview */}
               {(form.imageUrl || form.backgroundColor) && (
                 <div>
                   <label>Preview</label>

@@ -30,8 +30,10 @@ public class BannersController : ControllerBase
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateBannerRequest req, CancellationToken ct)
-        => Ok(await _mediator.Send(new UpdateBannerCommand(id, req.Tag, req.Title, req.Description,
-            req.ButtonText, req.ButtonHref, req.ImageUrl, req.BackgroundColor, req.SortOrder, req.IsActive), ct));
+        => Ok(await _mediator.Send(new UpdateBannerCommand(
+            id, req.Tag, req.Title, req.Description,
+            req.ButtonText, req.ButtonHref, req.ImageUrl,
+            req.BackgroundColor, req.SortOrder, req.IsActive, req.Type), ct));
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
@@ -45,4 +47,5 @@ public class BannersController : ControllerBase
 public record UpdateBannerRequest(
     string Tag, string Title, string Description,
     string ButtonText, string ButtonHref,
-    string? ImageUrl, string BackgroundColor, int SortOrder, bool IsActive);
+    string? ImageUrl, string BackgroundColor,
+    int SortOrder, bool IsActive, string Type = "hero");
