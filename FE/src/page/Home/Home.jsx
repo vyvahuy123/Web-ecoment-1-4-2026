@@ -86,9 +86,11 @@ function Hero() {
 
   useEffect(() => {
     fetch("http://localhost:5000/api/banners")
-      .then(r => r.json())
-      .then(data => {
-        const heroes = (data || []).filter(b => b.type === "hero" && b.isActive);
+      .then((r) => r.json())
+      .then((data) => {
+        const heroes = (data || []).filter(
+          (b) => b.type === "hero" && b.isActive,
+        );
         if (heroes.length > 0) setSlides(heroes);
       })
       .catch(() => {});
@@ -111,18 +113,26 @@ function Hero() {
   return (
     <section id="home" className="ec-hero">
       {slides.map((s, i) => (
-        <div key={i} className={`ec-slide ${i === cur ? "active" : ""}`}
+        <div
+          key={i}
+          className={`ec-slide ${i === cur ? "active" : ""}`}
           style={{
             background: getImg(s)
               ? `url(${getImg(s)}) center/cover no-repeat`
-              : getBg(s)
-          }}>
+              : getBg(s),
+          }}
+        >
           <div className="ec-slide-content">
             <p className="tag">{getTag(s)}</p>
             <h1>
-              {getTitle(s).split("\n").map((line, j) => (
-                <span key={j}>{line}<br /></span>
-              ))}
+              {getTitle(s)
+                .split("\n")
+                .map((line, j) => (
+                  <span key={j}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
             </h1>
             <p>{getDesc(s)}</p>
             <a
@@ -142,11 +152,18 @@ function Hero() {
             </a>
           </div>
           {!getImg(s) && (
-            <div style={{
-              position: "absolute", right: "10%", top: "50%",
-              transform: "translateY(-50%)", fontSize: 180,
-              opacity: 0.15, pointerEvents: "none", userSelect: "none"
-            }}>
+            <div
+              style={{
+                position: "absolute",
+                right: "10%",
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: 180,
+                opacity: 0.15,
+                pointerEvents: "none",
+                userSelect: "none",
+              }}
+            >
               {getEmoji(s, i)}
             </div>
           )}
@@ -154,10 +171,16 @@ function Hero() {
       ))}
       <div className="ec-hero-dots">
         {slides.map((_, i) => (
-          <button key={i} className={`ec-dot ${i === cur ? "active" : ""}`} onClick={() => setCur(i)} />
+          <button
+            key={i}
+            className={`ec-dot ${i === cur ? "active" : ""}`}
+            onClick={() => setCur(i)}
+          />
         ))}
       </div>
-      <div className="ec-hero-counter">0{cur + 1} / 0{slides.length}</div>
+      <div className="ec-hero-counter">
+        0{cur + 1} / 0{slides.length}
+      </div>
     </section>
   );
 }
@@ -171,7 +194,9 @@ function Categories() {
       <div className="container">
         <div className="ec-section-head fade-up">
           <h2>Danh mục</h2>
-          <a href="/san-pham" onClick={(e) => { e.preventDefault(); navigate("/san-pham"); }}>Xem tất cả</a>
+          <a href="/san-pham" onClick={(e) => { e.preventDefault(); navigate("/san-pham"); }}>
+            Xem tất cả
+          </a>
         </div>
         <div className="ec-cats">
           {CATEGORIES.map((c, i) => (
@@ -229,7 +254,9 @@ function Products({ onAddCart }) {
       <div className="container">
         <div className="ec-section-head fade-up">
           <h2>Sản phẩm bán chạy</h2>
-          <a href="/san-pham" onClick={(e) => { e.preventDefault(); navigate("/san-pham"); }}>Xem tất cả</a>
+          <a href="/san-pham" onClick={(e) => { e.preventDefault(); navigate("/san-pham"); }}>
+            Xem tất cả
+          </a>
         </div>
         <div className="ec-products">
           {loading
@@ -238,9 +265,7 @@ function Products({ onAddCart }) {
                 <div className="ec-product-card fade-up" key={p.id} style={{ transitionDelay: `${i * 0.08}s` }}>
                   <div className="ec-product-img">
                     {p.imageUrl ? (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.name}
+                      <img src={p.imageUrl} alt={p.name}
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
                       />
@@ -281,10 +306,10 @@ function BannerSection() {
 
   useEffect(() => {
     fetch("http://localhost:5000/api/banners")
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         const features = (data || [])
-          .filter(b => b.type === "feature" && b.isActive)
+          .filter((b) => b.type === "feature" && b.isActive)
           .sort((a, b) => a.sortOrder - b.sortOrder);
         if (features.length > 0) setBanners(features);
       })
@@ -293,86 +318,67 @@ function BannerSection() {
 
   useEffect(() => {
     if (banners.length <= 1) return;
-    const t = setInterval(() => setCur(c => (c + 1) % banners.length), 3000);
+    const t = setInterval(() => setCur((c) => (c + 1) % banners.length), 3000);
     return () => clearInterval(t);
   }, [banners.length]);
 
-  // Fallback khi chưa có data
-  if (banners.length === 0) return (
-    <section className="ec-feature-section" ref={ref}>
-      <div className="ec-feature-inner">
-        <div className="ec-feature-text fade-up">
-          <p className="ec-feature-tag">Thu Đông 2025</p>
-          <h2 className="ec-feature-title">Bộ sưu tập<br />Thu Đông 2025</h2>
-          <p className="ec-feature-desc">Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi hình thức và chức năng hòa làm một.</p>
-          <a href="#products" className="ec-btn ec-btn-dark"
-            onClick={e => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
-            Khám phá ngay
-          </a>
-        </div>
-        <div className="ec-feature-slides fade-up">
-          <div className="ec-feature-slide active" style={{ background: "#f0ece6" }}>
-            <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
+  if (banners.length === 0)
+    return (
+      <section className="ec-feature-section" ref={ref}>
+        <div className="ec-feature-inner">
+          <div className="ec-feature-text fade-up">
+            <p className="ec-feature-tag">Thu Đông 2025</p>
+            <h2 className="ec-feature-title">Bộ sưu tập<br />Thu Đông 2025</h2>
+            <p className="ec-feature-desc">
+              Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi hình thức và chức năng hòa làm một.
+            </p>
+            <a href="#products" className="ec-btn ec-btn-dark"
+              onClick={(e) => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
+              Khám phá ngay
+            </a>
+          </div>
+          <div className="ec-feature-slides fade-up">
+            <div className="ec-feature-slide active" style={{ background: "#f0ece6" }}>
+              <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
+      </section>
+    );
 
   const active = banners[cur];
   const title = (active?.title ?? "").replace(/\\n/g, "\n");
-  const desc = active?.description ?? "";
-  const btn = active?.buttonText ?? "Khám phá ngay";
-  const href = active?.buttonHref ?? "#products";
 
   return (
     <section className="ec-feature-section" ref={ref}>
       <div className="ec-feature-inner">
-        {/* Text bên trái — thay đổi theo slide */}
         <div className="ec-feature-text fade-up">
           <p className="ec-feature-tag">{active?.tag}</p>
           <h2 className="ec-feature-title" key={`title-${cur}`}>
             {title.split("\n").map((l, i) => <span key={i}>{l}<br /></span>)}
           </h2>
-          <p className="ec-feature-desc" key={`desc-${cur}`}>{desc}</p>
-          <a
-            href={href}
-            className="ec-btn ec-btn-dark"
-            onClick={e => {
+          <p className="ec-feature-desc" key={`desc-${cur}`}>{active?.description}</p>
+          <a href={active?.buttonHref ?? "#products"} className="ec-btn ec-btn-dark"
+            onClick={(e) => {
               e.preventDefault();
+              const href = active?.buttonHref ?? "#products";
               if (href.startsWith("#")) document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            {btn}
+            }}>
+            {active?.buttonText ?? "Khám phá ngay"}
           </a>
           {banners.length > 1 && (
             <div className="ec-feature-dots">
               {banners.map((_, i) => (
-                <button
-                  key={i}
-                  className={`ec-dot ${i === cur ? "active" : ""}`}
-                  onClick={() => setCur(i)}
-                />
+                <button key={i} className={`ec-dot ${i === cur ? "active" : ""}`} onClick={() => setCur(i)} />
               ))}
             </div>
           )}
         </div>
-
-        {/* Slideshow ảnh bên phải */}
         <div className="ec-feature-slides fade-up">
           {banners.map((b, i) => (
-            <div
-              key={b.id}
-              className={`ec-feature-slide ${i === cur ? "active" : ""}`}
-              style={{
-                background: b.imageUrl
-                  ? `url(${b.imageUrl}) center/cover no-repeat`
-                  : (b.backgroundColor ?? "#f0ece6"),
-              }}
-            >
-              {!b.imageUrl && (
-                <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
-              )}
+            <div key={b.id} className={`ec-feature-slide ${i === cur ? "active" : ""}`}
+              style={{ background: b.imageUrl ? `url(${b.imageUrl}) center/cover no-repeat` : (b.backgroundColor ?? "#f0ece6") }}>
+              {!b.imageUrl && <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>}
             </div>
           ))}
         </div>
@@ -382,24 +388,47 @@ function BannerSection() {
 }
 
 function Testimonials() {
+  const [reviews, setReviews] = useState(TESTIMONIALS);
   const ref = useRef(null);
-  useFadeUp(ref);
-  const initials = (n) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  useFadeUp(ref, [reviews]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/reviews/top?rating=5&take=6")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setReviews(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const initials = (n) =>
+    n?.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() ?? "U";
+
   return (
     <section className="ec-section" ref={ref}>
       <div className="container">
-        <div className="ec-section-head fade-up"><h2>Khách hàng nói gì</h2></div>
+        <div className="ec-section-head fade-up">
+          <h2>Khách hàng nói gì</h2>
+        </div>
         <div className="ec-testimonials">
-          {TESTIMONIALS.map((t, i) => (
-            <div className="ec-testimonial fade-up" key={t.name} style={{ transitionDelay: `${i * 0.15}s` }}>
-              <div className="ec-stars">{"★".repeat(t.stars)}</div>
-              <p>"{t.text}"</p>
-              <div className="ec-reviewer">
-                <div className="av">{initials(t.name)}</div>
-                <div><h5>{t.name}</h5><span>{t.role}</span></div>
+          {reviews.map((t, i) => {
+            const isApi = !!t.userId;
+            const name = isApi ? t.userName || "Khách hàng" : t.name;
+            const text = isApi ? t.comment : t.text;
+            const role = isApi ? (t.productName ?? "Khách hàng") : t.role;
+            const stars = isApi ? t.rating : t.stars;
+            return (
+              <div className="ec-testimonial fade-up" key={t.id ?? t.name}
+                style={{ transitionDelay: `${i * 0.15}s` }}>
+                <div className="ec-stars">{"★".repeat(stars)}</div>
+                <p>"{text}"</p>
+                <div className="ec-reviewer">
+                  <div className="av">{initials(name)}</div>
+                  <div><h5>{name}</h5><span>{role}</span></div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -422,7 +451,8 @@ function Newsletter() {
           <p style={{ color: "#0a0a0a", fontWeight: 500 }}>✓ Cảm ơn bạn đã đăng ký!</p>
         ) : (
           <form className="ec-newsletter-form" onSubmit={submit}>
-            <input type="email" placeholder="Địa chỉ email của bạn" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input type="email" placeholder="Địa chỉ email của bạn" value={email}
+              onChange={(e) => setEmail(e.target.value)} required />
             <button type="submit">Đăng ký</button>
           </form>
         )}
