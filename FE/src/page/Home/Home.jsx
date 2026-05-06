@@ -89,7 +89,7 @@ function Hero() {
       .then((r) => r.json())
       .then((data) => {
         const heroes = (data || []).filter(
-          (b) => b.type === "hero" && b.isActive,
+          (b) => (b.type === "hero" || b.type === "") && b.isActive,
         );
         if (heroes.length > 0) setSlides(heroes);
       })
@@ -142,7 +142,9 @@ function Hero() {
                 e.preventDefault();
                 const href = getHref(s);
                 if (href.startsWith("#")) {
-                  document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+                  document
+                    .querySelector(href)
+                    ?.scrollIntoView({ behavior: "smooth" });
                 } else {
                   navigate(href);
                 }
@@ -194,7 +196,13 @@ function Categories() {
       <div className="container">
         <div className="ec-section-head fade-up">
           <h2>Danh mục</h2>
-          <a href="/san-pham" onClick={(e) => { e.preventDefault(); navigate("/san-pham"); }}>
+          <a
+            href="/san-pham"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/san-pham");
+            }}
+          >
             Xem tất cả
           </a>
         </div>
@@ -224,11 +232,43 @@ function Categories() {
 function ProductSkeleton() {
   return (
     <div className="ec-product-card">
-      <div className="ec-product-img" style={{ background: "#f0f0f0", height: 260, animation: "shimmer 1.2s infinite" }} />
+      <div
+        className="ec-product-img"
+        style={{
+          background: "#f0f0f0",
+          height: 260,
+          animation: "shimmer 1.2s infinite",
+        }}
+      />
       <div className="ec-product-info">
-        <div style={{ height: 12, background: "#f0f0f0", borderRadius: 4, marginBottom: 8, width: "40%", animation: "shimmer 1.2s infinite" }} />
-        <div style={{ height: 16, background: "#f0f0f0", borderRadius: 4, marginBottom: 8, animation: "shimmer 1.2s infinite" }} />
-        <div style={{ height: 14, background: "#f0f0f0", borderRadius: 4, width: "60%", animation: "shimmer 1.2s infinite" }} />
+        <div
+          style={{
+            height: 12,
+            background: "#f0f0f0",
+            borderRadius: 4,
+            marginBottom: 8,
+            width: "40%",
+            animation: "shimmer 1.2s infinite",
+          }}
+        />
+        <div
+          style={{
+            height: 16,
+            background: "#f0f0f0",
+            borderRadius: 4,
+            marginBottom: 8,
+            animation: "shimmer 1.2s infinite",
+          }}
+        />
+        <div
+          style={{
+            height: 14,
+            background: "#f0f0f0",
+            borderRadius: 4,
+            width: "60%",
+            animation: "shimmer 1.2s infinite",
+          }}
+        />
       </div>
     </div>
   );
@@ -254,7 +294,13 @@ function Products({ onAddCart }) {
       <div className="container">
         <div className="ec-section-head fade-up">
           <h2>Sản phẩm bán chạy</h2>
-          <a href="/san-pham" onClick={(e) => { e.preventDefault(); navigate("/san-pham"); }}>
+          <a
+            href="/san-pham"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/san-pham");
+            }}
+          >
             Xem tất cả
           </a>
         </div>
@@ -262,32 +308,72 @@ function Products({ onAddCart }) {
           {loading
             ? Array.from({ length: 8 }, (_, i) => <ProductSkeleton key={i} />)
             : products.map((p, i) => (
-                <div className="ec-product-card fade-up" key={p.id} style={{ transitionDelay: `${i * 0.08}s` }}>
+                <div
+                  className="ec-product-card fade-up"
+                  key={p.id}
+                  style={{ transitionDelay: `${i * 0.08}s` }}
+                >
                   <div className="ec-product-img">
                     {p.imageUrl ? (
-                      <img src={p.imageUrl} alt={p.name}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "flex";
+                        }}
                       />
                     ) : null}
-                    <div className="ec-product-img-inner" style={{ display: p.imageUrl ? "none" : "flex" }}>🛍️</div>
+                    <div
+                      className="ec-product-img-inner"
+                      style={{ display: p.imageUrl ? "none" : "flex" }}
+                    >
+                      🛍️
+                    </div>
                     {p.totalSold > 0 && (
-                      <span className="ec-product-badge badge-hot">🔥 {p.totalSold} đã bán</span>
+                      <span className="ec-product-badge badge-hot">
+                        🔥 {p.totalSold} đã bán
+                      </span>
                     )}
                     <div className="ec-product-actions">
                       {p.stock > 0 ? (
-                        <button className="ec-add-cart" onClick={() => onAddCart?.(p)}>Thêm vào giỏ</button>
+                        <button
+                          className="ec-add-cart"
+                          onClick={() => onAddCart?.(p)}
+                        >
+                          Thêm vào giỏ
+                        </button>
                       ) : (
-                        <button className="ec-add-cart" disabled style={{ background: "#ccc", cursor: "not-allowed", color: "#888", opacity: 0.7 }}>Hết hàng</button>
+                        <button
+                          className="ec-add-cart"
+                          disabled
+                          style={{
+                            background: "#ccc",
+                            cursor: "not-allowed",
+                            color: "#888",
+                            opacity: 0.7,
+                          }}
+                        >
+                          Hết hàng
+                        </button>
                       )}
                       <button className="ec-wishlist">♡</button>
                     </div>
                   </div>
                   <div className="ec-product-info">
-                    <p className="cat">{p.totalSold > 0 ? `Đã bán ${p.totalSold}` : "Mới"}</p>
+                    <p className="cat">
+                      {p.totalSold > 0 ? `Đã bán ${p.totalSold}` : "Mới"}
+                    </p>
                     <h3>{p.name}</h3>
                     <div className="ec-product-price">
-                      <span className="ec-price">{Number(p.price).toLocaleString("vi-VN")}₫</span>
+                      <span className="ec-price">
+                        {Number(p.price).toLocaleString("vi-VN")}₫
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -328,17 +414,33 @@ function BannerSection() {
         <div className="ec-feature-inner">
           <div className="ec-feature-text fade-up">
             <p className="ec-feature-tag">Thu Đông 2025</p>
-            <h2 className="ec-feature-title">Bộ sưu tập<br />Thu Đông 2025</h2>
+            <h2 className="ec-feature-title">
+              Bộ sưu tập
+              <br />
+              Thu Đông 2025
+            </h2>
             <p className="ec-feature-desc">
-              Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi hình thức và chức năng hòa làm một.
+              Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi
+              hình thức và chức năng hòa làm một.
             </p>
-            <a href="#products" className="ec-btn ec-btn-dark"
-              onClick={(e) => { e.preventDefault(); document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" }); }}>
+            <a
+              href="#products"
+              className="ec-btn ec-btn-dark"
+              onClick={(e) => {
+                e.preventDefault();
+                document
+                  .querySelector("#products")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               Khám phá ngay
             </a>
           </div>
           <div className="ec-feature-slides fade-up">
-            <div className="ec-feature-slide active" style={{ background: "#f0ece6" }}>
+            <div
+              className="ec-feature-slide active"
+              style={{ background: "#f0ece6" }}
+            >
               <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
             </div>
           </div>
@@ -355,30 +457,56 @@ function BannerSection() {
         <div className="ec-feature-text fade-up">
           <p className="ec-feature-tag">{active?.tag}</p>
           <h2 className="ec-feature-title" key={`title-${cur}`}>
-            {title.split("\n").map((l, i) => <span key={i}>{l}<br /></span>)}
+            {title.split("\n").map((l, i) => (
+              <span key={i}>
+                {l}
+                <br />
+              </span>
+            ))}
           </h2>
-          <p className="ec-feature-desc" key={`desc-${cur}`}>{active?.description}</p>
-          <a href={active?.buttonHref ?? "#products"} className="ec-btn ec-btn-dark"
+          <p className="ec-feature-desc" key={`desc-${cur}`}>
+            {active?.description}
+          </p>
+          <a
+            href={active?.buttonHref ?? "#products"}
+            className="ec-btn ec-btn-dark"
             onClick={(e) => {
               e.preventDefault();
               const href = active?.buttonHref ?? "#products";
-              if (href.startsWith("#")) document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
-            }}>
+              if (href.startsWith("#"))
+                document
+                  .querySelector(href)
+                  ?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
             {active?.buttonText ?? "Khám phá ngay"}
           </a>
           {banners.length > 1 && (
             <div className="ec-feature-dots">
               {banners.map((_, i) => (
-                <button key={i} className={`ec-dot ${i === cur ? "active" : ""}`} onClick={() => setCur(i)} />
+                <button
+                  key={i}
+                  className={`ec-dot ${i === cur ? "active" : ""}`}
+                  onClick={() => setCur(i)}
+                />
               ))}
             </div>
           )}
         </div>
         <div className="ec-feature-slides fade-up">
           {banners.map((b, i) => (
-            <div key={b.id} className={`ec-feature-slide ${i === cur ? "active" : ""}`}
-              style={{ background: b.imageUrl ? `url(${b.imageUrl}) center/cover no-repeat` : (b.backgroundColor ?? "#f0ece6") }}>
-              {!b.imageUrl && <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>}
+            <div
+              key={b.id}
+              className={`ec-feature-slide ${i === cur ? "active" : ""}`}
+              style={{
+                background: b.imageUrl
+                  ? `url(${b.imageUrl}) center/cover no-repeat`
+                  : (b.backgroundColor ?? "#f0ece6"),
+              }}
+            >
+              {!b.imageUrl && (
+                <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
+              )}
             </div>
           ))}
         </div>
@@ -402,7 +530,12 @@ function Testimonials() {
   }, []);
 
   const initials = (n) =>
-    n?.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() ?? "U";
+    n
+      ?.split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "U";
 
   return (
     <section className="ec-section" ref={ref}>
@@ -418,13 +551,19 @@ function Testimonials() {
             const role = isApi ? (t.productName ?? "Khách hàng") : t.role;
             const stars = isApi ? t.rating : t.stars;
             return (
-              <div className="ec-testimonial fade-up" key={t.id ?? t.name}
-                style={{ transitionDelay: `${i * 0.15}s` }}>
+              <div
+                className="ec-testimonial fade-up"
+                key={t.id ?? t.name}
+                style={{ transitionDelay: `${i * 0.15}s` }}
+              >
                 <div className="ec-stars">{"★".repeat(stars)}</div>
                 <p>"{text}"</p>
                 <div className="ec-reviewer">
                   <div className="av">{initials(name)}</div>
-                  <div><h5>{name}</h5><span>{role}</span></div>
+                  <div>
+                    <h5>{name}</h5>
+                    <span>{role}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -440,23 +579,39 @@ function Newsletter() {
   const [done, setDone] = useState(false);
   const submit = (e) => {
     e.preventDefault();
-    if (email) { setDone(true); setEmail(""); setTimeout(() => setDone(false), 4000); }
+    if (email) {
+      setDone(true);
+      setEmail("");
+      setTimeout(() => setDone(false), 4000);
+    }
   };
   return (
     <section className="ec-newsletter">
       <div className="container">
         <h2>Đăng ký nhận ưu đãi</h2>
-        <p>Nhận thông tin bộ sưu tập mới và ưu đãi độc quyền dành riêng cho thành viên.</p>
+        <p>
+          Nhận thông tin bộ sưu tập mới và ưu đãi độc quyền dành riêng cho thành
+          viên.
+        </p>
         {done ? (
-          <p style={{ color: "#0a0a0a", fontWeight: 500 }}>✓ Cảm ơn bạn đã đăng ký!</p>
+          <p style={{ color: "#0a0a0a", fontWeight: 500 }}>
+            ✓ Cảm ơn bạn đã đăng ký!
+          </p>
         ) : (
           <form className="ec-newsletter-form" onSubmit={submit}>
-            <input type="email" placeholder="Địa chỉ email của bạn" value={email}
-              onChange={(e) => setEmail(e.target.value)} required />
+            <input
+              type="email"
+              placeholder="Địa chỉ email của bạn"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
             <button type="submit">Đăng ký</button>
           </form>
         )}
-        <p className="ec-newsletter-note">Bạn có thể hủy đăng ký bất cứ lúc nào.</p>
+        <p className="ec-newsletter-note">
+          Bạn có thể hủy đăng ký bất cứ lúc nào.
+        </p>
       </div>
     </section>
   );

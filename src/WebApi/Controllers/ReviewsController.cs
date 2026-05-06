@@ -63,6 +63,19 @@ public class ReviewsController : ControllerBase
         await _mediator.Send(new ReplyReviewCommand(id, req.AdminReply), ct);
         return NoContent();
     }
+    [HttpGet("top")]
+[AllowAnonymous]
+public async Task<IActionResult> GetTopReviews([FromQuery] int rating = 5, [FromQuery] int take = 10, CancellationToken ct = default)
+{
+    var result = await _mediator.Send(new GetAllReviewsQuery(), ct);
+    var top = result
+        .Where(r => r.Rating >= rating && r.Status == Domain.Enums.ReviewStatus.Approved)
+        .OrderByDescending(r => r.Rating)
+        .ThenByDescending(r => r.CreatedAt)
+        .Take(take)
+        .ToList();
+    return Ok(top);
+}
 }
 
 public record CreateReviewRequest(Guid ProductId, Guid OrderId, int Rating, string? Comment, string? ImageUrls);

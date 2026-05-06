@@ -15,4 +15,5 @@ public class ReviewDto
     public string? AdminReply { get; set; }
     public ReviewStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? ProductName { get; set; }
 }

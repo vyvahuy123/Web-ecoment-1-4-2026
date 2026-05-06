@@ -8,12 +8,11 @@ import { notificationService } from "@/services/notification.service";
 const NAV_LINKS_LEFT = [
   ["Trang chủ", "/"],
   ["Giới thiệu", "/gioi-thieu"],
-  ["Tin tức", "/tin-tuc"],   // ← sửa từ "/" thành "/tin-tuc"
+  ["Tin tức", "/tin-tuc"],   
   ["Sản phẩm", "/san-pham"],
 ];
 
 const NAV_LINKS_RIGHT = [
-  ["Sale", "/san-pham"],
   ["Liên hệ", "/lien-he"],
 ];
 

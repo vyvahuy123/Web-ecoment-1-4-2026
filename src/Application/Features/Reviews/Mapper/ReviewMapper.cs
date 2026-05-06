@@ -17,6 +17,7 @@ public static class ReviewMapper
         ImageUrls = r.ImageUrls,
         AdminReply = r.AdminReply,
         Status = r.Status,
-        CreatedAt = r.CreatedAt
+        ProductName = r.Product?.Name,
+        CreatedAt = r.CreatedAt      
     };
 }
