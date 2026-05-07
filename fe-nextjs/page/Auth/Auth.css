@@ -1,0 +1,446 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap");
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.au-page {
+  min-height: 100vh;
+  background: #fff;
+  font-family: "DM Sans", sans-serif;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── Two-column wrap ── */
+.au-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ── Left Panel ── */
+.au-left {
+  background: #0a0a0a;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  min-height: 100vh;
+}
+
+.au-left-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.au-brand {
+  display: block;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #9a8f83;
+  text-decoration: none;
+  margin-bottom: 48px;
+}
+
+.au-left-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 300;
+  color: #f7f4f0;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+.au-left-title em {
+  font-style: italic;
+  color: #c5b9ae;
+}
+
+.au-left-desc {
+  font-size: 14px;
+  color: #6b6b6b;
+  line-height: 1.8;
+  max-width: 320px;
+  margin-bottom: 48px;
+}
+
+.au-left-deco {
+  display: flex;
+  gap: 16px;
+}
+
+.au-left-deco span {
+  width: 52px;
+  height: 52px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.au-left-circles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.au-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid #1e1e1e;
+}
+
+.au-circle.c1 {
+  width: 400px;
+  height: 400px;
+  top: -120px;
+  right: -120px;
+}
+
+.au-circle.c2 {
+  width: 240px;
+  height: 240px;
+  bottom: -60px;
+  left: -60px;
+}
+
+/* ── Right Panel ── */
+.au-right {
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.au-right-inner {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ── Tabs ── */
+.au-tabs {
+  display: flex;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 36px;
+}
+
+.au-tab {
+  flex: 1;
+  padding: 11px 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: #fff;
+  color: #b0b0b0;
+  border: none;
+  border-right: 1px solid #e8e8e8;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+  font-family: "DM Sans", sans-serif;
+}
+
+.au-tab:last-child { border-right: none; }
+
+.au-tab.active {
+  background: #0a0a0a;
+  color: #fff;
+}
+
+/* ── Animated Form Container ── */
+.au-form-container {
+  overflow: hidden;
+}
+
+@keyframes au-slide-in {
+  from { opacity: 0; transform: translateX(0) translateY(12px); }
+  to   { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+@keyframes au-slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-32px); }
+}
+
+@keyframes au-slide-out-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(32px); }
+}
+
+/* ── Tab Head ── */
+.au-tab-head {
+  margin-bottom: 28px;
+}
+
+.au-tab-head h3 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: #0a0a0a;
+  margin-bottom: 8px;
+}
+
+.au-tab-head p {
+  font-size: 13px;
+  color: #9a8f83;
+  line-height: 1.6;
+}
+
+/* ── Form ── */
+.au-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.au-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.au-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6b6b6b;
+}
+
+.au-input-wrap { position: relative; }
+
+.au-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: "DM Sans", sans-serif;
+  color: #0a0a0a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.au-input:focus { border-color: #0a0a0a; }
+.au-field.has-error .au-input { border-color: #c0392b; }
+
+.au-field-error {
+  font-size: 11px;
+  color: #c0392b;
+}
+
+.au-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #b0b0b0;
+  padding: 0;
+  line-height: 1;
+}
+
+.au-forgot {
+  text-align: right;
+  margin-top: -4px;
+}
+
+.au-forgot a {
+  font-size: 12px;
+  color: #9a8f83;
+  text-decoration: none;
+}
+
+.au-forgot a:hover { color: #0a0a0a; }
+
+/* ── Password Strength ── */
+.au-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: -4px;
+}
+
+.au-strength-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.au-strength-bar {
+  flex: 1;
+  height: 3px;
+  background: #e8e8e8;
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+
+.au-strength-bar.weak   { background: #c0392b; }
+.au-strength-bar.medium { background: #e67e22; }
+.au-strength-bar.strong { background: #27ae60; }
+
+.au-strength-label { font-size: 11px; font-weight: 500; min-width: 60px; text-align: right; }
+.au-strength-label.weak   { color: #c0392b; }
+.au-strength-label.medium { color: #e67e22; }
+.au-strength-label.strong { color: #27ae60; }
+
+/* ── Server Error ── */
+.au-server-error {
+  background: #fdf0ee;
+  border: 1px solid #f0c4bc;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #c0392b;
+  line-height: 1.5;
+}
+
+/* ── Submit ── */
+.au-submit {
+  width: 100%;
+  padding: 13px;
+  background: #0a0a0a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: "DM Sans", sans-serif;
+  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.au-submit:hover:not(:disabled) { background: #3a3a3a; }
+.au-submit:active:not(:disabled) { transform: scale(0.98); }
+.au-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Spinner ── */
+.au-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: au-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes au-spin { to { transform: rotate(360deg); } }
+
+/* ── Terms ── */
+.au-terms {
+  font-size: 11px;
+  color: #b0b0b0;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.au-terms a { color: #6b6b6b; text-decoration: underline; }
+
+/* ── Divider ── */
+.au-divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0 14px;
+}
+
+.au-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 1px;
+  background: #e8e8e8;
+}
+
+.au-divider span {
+  position: relative;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #b0b0b0;
+}
+
+/* ── Switch ── */
+.au-switch { text-align: center; }
+
+.au-switch p { font-size: 13px; color: #9a8f83; }
+
+.au-switch button {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0a0a0a;
+  cursor: pointer;
+  font-family: "DM Sans", sans-serif;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* ── Success ── */
+.au-success-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 40px;
+  animation: au-slide-in 0.4s ease forwards;
+}
+
+.au-success-icon {
+  width: 64px;
+  height: 64px;
+  background: #0a0a0a;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+
+.au-success-wrap h2 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 36px;
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+
+.au-success-wrap p { font-size: 14px; color: #6b6b6b; margin-bottom: 24px; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .au-wrap { grid-template-columns: 1fr; }
+  .au-left { min-height: 260px; padding: 48px 32px; }
+  .au-left-title { font-size: 36px; }
+  .au-right { padding: 40px 24px; min-height: unset; }
+  .au-right-inner { max-width: 100%; }
+}
