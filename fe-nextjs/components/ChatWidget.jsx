@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { chatService } from '../services/chat.service';
 
-const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID || '';
+const ADMIN_ID = "f5b75413-eeb7-43f1-a01b-2797ee79c983";
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
