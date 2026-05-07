@@ -1,0 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap");
+
+/* ─── RESET ──────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── VARIABLES ───────────────────────────────────────── */
+:root {
+  --black:   #0a0a0a;
+  --white:   #ffffff;
+  --g1:      #f5f5f5;
+  --g2:      #e8e8e8;
+  --g3:      #b0b0b0;
+  --g4:      #6b6b6b;
+  --g5:      #3a3a3a;
+
+  --sidebar-bg:     #0a0a0a;
+  --sidebar-hover:  #161616;
+  --sidebar-active: #222222;
+  --sidebar-width:  260px;
+  --topbar-h:       62px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-sm:   0 1px 4px rgba(0,0,0,.06);
+  --shadow-md:   0 4px 16px rgba(0,0,0,.08);
+  --shadow-card: 0 2px 8px rgba(0,0,0,.05);
+
+  --font-sans:  "DM Sans", sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+
+  --green-bg:  #e8f5e9; --green-text:  #1b5e20;
+  --amber-bg:  #fff8e1; --amber-text:  #c84b00;
+  --red-bg:    #fce4ec; --red-text:    #880e4f;
+  --blue-bg:   #e3f2fd; --blue-text:   #0d47a1;
+  --gray-bg:   #f1f1f1; --gray-text:   #555;
+
+  /* Tốc độ animation */
+  --transition:      0.22s ease;
+  --transition-slow: 0.38s ease;
+}
+
+/* ─── BASE ────────────────────────────────────────────── */
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 17px;           
+  color: var(--black);
+  background: var(--g1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+button { font-family: var(--font-sans); cursor: pointer; }
+input, select, textarea { font-family: var(--font-sans); }
+
+/* ─── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--g2);
+  border-radius: 99px;
+  transition: background var(--transition);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--g3); }
+
+/* ─── PAGE FADE-IN khi chuyển trang ──────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: fadeUp 0.28s ease both;
+}
