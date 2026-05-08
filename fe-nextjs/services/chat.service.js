@@ -2,14 +2,12 @@
 import * as signalR from "@microsoft/signalr";
 import api from "../api/axiosConfig";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
-
+const BASE = "http://localhost:5000";
 let connection = null;
-let connectingPromise = null;
 
 export const chatService = {
   async connect(onMessage, onUserOnline, onUserOffline, onMessagesRead) {
-    // Nếu đã connected -> chỉ gắn lại listeners
+    if (typeof window === "undefined") return null;
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       connection.off("ReceiveMessage");
       connection.off("UserOnline");
@@ -21,51 +19,45 @@ export const chatService = {
       connection.on("MessagesRead", onMessagesRead);
       return connection;
     }
-
-    // Nếu đang connecting -> chờ promise cũ
-    if (connectingPromise) return connectingPromise;
-
+    connection = null;
+    const token = localStorage.getItem("token");
+    if (!token) return null;
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${BASE}/hubs/chat`, { accessTokenFactory: () => (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token") })
+      .withUrl(`${BASE}/hubs/chat`, {
+        accessTokenFactory: () => localStorage.getItem("token"),
+        transport: signalR.HttpTransportType.WebSockets,
+        skipNegotiation: true
+      })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
       .build();
-
     connection.on("ReceiveMessage", onMessage);
     connection.on("UserOnline", onUserOnline);
     connection.on("UserOffline", onUserOffline);
     connection.on("MessagesRead", onMessagesRead);
-
-    connectingPromise = connection.start().then(() => {
-      connectingPromise = null;
-      return connection;
-    }).catch((e) => {
-      connectingPromise = null;
-      connection = null;
-      throw e;
-    });
-
-    return connectingPromise;
+    await connection.start();
+    return connection;
   },
-
   async disconnect() {
-    if (connection && connection.state !== signalR.HubConnectionState.Disconnected) {
-      await connection.stop();
+    if (connection) {
+      try {
+        if (connection.state === signalR.HubConnectionState.Connected) {
+          await connection.stop();
+        }
+      } catch(e) {}
     }
     connection = null;
-    connectingPromise = null;
   },
-
   async sendMessage(receiverId, content) {
-    if (!connection) throw new Error("Chua ket noi SignalR");
+    if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+      throw new Error("Chua ket noi SignalR");
+    }
     await connection.invoke("SendMessage", receiverId, content);
   },
-
   async markAsRead(senderId) {
     if (!connection) return;
     await connection.invoke("MarkAsRead", senderId);
   },
-
   getConversations: () => api.get("/chat/conversations").then((r) => r.data),
   getMessages: (userId, page = 1) => api.get(`/chat/messages/${userId}?page=${page}`).then((r) => r.data),
 };
