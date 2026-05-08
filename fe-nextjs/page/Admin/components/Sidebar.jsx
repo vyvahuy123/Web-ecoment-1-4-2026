@@ -121,12 +121,12 @@ export default function Sidebar({ activePage, onNavigate, open, notifCount }) {
           <div key={section.group}>
             <div className="sidebar-group">{section.group}</div>
             {section.items.map((item) => {
-              const badgeCount = item.id === "notifications" ? (notifCount ?? 0) : (item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0);
+              const badgeCount = item.badgeKey ? (badges[item.badgeKey] ?? 0) : 0;
               return (
                 <div
                   key={item.id}
                   className={`sidebar-item${activePage === item.id ? " active" : ""}`}
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => { onNavigate(item.id); setBadges(prev => ({ ...prev, [item.badgeKey]: 0 })); }}
                 >
                   <span className="sidebar-item__icon">{item.icon}</span>
                   <span className="sidebar-item__label">{item.label}</span>
