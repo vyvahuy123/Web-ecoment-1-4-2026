@@ -19,7 +19,7 @@ public static class CartMapper
         CartItemId = item.Id,
         ProductId = item.ProductId,
         ProductName = item.Product?.Name ?? string.Empty,
-        ProductImageUrl = item.Product?.Images?.FirstOrDefault(x => x.IsMain)?.ImageUrl,
+        ProductImageUrl = item.Product?.Images?.FirstOrDefault(x => x.IsMain)?.ImageUrl ?? item.Product?.ImageUrl,
         UnitPrice = item.UnitPrice,
         Quantity = item.Quantity,
         TotalPrice = item.TotalPrice // computed property

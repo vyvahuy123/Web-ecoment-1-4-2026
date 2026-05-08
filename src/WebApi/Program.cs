@@ -108,7 +108,7 @@ try
     });
     builder.Services.AddScoped<Application.Interfaces.IVNPayService, Infrastructure.Services.VNPayService>();
     builder.Services.AddCors(opt => opt.AddPolicy("Default", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials()));
