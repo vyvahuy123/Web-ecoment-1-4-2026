@@ -1,11 +1,13 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { chatService } from '../services/chat.service';
+import { useCart } from '@/contexts/CartContext';
 
 const ADMIN_ID = "f5b75413-eeb7-43f1-a01b-2797ee79c983";
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const { cartOpen } = useCart();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isClient, setIsClient] = useState(false);
@@ -58,7 +60,7 @@ export default function ChatWidget() {
     color: isMe ? '#fff' : '#111',
   });
 
-  if (!isClient) return null;
+  if (!isClient || cartOpen) return null;
 
   return (
     <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>

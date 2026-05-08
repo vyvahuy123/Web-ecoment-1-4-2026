@@ -93,8 +93,8 @@ export default function CartDrawer() {
               {items.map((item) => (
                 <div key={item.cartItemId} style={{ display: "flex", gap: 14, marginBottom: 16, padding: 14, borderRadius: 12, border: "1px solid #f0f0f0" }}>
                   <div style={{ width: 72, height: 72, borderRadius: 10, background: "#f5f5f5", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {getImageUrl(item.productImageUrl)
-                      ? <img src={getImageUrl(item.productImageUrl)} alt={item.productName} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.target.style.display = "none"; }} />
+                    {getImageUrl(item.productImageUrl ?? item.ProductImageUrl)
+                      ? <img src={getImageUrl(item.productImageUrl ?? item.ProductImageUrl)} alt={item.productName} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.target.style.display = "none"; }} />
                       : <span style={{ fontSize: 28 }}>🛍️</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
