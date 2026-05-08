@@ -8,34 +8,39 @@ export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [connected, setConnected] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const bottomRef = useRef(null);
-  useEffect(() => { setIsClient(true); }, []);
   const inputRef = useRef(null);
-  const myId = isClient ? localStorage.getItem('userId') : null;
+
+  useEffect(() => { setIsClient(true); }, []);
+
   const token = isClient ? localStorage.getItem('token') : null;
+  const myId = isClient ? localStorage.getItem('userId') : null;
 
   useEffect(() => {
-    if (!token || !myId) return;
+    if (!isClient || !token) return;
     chatService.connect(
       (msg) => setMessages((prev) => [...prev, msg]),
       () => {}, () => {}, () => {}
-    ).then(() => {
-      setConnected(true);
-      return chatService.getMessages(ADMIN_ID);
-    }).then((msgs) => setMessages(msgs || []))
-    .catch(console.error);
+    ).then(() => chatService.getMessages(ADMIN_ID))
+     .then((msgs) => setMessages(msgs || []))
+     .catch(console.error);
     return () => chatService.disconnect();
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length, open]);
 
+  const handleOpen = () => {
+    if (!token) { window.location.href = '/dang-nhap'; return; }
+    setOpen(true);
+  };
+
   const send = async () => {
+    if (!token) { window.location.href = '/dang-nhap'; return; }
     const text = input.trim();
-    if (!text || !ADMIN_ID) return;
+    if (!text) return;
     try {
       await chatService.sendMessage(ADMIN_ID, text);
       setInput('');
@@ -43,16 +48,17 @@ export default function ChatWidget() {
     } catch (e) { console.error(e); }
   };
 
-  if (!token) return null;
-
   const bubbleStyle = (isMe) => ({
-    maxWidth: '75%',
-    padding: '8px 12px',
+    padding: '6px 12px',
     borderRadius: 16,
+    maxWidth: '80%',
+    wordBreak: 'break-word',
+    fontSize: 13,
     background: isMe ? '#111' : '#f0f0f0',
     color: isMe ? '#fff' : '#111',
-    fontSize: 13,
   });
+
+  if (!isClient) return null;
 
   return (
     <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>
@@ -66,20 +72,17 @@ export default function ChatWidget() {
             {messages.length === 0 && (
               <div style={{ color: '#999', textAlign: 'center', marginTop: 40 }}>Xin chao! Shop co the giup gi cho ban?</div>
             )}
-            {messages.map((msg) => {
+            {messages.map((msg, i) => {
               const isMe = msg.senderId?.toString() === myId;
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
-  if (!isClient) return null;
               return (
-                <div key={msg.id} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+                <div key={i} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
                   <div style={bubbleStyle(isMe)}>{msg.content}</div>
                 </div>
               );
             })}
             <div ref={bottomRef} />
           </div>
-          <div style={{ display: 'flex', borderTop: '1px solid #eee', padding: 8, gap: 8 }}>
+          <div style={{ padding: '8px 12px', borderTop: '1px solid #eee', display: 'flex', gap: 8 }}>
             <input
               ref={inputRef}
               value={input}
@@ -88,15 +91,17 @@ export default function ChatWidget() {
               placeholder="Nhan tin nhan..."
               style={{ flex: 1, border: '1px solid #ddd', borderRadius: 20, padding: '6px 12px', fontSize: 13, outline: 'none' }}
             />
-            <button onClick={send} disabled={!input.trim() || !connected} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 20, padding: '6px 14px', cursor: 'pointer' }}>
+            <button onClick={send} disabled={!input.trim()} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 20, padding: '6px 14px', cursor: 'pointer' }}>
               Go
             </button>
           </div>
         </div>
       )}
-      <button onClick={() => setOpen((v) => !v)} style={{ width: 52, height: 52, borderRadius: '50%', background: '#111', color: '#fff', border: 'none', fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        Chat
-      </button>
+      {!open && (
+        <button onClick={handleOpen} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 24, padding: '10px 20px', cursor: 'pointer', fontWeight: 600, fontSize: 14, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          Chat
+        </button>
+      )}
     </div>
   );
 }
