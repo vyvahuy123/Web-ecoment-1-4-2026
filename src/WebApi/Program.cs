@@ -48,6 +48,8 @@ try
         {
             opt.MapInboundClaims = false;
             opt.UseSecurityTokenValidators = true;
+            opt.TokenHandlers.Clear();
+            opt.SaveToken = false;
             opt.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
