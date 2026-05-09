@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Auth.css";
 import AuthService from "@/services/auth.service";
 
@@ -151,6 +151,14 @@ export default function Auth({ defaultTab = "login", onLoginSuccess }) {
   const [direction, setDirection] = useState("right");
   const [success, setSuccess] = useState(null);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("token")) {
+      router.push("/");
+    }
+  }, []);
+
   const switchTab = (newTab) => {
     if (newTab === tab || animating) return;
     setDirection(newTab === "register" ? "right" : "left");
@@ -158,11 +166,14 @@ export default function Auth({ defaultTab = "login", onLoginSuccess }) {
     setTimeout(() => { setTab(newTab); setAnimating(false); }, 300);
   };
 
-  const router = useRouter();
   const handleSuccess = (data, type) => {
     setSuccess({ data, type });
     onLoginSuccess?.(data);
-    setTimeout(() => { router.push("/"); }, 1500);
+    try {
+      const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
+      const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ?? payload["role"] ?? "";
+      setTimeout(() => { router.push(role === "Admin" ? "/admin" : "/"); }, 1500);
+    } catch { setTimeout(() => { router.push("/"); }, 1500); }
   };
 
   if (success) {
@@ -170,13 +181,9 @@ export default function Auth({ defaultTab = "login", onLoginSuccess }) {
       <div className="au-page" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
         <div className="au-success-wrap" style={{textAlign:"center"}}>
           <div className="au-success-icon">✓</div>
-          <h2>{success.type === "login" ? "Chào mừng trở lại!" : "Tài khoản đã được tạo!"}</h2>
+          <h2>{success.type === 'login' ? 'Chào mừng trở lại!' : 'Tài khoản đã được tạo!'}</h2>
           <p>Xin chào, <strong>{success.data?.user?.fullName || success.data?.user?.email}</strong></p>
-          <a
-            href="/"
-            className="au-submit"
-            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", marginTop: 8 }}
-          >
+          <a href="/" className="au-submit" style={{textDecoration:"none",display:"inline-flex",alignItems:"center",justifyContent:"center",marginTop:8}}>
             Về trang chủ
           </a>
         </div>

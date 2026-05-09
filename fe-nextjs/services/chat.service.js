@@ -25,8 +25,8 @@ export const chatService = {
     connection = new signalR.HubConnectionBuilder()
       .withUrl(`${BASE}/hubs/chat`, {
         accessTokenFactory: () => localStorage.getItem("token"),
-        transport: signalR.HttpTransportType.WebSockets,
-        skipNegotiation: true
+        
+        
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)

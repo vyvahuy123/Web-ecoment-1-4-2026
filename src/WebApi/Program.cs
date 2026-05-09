@@ -47,6 +47,7 @@ try
         .AddJwtBearer(opt =>
         {
             opt.MapInboundClaims = false;
+            opt.UseSecurityTokenValidators = true;
             opt.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -67,6 +68,22 @@ try
                     if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/hubs"))
                         ctx.Token = token;
                     return Task.CompletedTask;
+                },
+                OnTokenValidated = async ctx =>
+                {
+                    Console.WriteLine("[TOKEN VALIDATED] called");
+                    var userId = ctx.Principal?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value ?? ctx.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    Console.WriteLine("[TOKEN VALIDATED] userId=" + userId);
+                    var iatClaim = ctx.Principal?.FindFirst("iat")?.Value;
+                    if (userId == null || iatClaim == null) { ctx.Fail("Invalid token"); return; }
+                    var db = ctx.HttpContext.RequestServices.GetRequiredService<Infrastructure.Persistence.AppDbContext>();
+                    var user = await db.Users.FindAsync(Guid.Parse(userId));
+                    Console.WriteLine("[TOKEN VALIDATED] user=" + (user == null ? "null" : user.Username) + " lastLogin=" + user?.LastLoginAt);
+                    if (user != null && user.LastLoginAt.HasValue)
+                    {
+                        var iat = DateTimeOffset.FromUnixTimeSeconds(long.Parse(iatClaim)).UtcDateTime;
+                        if (iat < user.LastLoginAt.Value.AddSeconds(-5)) { ctx.Fail("Session expired: logged in from another device"); return; }
+                    }
                 },
                 OnAuthenticationFailed = ctx =>
                 {
