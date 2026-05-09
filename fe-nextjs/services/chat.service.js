@@ -35,7 +35,7 @@ export const chatService = {
     connection.on("UserOnline", onUserOnline);
     connection.on("UserOffline", onUserOffline);
     connection.on("MessagesRead", onMessagesRead);
-    await connection.start();
+    try { await connection.start(); } catch(e) { if (e?.message?.includes("401") || e?.message?.includes("Unauthorized")) { connection = null; if (typeof window !== "undefined") { localStorage.removeItem("token"); localStorage.removeItem("user"); localStorage.removeItem("userId"); window.dispatchEvent(new CustomEvent("session-expired")); } return null; } throw e; }
     return connection;
   },
   async disconnect() {
