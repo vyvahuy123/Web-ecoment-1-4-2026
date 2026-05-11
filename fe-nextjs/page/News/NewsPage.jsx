@@ -86,6 +86,7 @@ function SkeletonCard() {
 }
 
 export default function NewsPage() {
+  const router = useRouter();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("");

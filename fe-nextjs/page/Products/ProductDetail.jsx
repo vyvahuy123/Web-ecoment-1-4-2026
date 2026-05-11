@@ -136,6 +136,7 @@ export default function ProductDetail() {
   };
 
   useEffect(() => { if (id) fetchReviews(reviewPage); }, [id, reviewPage]);
+  useEffect(() => { if (id) ProductService.getVariants(id).then(setVariants).catch(() => setVariants([])); }, [id]);
 
   const handleAddToCart = async () => {
     if (!product) return;

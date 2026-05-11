@@ -85,6 +85,21 @@ const ProductService = {
     await api.delete(`/products/${id}`);
   },
 
+  getVariants: async (productId) => {
+    const { data } = await api.get(`/products/${productId}/variants`);
+    return data;
+  },
+  createVariant: async (productId, payload) => {
+    const { data } = await api.post(`/products/${productId}/variants`, payload);
+    return data;
+  },
+  updateVariant: async (variantId, payload) => {
+    const { data } = await api.put(`/products/variants/${variantId}`, payload);
+    return data;
+  },
+  deleteVariant: async (variantId) => {
+    await api.delete(`/products/variants/${variantId}`);
+  },
   getTopSelling: async (limit = 8) => {
     const { data } = await api.get("/products/top-selling", { params: { limit } });
     return data;

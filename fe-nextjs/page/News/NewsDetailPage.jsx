@@ -23,6 +23,7 @@ const CAT_COLORS = {
 export default function NewsDetailPage() {
   const { id } = useParams();
   
+  const router = useRouter();
   const [news, setNews] = useState(null);
   const [loading, setLoading] = useState(true);
 
