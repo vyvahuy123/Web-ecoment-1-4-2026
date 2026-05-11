@@ -30,6 +30,9 @@ public class CartItem : BaseEntity
             ProductId = productId,
             UnitPrice = unitPrice,
             Quantity = quantity,
+            VariantId = variantId,
+            VariantColor = color,
+            VariantSize = size,
             CreatedAt = DateTime.UtcNow
         };
 

@@ -22,6 +22,9 @@ public static class CartMapper
         ProductImageUrl = item.Product?.Images?.FirstOrDefault(x => x.IsMain)?.ImageUrl ?? item.Product?.ImageUrl,
         UnitPrice = item.UnitPrice,
         Quantity = item.Quantity,
-        TotalPrice = item.TotalPrice // computed property
+        TotalPrice = item.TotalPrice,
+        VariantId = item.VariantId,
+        VariantColor = item.VariantColor,
+        VariantSize = item.VariantSize
     };
 }

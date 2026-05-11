@@ -26,13 +26,13 @@ public class Cart : BaseEntity
         };
 
     /// <summary>Thêm hoặc tăng số lượng sản phẩm</summary>
-    public void AddOrUpdateItem(Guid productId, decimal unitPrice, int quantity, Guid? variantId = null)
+    public void AddOrUpdateItem(Guid productId, decimal unitPrice, int quantity, Guid? variantId = null, string? color = null, string? size = null)
     {
         var existing = _items.FirstOrDefault(i => i.ProductId == productId && i.VariantId == variantId);
         if (existing != null)
             existing.UpdateQuantity(existing.Quantity + quantity);
         else
-            _items.Add(CartItem.Create(Id, productId, unitPrice, quantity, variantId));
+            _items.Add(CartItem.Create(Id, productId, unitPrice, quantity, variantId, color, size));
         UpdatedAt = DateTime.UtcNow;
     }
 

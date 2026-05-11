@@ -15,6 +15,8 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, CartDto
 
         decimal unitPrice = product.Price;
         int availableStock = product.Stock;
+        string? variantColor = null;
+        string? variantSize = null;
 
         if (cmd.VariantId.HasValue)
         {
@@ -22,6 +24,8 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, CartDto
                 ?? throw new Exception("Variant not found");
             unitPrice = variant.Price;
             availableStock = variant.Stock;
+            variantColor = variant.Color;
+            variantSize = variant.Size;
         }
 
         if (availableStock < cmd.Quantity)
@@ -34,7 +38,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, CartDto
             await _uow.Carts.AddAsync(cart);
         }
 
-        cart.AddOrUpdateItem(cmd.ProductId, unitPrice, cmd.Quantity, cmd.VariantId);
+        cart.AddOrUpdateItem(cmd.ProductId, unitPrice, cmd.Quantity, cmd.VariantId, variantColor, variantSize);
         await _uow.SaveChangesAsync(ct);
         return CartMapper.ToDto(cart);
     }

@@ -15,5 +15,8 @@ namespace Application.Features.Carts.DTOs
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal TotalPrice { get; set; }
+        public Guid? VariantId { get; set; }
+        public string? VariantColor { get; set; }
+        public string? VariantSize { get; set; }
     }
 }

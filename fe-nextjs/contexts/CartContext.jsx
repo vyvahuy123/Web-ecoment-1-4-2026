@@ -32,8 +32,8 @@ export function CartProvider({ children }) {
     return () => clearInterval(interval);
   }, [fetchCart]);
 
-  const addItem = useCallback(async (productId, quantity = 1) => {
-    await CartService.addItem({ productId, quantity });
+  const addItem = useCallback(async (productId, quantity = 1, variantId = null) => {
+    await CartService.addItem({ productId, quantity, ...(variantId && { variantId }) });
     await fetchCart();
   }, [fetchCart]);
 

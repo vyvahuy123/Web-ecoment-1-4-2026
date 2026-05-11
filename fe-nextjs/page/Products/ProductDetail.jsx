@@ -141,7 +141,7 @@ export default function ProductDetail() {
   const handleAddToCart = async () => {
     if (!product) return;
     setAddingCart(true);
-    try { await addItem(product.id, qty); }
+    try { await addItem(product.id, qty, selectedVariant?.id ?? null); }
     catch (e) { console.error(e); }
     finally { setAddingCart(false); }
   };

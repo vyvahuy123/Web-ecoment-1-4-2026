@@ -99,6 +99,7 @@ export default function CartDrawer() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.productName}</p>
+                    {(item.variantColor || item.variantSize) && <p style={{ fontSize: 12, color: "#999", marginBottom: 4 }}>{[item.variantColor, item.variantSize].filter(Boolean).join(" / ")}</p>}
                     <p style={{ color: "#e74c3c", fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{fmt(item.unitPrice)}₫</p>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button onClick={() => updateItem(item.productId, item.quantity - 1)} disabled={item.quantity <= 1} style={{ width: 28, height: 28, borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: item.quantity <= 1 ? "not-allowed" : "pointer", fontSize: 16, fontWeight: 600 }}>−</button>
