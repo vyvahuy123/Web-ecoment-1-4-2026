@@ -97,6 +97,7 @@ export default function Cart() {
 
                     <div className="cart-item__info">
                       <h3 className="cart-item__name">{item.productName}</h3>
+                      {(item.variantColor || item.variantSize) && <p style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>{[item.variantColor, item.variantSize].filter(Boolean).join(" / ")}</p>}
                       <p style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>
                         {fmt(item.unitPrice)}₫ / sản phẩm
                       </p>
