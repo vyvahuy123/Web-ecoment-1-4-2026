@@ -47,7 +47,7 @@ export default function Wishlist() {
               <div style={{ fontSize: 40, marginBottom: 16 }}>⏳</div>
               <p>Đang tải...</p>
             </div>
-          ) : !(typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token") ? (
+          ) : !localStorage.getItem("token") ? (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <div style={{ fontSize: 64, marginBottom: 20, opacity: 0.3 }}>♡</div>
               <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, marginBottom: 12 }}>Vui lòng đăng nhập</h2>

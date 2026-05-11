@@ -109,7 +109,7 @@ export default function ChatPage() {
     (c.fullName || c.username)?.toLowerCase().includes(search.toLowerCase())
   );
   const totalUnread = conversations.reduce((s, c) => s + (c.unread || 0), 0);
-  const myId = (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("userId");
+  const myId = localStorage.getItem("userId");
 
   if (loading) return <div className="chat-layout" style={{ alignItems: "center", justifyContent: "center" }}>Dang tai...</div>;
 

@@ -34,7 +34,7 @@ function UserMenu({ onLogout }) {
   const router = useRouter();
   const ref = useRef(null);
 
-  const raw = (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("user");
+  const raw = localStorage.getItem("user");
   const user = raw ? JSON.parse(raw) : null;
   const displayName = user?.fullName || user?.username || user?.email || "User";
 
@@ -46,7 +46,7 @@ function UserMenu({ onLogout }) {
 
   const handleLogout = async () => {
     await AuthService.logout();
-    (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).removeItem("user");
+    localStorage.removeItem("user");
     setOpen(false);
     onLogout?.();
     router.push("/");
@@ -106,7 +106,7 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
   useEffect(() => { setOpen(false); }, [location]);
 
   useEffect(() => {
-    const check = () => setIsLoggedIn(!!(typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token"));
+    const check = () => setIsLoggedIn(!!localStorage.getItem("token"));
     window.addEventListener("storage", check);
     const interval = setInterval(check, 500);
     return () => { window.removeEventListener("storage", check); clearInterval(interval); };
@@ -125,7 +125,7 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
   }, []);
 
   useEffect(() => {
-    const token = (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) return;
     notificationService.getUnreadCount().then(n => setUnreadNotif(n)).catch(() => {});
     notificationService.getAll({ page: 1, pageSize: 10 }).then(d => setNotifs(d?.items ?? [])).catch(() => {});

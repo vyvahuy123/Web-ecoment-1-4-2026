@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import "./Cart.css";
 
@@ -14,6 +15,8 @@ function getImageUrl(url) {
 
 export default function Cart() {
   const { cart, loading, updateItem, removeItem, clearCart } = useCart();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
 
   const items = cart?.items ?? [];
   const subtotal = cart?.grandTotal ?? 0;
@@ -36,7 +39,7 @@ export default function Cart() {
     );
   }
 
-  if (!(typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token")) {
+  if (isClient && !localStorage.getItem("token")) {
     return (
       <div className="cart-page">
         <section className="cart-hero">

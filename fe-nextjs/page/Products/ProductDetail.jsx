@@ -99,7 +99,7 @@ export default function ProductDetail() {
   const [variants, setVariants] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
-  const isAdmin = (() => { try { const u = (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("user"); return u ? JSON.parse(u)?.roles?.includes("Admin") ?? false : false; } catch { return false; } })();
+  const isAdmin = (() => { try { const u = localStorage.getItem("user"); return u ? JSON.parse(u)?.roles?.includes("Admin") ?? false : false; } catch { return false; } })();
   const [replyingId, setReplyingId] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [replyLoading, setReplyLoading] = useState(false);
@@ -306,7 +306,7 @@ export default function ProductDetail() {
           </h2>
 
           {/* Review Form */}
-          {(typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token") && (
+          {localStorage.getItem("token") && (
             <ReviewForm productId={id} onSuccess={() => fetchReviews(1)} />
           )}
 

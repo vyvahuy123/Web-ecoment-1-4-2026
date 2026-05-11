@@ -79,7 +79,7 @@ export default function Sidebar({ activePage, onNavigate, open, notifCount }) {
   };
 
   useEffect(() => {
-    const token = (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) return;
     const decoded = decodeToken(token);
     setUser(getUserFromToken(decoded));
