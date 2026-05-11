@@ -25,6 +25,7 @@ function useFadeUp(ref, deps) {
 }
 
 function ProductCard({ p, onAddCart, delay }) {
+  const router = useRouter();
   
   const { isWishlisted, toggleWishlist } = useWishlist();
   const liked = isWishlisted(p.id);
@@ -132,6 +133,7 @@ export default function Products({ onAddCart }) {
   const searchParams = useSearchParams();
   const categoryId = searchParams.get("category") || undefined;
 
+  const router = useRouter();
   const [products, setProducts]       = useState([]);
   const [total, setTotal]             = useState(0);
   const [page, setPage]               = useState(1);

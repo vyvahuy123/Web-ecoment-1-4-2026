@@ -22,6 +22,7 @@ const PAYMENT_LABEL = {
 
 export default function OrderSuccess() {
   const { orderCode } = useParams();
+  const router = useRouter();
   const { state } = useLocation();
   
   const order = state?.order;

@@ -83,6 +83,7 @@ function Topbar() {
 }
 
 function Hero() {
+  const router = useRouter();
   const [slides, setSlides] = useState(SLIDES_FALLBACK);
   const [cur, setCur] = useState(0);
   

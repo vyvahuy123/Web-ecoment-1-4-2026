@@ -147,7 +147,7 @@ export default function ProductDetail() {
   };
 
   if (loading) return (
-    <div style={{ paddingTop: 68, textAlign: "center", padding: "120px 0", color: "#999" }}>
+    <div style={{ paddingTop: "120px", paddingBottom: "120px", textAlign: "center", color: "#999" }}>
       <div style={{ fontSize: 40, marginBottom: 16 }}>⏳</div>
       <p>Đang tải sản phẩm...</p>
     </div>
@@ -233,6 +233,32 @@ export default function ProductDetail() {
 
             {product.description && (
               <p style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 24 }}>{product.description}</p>
+            )}
+            {colors.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 13, color: "#999", marginBottom: 8 }}>Màu sắc:</p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {colors.map(c => (
+                    <button key={c} onClick={() => { setSelectedColor(c); setSelectedSize(null); }}
+                      style={{ padding: "6px 16px", border: `1px solid ${selectedColor === c ? "#111" : "#ddd"}`, background: selectedColor === c ? "#111" : "transparent", color: selectedColor === c ? "#fff" : "#555", borderRadius: 6, cursor: "pointer", fontSize: 13 }}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {sizesForColor.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 13, color: "#999", marginBottom: 8 }}>Size:</p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {sizesForColor.map(s => (
+                    <button key={s} onClick={() => setSelectedSize(s)}
+                      style={{ padding: "6px 16px", border: `1px solid ${selectedSize === s ? "#111" : "#ddd"}`, background: selectedSize === s ? "#111" : "transparent", color: selectedSize === s ? "#fff" : "#555", borderRadius: 6, cursor: "pointer", fontSize: 13 }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
