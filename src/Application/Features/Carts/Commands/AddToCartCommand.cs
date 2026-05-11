@@ -3,7 +3,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
 namespace Application.Features.Carts.Commands;
-public record AddToCartCommand(Guid UserId, Guid ProductId, int Quantity) : IRequest<CartDto>;
+public record AddToCartCommand(Guid UserId, Guid ProductId, int Quantity, Guid? VariantId = null) : IRequest<CartDto>;
 public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, CartDto>
 {
     private readonly IUnitOfWork _uow;
@@ -12,15 +12,29 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, CartDto
     {
         var product = await _uow.Products.GetByIdAsync(cmd.ProductId)
             ?? throw new Exception("Product not found");
-        if (product.Stock < cmd.Quantity)
+
+        decimal unitPrice = product.Price;
+        int availableStock = product.Stock;
+
+        if (cmd.VariantId.HasValue)
+        {
+            var variant = await _uow.ProductVariants.GetByIdAsync(cmd.VariantId.Value, ct)
+                ?? throw new Exception("Variant not found");
+            unitPrice = variant.Price;
+            availableStock = variant.Stock;
+        }
+
+        if (availableStock < cmd.Quantity)
             throw new Exception("Not enough stock");
+
         var cart = await _uow.Carts.GetByUserIdAsync(cmd.UserId);
         if (cart is null)
         {
             cart = Cart.Create(cmd.UserId);
             await _uow.Carts.AddAsync(cart);
         }
-        cart.AddOrUpdateItem(cmd.ProductId, product.Price, cmd.Quantity);
+
+        cart.AddOrUpdateItem(cmd.ProductId, unitPrice, cmd.Quantity, cmd.VariantId);
         await _uow.SaveChangesAsync(ct);
         return CartMapper.ToDto(cart);
     }

@@ -96,6 +96,9 @@ export default function ProductDetail() {
   const [addingCart, setAddingCart] = useState(false);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [variants, setVariants] = useState([]);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
   const isAdmin = (() => { try { const u = (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).getItem("user"); return u ? JSON.parse(u)?.roles?.includes("Admin") ?? false : false; } catch { return false; } })();
   const [replyingId, setReplyingId] = useState(null);
   const [replyText, setReplyText] = useState('');
@@ -152,6 +155,11 @@ export default function ProductDetail() {
   if (!product) return null;
 
   const images = product.images?.length > 0 ? product.images : [{ imageUrl: product.imageUrl }];
+  const colors = [...new Set(variants.map(v => v.color))];
+  const sizesForColor = selectedColor ? [...new Set(variants.filter(v => v.color === selectedColor).map(v => v.size))] : [];
+  const selectedVariant = variants.find(v => v.color === selectedColor && v.size === selectedSize) ?? null;
+  const displayPrice = selectedVariant ? selectedVariant.price : product.price;
+  const displayStock = selectedVariant ? selectedVariant.stock : product.stock;
   const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
   const totalPages = Math.ceil(reviewTotal / 5);
 
@@ -219,7 +227,7 @@ export default function ProductDetail() {
             )}
 
             <p style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 700, color: "#e74c3c", marginBottom: 16 }}>
-              {fmt(product.price)}₫
+              {fmt(displayPrice)}₫
             </p>
 
             {product.description && (
@@ -229,11 +237,11 @@ export default function ProductDetail() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: "#999" }}>Kho:</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: product.stock > 0 ? "#27ae60" : "#e74c3c" }}>
-                {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
+                {displayStock > 0 ? `Còn ${displayStock} sản phẩm` : "Hết hàng"}
               </span>
             </div>
 
-            {product.stock > 0 && (
+            {displayStock > 0 && (
               <>
                 {/* Qty */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
@@ -241,7 +249,7 @@ export default function ProductDetail() {
                   <div style={{ display: "flex", alignItems: "center", border: "1px solid #ddd", borderRadius: 8, overflow: "hidden" }}>
                     <button onClick={() => setQty(q => Math.max(1, q-1))} style={{ width: 36, height: 36, background: "none", border: "none", cursor: "pointer", fontSize: 18 }}>−</button>
                     <span style={{ width: 40, textAlign: "center", fontWeight: 600 }}>{qty}</span>
-                    <button onClick={() => setQty(q => Math.min(product.stock, q+1))} style={{ width: 36, height: 36, background: "none", border: "none", cursor: "pointer", fontSize: 18 }}>+</button>
+                    <button onClick={() => setQty(q => Math.min(displayStock, q+1))} style={{ width: 36, height: 36, background: "none", border: "none", cursor: "pointer", fontSize: 18 }}>+</button>
                   </div>
                 </div>
 

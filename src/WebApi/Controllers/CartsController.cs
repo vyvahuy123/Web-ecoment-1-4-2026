@@ -29,7 +29,7 @@ public class CartsController : ControllerBase
     [ProducesResponseType(typeof(CartDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddItem([FromBody] AddCartItemRequest req, CancellationToken ct)
-        => Ok(await _mediator.Send(new AddToCartCommand(UserId, req.ProductId, req.Quantity), ct));
+        => Ok(await _mediator.Send(new AddToCartCommand(UserId, req.ProductId, req.Quantity, req.VariantId), ct));
 
     /// <summary>Cập nhật số lượng sản phẩm trong giỏ</summary>
     [HttpPut("items/{productId:guid}")]
@@ -59,5 +59,5 @@ public class CartsController : ControllerBase
     }
 }
 
-public record AddCartItemRequest(Guid ProductId, int Quantity);
+public record AddCartItemRequest(Guid ProductId, int Quantity, Guid? VariantId = null);
 public record UpdateCartItemRequest(int Quantity);
