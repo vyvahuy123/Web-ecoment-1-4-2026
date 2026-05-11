@@ -125,10 +125,13 @@ public class OrderItem : BaseEntity
 {
     public Guid OrderId { get; private set; }
     public Guid ProductId { get; private set; }
+    public Guid? VariantId { get; private set; }
 
     // Snapshot thông tin sản phẩm lúc đặt hàng
     public string ProductName { get; private set; } = string.Empty;
     public string? ProductImageUrl { get; private set; }
+    public string? VariantColor { get; private set; }
+    public string? VariantSize { get; private set; }
     public decimal UnitPrice { get; private set; }          // Giá tại thời điểm đặt
     public int Quantity { get; private set; }
     public decimal TotalPrice { get; private set; }         // UnitPrice * Quantity
@@ -136,19 +139,23 @@ public class OrderItem : BaseEntity
     // Navigation
     public Order Order { get; private set; } = null!;
     public Product Product { get; private set; } = null!;
+    public ProductVariant? Variant { get; private set; }
 
     private OrderItem() { }
 
-    public static OrderItem Create(Guid orderId, Product product, int quantity)
+    public static OrderItem Create(Guid orderId, Product product, int quantity, ProductVariant? variant = null)
         => new OrderItem
         {
             Id = Guid.NewGuid(),
             OrderId = orderId,
             ProductId = product.Id,
+            VariantId = variant?.Id,
             ProductName = product.Name,
-            ProductImageUrl = product.ImageUrl,
-            UnitPrice = product.Price,
+            ProductImageUrl = variant?.ImageUrl ?? product.ImageUrl,
+            VariantColor = variant?.Color,
+            VariantSize = variant?.Size,
+            UnitPrice = variant?.Price ?? product.Price,
             Quantity = quantity,
-            TotalPrice = product.Price * quantity
+            TotalPrice = (variant?.Price ?? product.Price) * quantity
         };
 }

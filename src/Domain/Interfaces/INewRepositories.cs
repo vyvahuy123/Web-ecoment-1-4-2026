@@ -50,3 +50,12 @@ public interface IBannerRepository
     void Update(Banner banner);
     void Remove(Banner banner);
 }
+public interface IProductVariantRepository
+{
+    Task<ProductVariant?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<ProductVariant>> GetByProductIdAsync(Guid productId, CancellationToken ct = default);
+    Task<ProductVariant?> GetByProductColorSizeAsync(Guid productId, string color, string size, CancellationToken ct = default);
+    void Add(ProductVariant variant);
+    void Update(ProductVariant variant);
+    void Remove(ProductVariant variant);
+}

@@ -19,7 +19,9 @@ public sealed class Product : AuditableEntity
     public Category Category { get; private set; } = null!;
 
     private readonly List<ProductImage> _images = new();
+    private readonly List<ProductVariant> _variants = new();
     public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
+    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
 
     private Product() { }
 

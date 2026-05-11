@@ -35,6 +35,7 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<News> News => Set<News>();
     public DbSet<Banner> Banners => Set<Banner>();
+    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
 
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -54,7 +55,17 @@ public class AppDbContext : DbContext
         builder.Entity<Product>()
             .HasQueryFilter(p => !p.IsDeleted);
 
-        // Nếu có entity khác cũng soft delete, thêm tiếp ở đây
+        builder.Entity<CartItem>().HasQueryFilter(i => !i.IsDeleted);
+        builder.Entity<ProductImage>().HasQueryFilter(i => !i.IsDeleted);
+        builder.Entity<ProductVariant>().HasQueryFilter(v => !v.IsDeleted);
+        builder.Entity<OrderItem>().HasQueryFilter(i => !i.IsDeleted);
+        builder.Entity<Payment>().HasQueryFilter(p => !p.IsDeleted);
+        builder.Entity<VoucherUsage>().HasQueryFilter(v => !v.IsDeleted);
+        builder.Entity<WishList>().HasQueryFilter(w => !w.IsDeleted);
+        builder.Entity<Notification>().HasQueryFilter(n => !n.IsDeleted);
+        builder.Entity<Cart>().HasQueryFilter(c => !c.IsDeleted);
+        builder.Entity<Order>().HasQueryFilter(o => !o.IsDeleted);
+        builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
     }
 
     // Override SaveChangesAsync để dispatch domain events sau khi save

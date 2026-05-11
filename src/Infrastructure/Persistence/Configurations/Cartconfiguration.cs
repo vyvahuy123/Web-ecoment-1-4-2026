@@ -42,6 +42,9 @@ public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
 
         builder.Property(i => i.CartId).HasColumnName("cart_id");
         builder.Property(i => i.ProductId).HasColumnName("product_id");
+        builder.Property(i => i.VariantId).HasColumnName("variant_id");
+        builder.Property(i => i.VariantColor).HasColumnName("variant_color").HasMaxLength(50);
+        builder.Property(i => i.VariantSize).HasColumnName("variant_size").HasMaxLength(20);
         builder.Property(i => i.UnitPrice)
             .HasColumnName("unit_price")
             .HasColumnType("decimal(18,2)");

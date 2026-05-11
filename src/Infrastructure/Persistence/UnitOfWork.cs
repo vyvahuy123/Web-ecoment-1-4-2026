@@ -24,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
     private IReviewRepository? _reviews;
     private ICategoryRepository? _categories;
     private INewsRepository? _news; 
+    private IProductVariantRepository? _productVariants;
 
 
     public UnitOfWork(AppDbContext ctx) => _ctx = ctx;
@@ -43,6 +44,7 @@ public class UnitOfWork : IUnitOfWork
     public IReviewRepository Reviews => _reviews ??= new ReviewRepository(_ctx);
     public ICategoryRepository Categories => _categories ??= new CategoryRepository(_ctx);
     public INewsRepository News => _news ??= new NewsRepository(_ctx);
+    public IProductVariantRepository ProductVariants => _productVariants ??= new ProductVariantRepository(_ctx);
     public IBannerRepository Banners => new BannerRepository(_ctx);
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)

@@ -9,6 +9,9 @@ public class CartItem : BaseEntity
 {
     public Guid CartId { get; private set; }
     public Guid ProductId { get; private set; }
+    public Guid? VariantId { get; private set; }
+    public string? VariantColor { get; private set; }
+    public string? VariantSize { get; private set; }
     public decimal UnitPrice { get; private set; }      // Giá tại thời điểm thêm vào giỏ
     public int Quantity { get; private set; }
     public decimal TotalPrice => UnitPrice * Quantity;
@@ -19,7 +22,7 @@ public class CartItem : BaseEntity
 
     private CartItem() { }
 
-    public static CartItem Create(Guid cartId, Guid productId, decimal unitPrice, int quantity)
+    public static CartItem Create(Guid cartId, Guid productId, decimal unitPrice, int quantity, Guid? variantId = null, string? color = null, string? size = null)
         => new CartItem
         {
             Id = Guid.NewGuid(),
