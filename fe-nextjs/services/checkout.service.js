@@ -12,6 +12,8 @@ API.interceptors.request.use((config) => {
 export const AddressService = {
   getMyAddresses: () => API.get("/addresses/my").then((r) => r.data),
   create: (data) => API.post("/addresses", data).then((r) => r.data),
+  update: (id, data) => API.put(`/addresses/${id}`, data).then((r) => r.data),
+  delete: (id) => API.delete(`/addresses/${id}`).then((r) => r.data),
 };
 
 export const VoucherService = {
