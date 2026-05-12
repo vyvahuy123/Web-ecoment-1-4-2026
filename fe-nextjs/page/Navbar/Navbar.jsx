@@ -74,6 +74,9 @@ function UserMenu({ onLogout }) {
             </div>
           </div>
           <div className="ec-user-dropdown-divider" />
+          <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/tai-khoan"); }}>
+            👤 Tài khoản
+          </button>
           <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/orders"); }}>
             📦 Đơn hàng của tôi
           </button>
