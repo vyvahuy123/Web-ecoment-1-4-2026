@@ -97,7 +97,8 @@ export default function Checkout() {
       }
 
       await clearCart();
-      router.push(`/order-success/${order.orderCode}`, { state: { order } });
+      sessionStorage.setItem("lastOrder", JSON.stringify(order));
+      router.push(`/order-success/${order.orderCode}`);
     } catch (err) {
       setError(err?.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại.");
     } finally { setSubmitting(false); }

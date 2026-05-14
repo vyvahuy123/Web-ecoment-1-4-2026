@@ -1,4 +1,4 @@
-using Application.Common;
+﻿using Application.Common;
 using Application.Features.Users.Commands;
 using Application.Features.Users.DTOs;
 using Application.Features.Users.Queries;
@@ -17,7 +17,6 @@ public class UsersController : ControllerBase
 
     public UsersController(IMediator mediator) => _mediator = mediator;
 
-    /// <summary>Lấy danh sách users có phân trang</summary>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(PagedResult<UserSummaryDto>), StatusCodes.Status200OK)]
@@ -31,7 +30,6 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Lấy thông tin user theo ID</summary>
     [HttpGet("{id:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
@@ -42,7 +40,6 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Tạo user mới</summary>
     [HttpPost]
     [AllowAnonymous]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
@@ -54,7 +51,6 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
-    /// <summary>Cập nhật thông tin user</summary>
     [HttpPut("{id:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
@@ -65,7 +61,6 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Deactivate (soft-delete) user</summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -75,7 +70,7 @@ public class UsersController : ControllerBase
         await _mediator.Send(new DeactivateUserCommand(id), ct);
         return NoContent();
     }
-    /// <summary>Kích hoạt lại user</summary>
+
     [HttpPatch("{id:guid}/activate")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -92,8 +87,18 @@ public class UsersController : ControllerBase
         await _mediator.Send(new UpdateUserRoleCommand(id, request.Role), ct);
         return NoContent();
     }
+
+    [HttpPut("{id:guid}/change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request, CancellationToken ct)
+    {
+        await _mediator.Send(new ChangePasswordCommand(id, request.CurrentPassword, request.NewPassword), ct);
+        return NoContent();
+    }
 }
 
-// Request DTO riêng cho PUT để tránh id trong body
 public record UpdateUserRequest(string? FullName, string? Email);
 public record UpdateRoleRequest(string Role);
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);

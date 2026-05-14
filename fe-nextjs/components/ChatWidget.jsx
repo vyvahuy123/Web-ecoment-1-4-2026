@@ -16,7 +16,11 @@ export default function ChatWidget() {
 
   useEffect(() => { setIsClient(true); }, []);
 
-  const token = isClient ? localStorage.getItem('token') : null;
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    if (isClient) setToken(localStorage.getItem('token'));
+  }, [isClient]);
   const myId = isClient ? localStorage.getItem('userId') : null;
 
   useEffect(() => {
@@ -28,7 +32,7 @@ export default function ChatWidget() {
      .then((msgs) => setMessages(msgs || []))
      .catch(console.error);
     return () => chatService.disconnect();
-  }, [isClient]);
+  }, [isClient, token]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -8,6 +8,7 @@ const UserService = {
   activate:   (id) => api.patch(`/users/${id}/activate`).then(r => r.data),
   deactivate: (id) => api.delete(`/users/${id}`).then(r => r.data),
   update:     (id, data) => api.put(`/users/${id}`, data).then(r => r.data),
+  changePassword: (id, data) => api.put(`/users/${id}/change-password`, data).then(r => r.data),
 };
 
 export default UserService;
