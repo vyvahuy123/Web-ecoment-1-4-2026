@@ -55,6 +55,16 @@ public class ChatController : ControllerBase
         return Ok(result);
     }
 
+    // GET /api/chat/admin-id
+    [HttpGet("admin-id")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAdminId()
+    {
+        var admins = await _userRepo.GetAdminsAsync();
+        var admin = admins.FirstOrDefault();
+        if (admin == null) return NotFound();
+        return Ok(new { adminId = admin.Id });
+    }
     // GET /api/chat/messages/{userId}?page=1
     [HttpGet("messages/{userId:guid}")]
     public async Task<IActionResult> GetMessages(Guid userId, [FromQuery] int page = 1)

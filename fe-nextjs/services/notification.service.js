@@ -7,6 +7,8 @@ let connection = null;
 
 export const notificationService = {
   async connect(onNotification) {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) return null;
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       connection.off("ReceiveNotification");
       connection.on("ReceiveNotification", onNotification);

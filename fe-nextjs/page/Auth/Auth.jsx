@@ -169,6 +169,7 @@ export default function Auth({ defaultTab = "login", onLoginSuccess }) {
   const handleSuccess = (data, type) => {
     setSuccess({ data, type });
     onLoginSuccess?.(data);
+    window.dispatchEvent(new Event("user-logged-in"));
     try {
       const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
       const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ?? payload["role"] ?? "";

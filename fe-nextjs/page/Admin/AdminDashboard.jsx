@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./styles/global.css";
 import "./styles/layout.css";
 import "./styles/components.css";
@@ -36,6 +36,11 @@ export default function AdminDashboard() {
   const [notifCount, setNotifCount]   = useState(0);
 
   const PageComponent = PAGES[page] ?? PAGES.dashboard;
+  useEffect(() => {
+    const handler = (e) => { handleNavigate(e.detail.page); if (e.detail.orderId) { setTimeout(() => window.dispatchEvent(new CustomEvent("admin-open-order", { detail: { orderId: e.detail.orderId } })), 200); } };
+    window.addEventListener("admin-navigate", handler);
+    return () => window.removeEventListener("admin-navigate", handler);
+  }, []);
 
   const handleNavigate = (id) => {
     setPage(id);

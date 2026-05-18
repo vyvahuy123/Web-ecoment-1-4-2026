@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import OrderService from "@/services/order.service";
 import VoucherService from "@/services/voucher.service";
 import CategoryService from "@/services/category.service";
@@ -22,6 +22,7 @@ function fmtDatetime(d) {
 /* ─────────────────────────────────────────────────────────────── */
 /*  CATEGORIES                                                     */
 /* ─────────────────────────────────────────────────────────────── */
+
 export function CategoriesPage() {
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -333,6 +334,9 @@ export function OrdersPage() {
   const [statusSaving, setStatusSaving] = useState(false);
   const [statusErr, setStatusErr] = useState("");
 
+  const [highlightId, setHighlightId] = useState(null);
+  const setHighlightRef = useRef(null);
+  useEffect(() => { setHighlightRef.current = setHighlightId; }, []);
   // Approve cancellation
   const [approveTarget, setApproveTarget] = useState(null);
   const [approveSaving, setApproveSaving] = useState(false);
@@ -492,7 +496,7 @@ export function OrdersPage() {
                       o.status === "PendingCancellation";
 
                     return (
-                      <tr key={o.id}>
+                      <tr key={o.id} id={"order-row-" + o.id} style={{ background: highlightId === o.id ? "#e8f4fd" : "", transition: "background 0.5s" }} onClick={() => highlightId === o.id && setHighlightId(null)}>
                         <td
                           style={{
                             fontWeight: 600,

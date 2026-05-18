@@ -128,19 +128,29 @@ export default function Navbar({ cartCount, onCartOpen, wishlistCount = 0 }) {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    notificationService.getUnreadCount().then(n => setUnreadNotif(n)).catch(() => {});
-    notificationService.getAll({ page: 1, pageSize: 10 }).then(d => setNotifs(d?.items ?? [])).catch(() => {});
-    notificationService.connect((notif) => {
-      setUnreadNotif(prev => prev + 1);
-      setNotifs(prev => [notif, ...prev].slice(0, 10));
-      // Dispatch event để Orders page tự refresh
-      window.dispatchEvent(new CustomEvent("newNotification", { detail: notif }));
-    }).catch(() => {});
     const handler = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false); };
     document.addEventListener("mousedown", handler);
-    return () => { notificationService.disconnect(); document.removeEventListener("mousedown", handler); };
+    const connectNotif = () => {
+      setTimeout(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        notificationService.getUnreadCount().then(n => setUnreadNotif(n)).catch(() => {});
+        notificationService.getAll({ page: 1, pageSize: 10 }).then(d => setNotifs(d?.items ?? [])).catch(() => {});
+        notificationService.connect((notif) => {
+          setUnreadNotif(prev => prev + 1);
+          setNotifs(prev => [notif, ...prev].slice(0, 10));
+          window.dispatchEvent(new CustomEvent("newNotification", { detail: notif }));
+        }).catch(() => {});
+      }, 300);
+    };
+    const token = localStorage.getItem("token");
+    if (token) connectNotif();
+    window.addEventListener("user-logged-in", connectNotif);
+    return () => {
+      notificationService.disconnect();
+      document.removeEventListener("mousedown", handler);
+      window.removeEventListener("user-logged-in", connectNotif);
+    };
   }, []);
 
   const go = (href) => {

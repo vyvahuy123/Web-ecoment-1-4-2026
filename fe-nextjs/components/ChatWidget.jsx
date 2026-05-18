@@ -3,14 +3,13 @@ import { useState, useRef, useEffect } from 'react';
 import { chatService } from '../services/chat.service';
 import { useCart } from '@/contexts/CartContext';
 
-const ADMIN_ID = "f5b75413-eeb7-43f1-a01b-2797ee79c983";
-
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const { cartOpen } = useCart();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [adminId, setAdminId] = useState(null);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -24,31 +23,40 @@ export default function ChatWidget() {
   const myId = isClient ? localStorage.getItem('userId') : null;
 
   useEffect(() => {
-    if (!isClient || !token) return;
+    fetch('http://localhost:5000/api/chat/admin-id')
+      .then(res => res.json())
+      .then(data => setAdminId(data.adminId))
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient || !token || !adminId) return;
     chatService.connect(
       (msg) => setMessages((prev) => [...prev, msg]),
       () => {}, () => {}, () => {}
-    ).then(() => chatService.getMessages(ADMIN_ID))
+    ).then(() => chatService.getMessages(adminId))
      .then((msgs) => setMessages(msgs || []))
      .catch(console.error);
     return () => chatService.disconnect();
-  }, [isClient, token]);
+  }, [isClient, token, adminId]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length, open]);
 
   const handleOpen = () => {
-    if (!token) { window.location.href = '/dang-nhap'; return; }
+    const t = token || localStorage.getItem('token');
+    if (!t) { window.location.href = '/dang-nhap'; return; }
     setOpen(true);
   };
 
   const send = async () => {
-    if (!token) { window.location.href = '/dang-nhap'; return; }
+    const t = token || localStorage.getItem('token');
+    if (!t) { window.location.href = '/dang-nhap'; return; }
     const text = input.trim();
-    if (!text) return;
+    if (!text || !adminId) return;
     try {
-      await chatService.sendMessage(ADMIN_ID, text);
+      await chatService.sendMessage(adminId, text);
       setInput('');
       inputRef.current?.focus();
     } catch (e) { console.error(e); }
