@@ -29,5 +29,6 @@ public interface IUnitOfWork
     IProductVariantRepository ProductVariants { get; }
 
 
+    ICollectionRepository Collections { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

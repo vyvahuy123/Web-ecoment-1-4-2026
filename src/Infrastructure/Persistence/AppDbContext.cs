@@ -36,6 +36,8 @@ public class AppDbContext : DbContext
     public DbSet<News> News => Set<News>();
     public DbSet<Banner> Banners => Set<Banner>();
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
+    public DbSet<Collection> Collections => Set<Collection>();
+    public DbSet<CollectionProduct> CollectionProducts => Set<CollectionProduct>();
 
 
     protected override void OnModelCreating(ModelBuilder builder)
