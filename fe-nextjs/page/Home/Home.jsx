@@ -375,9 +375,20 @@ function Products({ onAddCart }) {
                     </p>
                     <h3>{p.name}</h3>
                     <div className="ec-product-price">
-                      <span className="ec-price">
-                        {Number(p.price).toLocaleString("vi-VN")}₫
-                      </span>
+                      {p.salePrice ? (
+                        <>
+                          <span className="ec-price" style={{ color: "red", fontWeight: "bold" }}>
+                            {Number(p.salePrice).toLocaleString("vi-VN")}₫
+                          </span>
+                          <span style={{ textDecoration: "line-through", color: "#999", fontSize: "0.85em", marginLeft: 6 }}>
+                            {Number(p.price).toLocaleString("vi-VN")}₫
+                          </span>
+                        </>
+                      ) : (
+                        <span className="ec-price">{Number(p.price).toLocaleString("vi-VN")}₫</span>
+                      )}
+
+
                     </div>
                   </div>
                 </div>

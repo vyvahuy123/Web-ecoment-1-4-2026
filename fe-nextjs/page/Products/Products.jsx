@@ -68,7 +68,18 @@ function ProductCard({ p, onAddCart, delay }) {
         <p className="pd-card-desc">{p.description}</p>
         <h3 className="pd-card-name">{p.name}</h3>
         <div className="pd-card-price">
-          <span className="pd-price">{Number(p.price).toLocaleString("vi-VN")}₫</span>
+          {p.salePrice ? (
+            <>
+              <span className="pd-price" style={{ color: "red", fontWeight: "bold" }}>
+                {Number(p.salePrice).toLocaleString("vi-VN")}₫
+              </span>
+              <span style={{ textDecoration: "line-through", color: "#999", fontSize: "0.85em", marginLeft: 6 }}>
+                {Number(p.price).toLocaleString("vi-VN")}₫
+              </span>
+            </>
+          ) : (
+            <span className="pd-price">{Number(p.price).toLocaleString("vi-VN")}₫</span>
+          )}
         </div>
       </div>
     </div>

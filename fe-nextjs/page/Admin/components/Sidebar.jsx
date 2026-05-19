@@ -21,6 +21,7 @@ const NAV_TEMPLATE = [
       { id: "vouchers",   icon: "⊘", label: "Voucher" },
       { id: "news", icon: "◎", label: "Tin tức" },
       { id: "banners", icon: "🖼", label: "Banner" },
+      { id: "collections", icon: "🏷", label: "Bo suu tap" },
     ],
   },
   {

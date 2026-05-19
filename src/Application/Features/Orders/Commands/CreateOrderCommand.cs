@@ -55,7 +55,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
 
         // T�nh ti?n h�ng
         decimal subTotal = 0;
-        var orderItems = new List<(Product product, int quantity)>();
+        var orderItems = new List<(Product product, int quantity, decimal price)>();
 
         foreach (var item in req.Items)
         {
@@ -68,8 +68,13 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
                         "Stock", $"S?n ph?m '{product.Name}' kh�ng �? h�ng.")
                 });
 
-            subTotal += product.Price * item.Quantity;
-            orderItems.Add((product, item.Quantity));
+            var pCols = await _uow.Collections.GetCollectionsByProductIdAsync(product.Id, ct);
+            var pActiveCol = pCols.FirstOrDefault(c => c.IsOnSaleNow());
+            decimal effectivePrice = pActiveCol != null
+                ? Math.Round(product.Price * (1 - pActiveCol.DiscountPercent / 100), 0)
+                : product.Price;
+            subTotal += effectivePrice * item.Quantity;
+            orderItems.Add((product, item.Quantity, effectivePrice));
         }
 
         // X? l? voucher
@@ -99,9 +104,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             voucher?.Id, voucher?.Code, req.Note);
 
         // Th�m items + tr? t?n kho
-        foreach (var (product, quantity) in orderItems)
+        foreach (var (product, quantity, price) in orderItems)
         {
-            order.AddItem(OrderItem.Create(order.Id, product, quantity));
+            order.AddItem(OrderItem.Create(order.Id, product, quantity, priceOverride: price));
             product.AdjustStock(-quantity);
             _uow.Products.Update(product);
         }

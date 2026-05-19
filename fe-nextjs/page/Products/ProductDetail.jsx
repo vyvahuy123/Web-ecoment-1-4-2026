@@ -159,7 +159,8 @@ export default function ProductDetail() {
   const colors = [...new Set(variants.map(v => v.color))];
   const sizesForColor = selectedColor ? [...new Set(variants.filter(v => v.color === selectedColor).map(v => v.size))] : [];
   const selectedVariant = variants.find(v => v.color === selectedColor && v.size === selectedSize) ?? null;
-  const displayPrice = selectedVariant ? selectedVariant.price : product.price;
+  const displayPrice = selectedVariant ? selectedVariant.price : (product.salePrice ?? product.price);
+  const originalPrice = selectedVariant ? null : (product.salePrice ? product.price : null);
   const displayStock = selectedVariant ? selectedVariant.stock : product.stock;
   const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
   const totalPages = Math.ceil(reviewTotal / 5);

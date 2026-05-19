@@ -13,7 +13,11 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, CartDto
         var product = await _uow.Products.GetByIdAsync(cmd.ProductId)
             ?? throw new Exception("Product not found");
 
-        decimal unitPrice = product.Price;
+        var productCols = await _uow.Collections.GetCollectionsByProductIdAsync(cmd.ProductId, ct);
+        var activeCol = productCols.FirstOrDefault(c => c.IsOnSaleNow());
+        decimal unitPrice = activeCol != null
+            ? Math.Round(product.Price * (1 - activeCol.DiscountPercent / 100), 0)
+            : product.Price;
         int availableStock = product.Stock;
         string? variantColor = null;
         string? variantSize = null;

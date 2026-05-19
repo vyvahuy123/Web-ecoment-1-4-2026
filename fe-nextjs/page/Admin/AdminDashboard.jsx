@@ -14,6 +14,7 @@ import ChatPage         from "./pages/ChatPage";
 import { CategoriesPage, OrdersPage, VouchersPage } from "./pages/CatalogPages";
 import { PaymentsPage, NotificationsPage }          from "./pages/ServicePages";
 import NewsAdminPage    from "./pages/NewsAdminPage";
+import CollectionsPage  from "./pages/CollectionsPage";
 
 const PAGES = {
   dashboard:     DashboardPage,
@@ -27,6 +28,7 @@ const PAGES = {
   news:          NewsAdminPage,
   notifications: NotificationsPage,
   banners: BannersPage,
+  collections: CollectionsPage,
 };
 
 export default function AdminDashboard() {

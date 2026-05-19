@@ -143,7 +143,7 @@ public class OrderItem : BaseEntity
 
     private OrderItem() { }
 
-    public static OrderItem Create(Guid orderId, Product product, int quantity, ProductVariant? variant = null)
+    public static OrderItem Create(Guid orderId, Product product, int quantity, decimal? priceOverride = null, ProductVariant? variant = null)
         => new OrderItem
         {
             Id = Guid.NewGuid(),
