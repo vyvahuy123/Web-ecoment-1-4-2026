@@ -75,17 +75,17 @@ function UserMenu({ onLogout }) {
           </div>
           <div className="ec-user-dropdown-divider" />
           <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/tai-khoan"); }}>
-            👤 Tài khoản
+            Thông tin cá nhân
           </button>
           <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/orders"); }}>
-            📦 Đơn hàng của tôi
+            Đơn hàng
           </button>
           <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/cart"); }}>
-            🛒 Giỏ hàng
+            Giỏ hàng
           </button>
           <div className="ec-user-dropdown-divider" />
           <button className="ec-user-dropdown-item ec-user-logout" onClick={handleLogout}>
-            🚪 Đăng xuất
+            Đăng xuất
           </button>
         </div>
       )}

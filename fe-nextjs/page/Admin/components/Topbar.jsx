@@ -26,16 +26,17 @@ export default function Topbar({
   const [notifs, setNotifs] = useState([]);
   const [open, setOpen] = useState(false);
   const dropRef = useRef(null);
-
   useEffect(() => {
     loadUnread();
-    notificationService
-      .connect((notif) => {
-        setNotifs((prev) => [notif, ...prev].slice(0, 10));
-        setUnread((prev) => prev + 1);
-      })
-      .catch(() => {});
-    return () => notificationService.disconnect();
+    let _timer = setTimeout(() => {
+      notificationService
+        .connect((notif) => {
+          setNotifs((prev) => [{ ...notif, id: notif.id ?? notif.notificationId ?? Date.now() }, ...prev].slice(0, 10));
+          setUnread((prev) => prev + 1);
+        })
+        .catch(() => {});
+    }, 1500);
+    return () => { clearTimeout(_timer); notificationService.disconnect(); };
   }, []);
 
   useEffect(() => {

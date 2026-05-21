@@ -82,6 +82,7 @@ function Topbar() {
   return <div className="ec-topbar">CODE BY VYX SDT: 0906645842</div>;
 }
 
+
 function Hero() {
   const router = useRouter();
   const [slides, setSlides] = useState(SLIDES_FALLBACK);
@@ -399,136 +400,130 @@ function Products({ onAddCart }) {
   );
 }
 
+function CollectionCountdown({ endDate }) {
+  const calc = () => {
+    const diff = new Date(endDate) - new Date();
+    if (diff <= 0) return { d:0, h:0, m:0, s:0 };
+    return {
+      d: Math.floor(diff / 86400000),
+      h: Math.floor((diff % 86400000) / 3600000),
+      m: Math.floor((diff % 3600000) / 60000),
+      s: Math.floor((diff % 60000) / 1000),
+    };
+  };
+  const [t, setT] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setT(calc()), 1000);
+    return () => clearInterval(id);
+  }, [endDate]);
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      {[{v:t.d,l:"Ngày"},{v:t.h,l:"Giờ"},{v:t.m,l:"Phút"},{v:t.s,l:"Giây"}].map(({v,l}) => (
+        <div key={l} style={{
+          background: "#1a1a1a", color: "#fff", borderRadius: 6,
+          padding: "4px 10px", textAlign: "center", minWidth: 44
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>{String(v).padStart(2,"0")}</div>
+          <div style={{ fontSize: 9, opacity: 0.7 }}>{l}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function BannerSection() {
-  const [banners, setBanners] = useState([]);
+  const router = useRouter();
+  const [collections, setCollections] = useState([]);
   const [cur, setCur] = useState(0);
   const ref = useRef(null);
   useFadeUp(ref);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/banners")
-      .then((r) => r.json())
-      .then((data) => {
-        const features = (data || [])
-          .filter((b) => b.type === "feature" && b.isActive)
-          .sort((a, b) => a.sortOrder - b.sortOrder);
-        if (features.length > 0) setBanners(features);
-      })
+    fetch("http://localhost:5000/api/collections/active")
+      .then(r => r.json())
+      .then(data => { if (data?.length > 0) setCollections(data); })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const t = setInterval(() => setCur((c) => (c + 1) % banners.length), 3000);
+    if (collections.length <= 1) return;
+    const t = setInterval(() => setCur(c => (c + 1) % collections.length), 4000);
     return () => clearInterval(t);
-  }, [banners.length]);
+  }, [collections.length]);
 
-  if (banners.length === 0)
-    return (
-      <section className="ec-feature-section" ref={ref}>
-        <div className="ec-feature-inner">
-          <div className="ec-feature-text fade-up">
-            <p className="ec-feature-tag">Thu Đông 2025</p>
-            <h2 className="ec-feature-title">
-              Bộ sưu tập
-              <br />
-              Thu Đông 2025
-            </h2>
-            <p className="ec-feature-desc">
-              Những thiết kế lấy cảm hứng từ kiến trúc tối giản Nhật Bản — nơi
-              hình thức và chức năng hòa làm một.
-            </p>
-            <a
-              href="#products"
-              className="ec-btn ec-btn-dark"
-              onClick={(e) => {
-                e.preventDefault();
-                document
-                  .querySelector("#products")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Khám phá ngay
-            </a>
-          </div>
-          <div className="ec-feature-slides fade-up">
-            <div
-              className="ec-feature-slide active"
-              style={{ background: "#f0ece6" }}
-            >
-              <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
-            </div>
+  if (collections.length === 0) return (
+    <section className="ec-feature-section" ref={ref}>
+      <div className="ec-feature-inner">
+        <div className="ec-feature-text fade-up">
+          <p className="ec-feature-tag">BỘ SƯU TẬP</p>
+          <h2 className="ec-feature-title">Chưa có<br />bộ sưu tập sale</h2>
+          <p className="ec-feature-desc">Các chương trình sale sẽ sớm được cập nhật.</p>
+        </div>
+        <div className="ec-feature-slides fade-up">
+          <div className="ec-feature-slide active" style={{ background: "#f0ece6" }}>
+            <span style={{ fontSize: 80, opacity: 0.3 }}>🛍️</span>
           </div>
         </div>
-      </section>
-    );
+      </div>
+    </section>
+  );
 
-  const active = banners[cur];
-  const title = (active?.title ?? "").replace(/\\n/g, "\n");
+  const col = collections[cur];
 
   return (
     <section className="ec-feature-section" ref={ref}>
       <div className="ec-feature-inner">
         <div className="ec-feature-text fade-up">
-          <p className="ec-feature-tag">{active?.tag}</p>
-          <h2 className="ec-feature-title" key={`title-${cur}`}>
-            {title.split("\n").map((l, i) => (
-              <span key={i}>
-                {l}
-                <br />
-              </span>
-            ))}
-          </h2>
-          <p className="ec-feature-desc" key={`desc-${cur}`}>
-            {active?.description}
+          <p className="ec-feature-tag" style={{ color: "#e53935", letterSpacing: 2 }}>
+            🔥 BỘ SƯU TẬP ĐANG SALE
           </p>
-          <a
-            href={active?.buttonHref ?? "#products"}
-            className="ec-btn ec-btn-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              const href = active?.buttonHref ?? "#products";
-              if (href.startsWith("#"))
-                document
-                  .querySelector(href)
-                  ?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            {active?.buttonText ?? "Khám phá ngay"}
-          </a>
-          {banners.length > 1 && (
-            <div className="ec-feature-dots">
-              {banners.map((_, i) => (
-                <button
-                  key={i}
-                  className={`ec-dot ${i === cur ? "active" : ""}`}
-                  onClick={() => setCur(i)}
-                />
+          <h2 className="ec-feature-title" key={`title-${cur}`}>{col.name}</h2>
+          <p className="ec-feature-desc" key={`desc-${cur}`}>
+            {col.description || "Ưu đãi có thời hạn — Đừng bỏ lỡ!"}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+            <span style={{
+              background: "#e53935", color: "#fff", fontWeight: 700,
+              fontSize: 20, borderRadius: 8, padding: "6px 14px"
+            }}>-{col.discountPercent}%</span>
+            <CollectionCountdown endDate={col.endDate} />
+          </div>
+          {collections.length > 1 && (
+            <div style={{ display: "flex", gap: 8, margin: "12px 0" }}>
+              {collections.map((_, i) => (
+                <button key={i} onClick={() => setCur(i)} style={{
+                  width: i === cur ? 28 : 10, height: 10,
+                  borderRadius: 5, border: "none", cursor: "pointer",
+                  background: i === cur ? "#1a1a1a" : "#ccc",
+                  transition: "all 0.3s"
+                }} />
               ))}
             </div>
           )}
+          <button
+            className="ec-btn ec-btn-dark"
+            onClick={() => router.push(`/collections/${col.id}`)}
+          >
+            Xem bộ sưu tập →
+          </button>
         </div>
         <div className="ec-feature-slides fade-up">
-          {banners.map((b, i) => (
-            <div
-              key={b.id}
-              className={`ec-feature-slide ${i === cur ? "active" : ""}`}
-              style={{
-                background: b.imageUrl
-                  ? `url(${b.imageUrl}) center/cover no-repeat`
-                  : (b.backgroundColor ?? "#f0ece6"),
-              }}
-            >
-              {!b.imageUrl && (
-                <span style={{ fontSize: 80, opacity: 0.3 }}>🍂</span>
-              )}
+          {col.imageUrl ? (
+            <div className="ec-feature-slide active" style={{
+              background: `url(${col.imageUrl}) center/cover no-repeat`,
+              borderRadius: 12
+            }} />
+          ) : (
+            <div className="ec-feature-slide active" style={{ background: "#f0ece6" }}>
+              <span style={{ fontSize: 80, opacity: 0.3 }}>🛍️</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </section>
   );
 }
+
 
 function Testimonials() {
   const [reviews, setReviews] = useState(TESTIMONIALS);

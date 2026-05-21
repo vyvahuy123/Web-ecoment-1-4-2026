@@ -372,7 +372,7 @@ export default function Orders() {
   const autoOpenId = searchParams.get("orderId");
   const autoOpenRef = useRef(false);
   const [orders, setOrders] = useState([]);
-  const [reviewedOrders, setReviewedOrders] = useState(() => JSON.parse(localStorage.getItem("reviewedOrders") || "[]"));
+  const [reviewedOrders, setReviewedOrders] = useState(() => typeof window !== "undefined" ? JSON.parse(localStorage.getItem("reviewedOrders") || "[]") : []);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

@@ -7,6 +7,7 @@ const AuthService = {
     (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).setItem("token", data.accessToken);
     (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).setItem("user", JSON.stringify(data.user));
     (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).setItem("userId", data.user?.id ?? "");
+    if (typeof document !== "undefined") { document.cookie = `token=${data.accessToken};path=/;max-age=${7*24*3600};SameSite=Lax`; }
     return data;
   },
   register: async (payload) => {
@@ -23,6 +24,7 @@ const AuthService = {
   },
   logout: async () => {
     await api.post("/auth/logout");
+    if (typeof document !== "undefined") { document.cookie = "token=;path=/;max-age=0"; }
     (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).removeItem("token");
     (typeof window !== "undefined" ? localStorage : {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}).removeItem("user");
   },
