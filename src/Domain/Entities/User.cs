@@ -19,6 +19,8 @@ public sealed class User : AuditableEntity
     public string? FullName { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
+    public string? PasswordResetToken { get; private set; }
+    public DateTime? PasswordResetTokenExpiry { get; private set; }
     public IReadOnlyCollection<string> Roles => _roles.AsReadOnly();
 
     // â”€â”€ EF Core requires parameterless constructor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -98,6 +100,35 @@ public sealed class User : AuditableEntity
         MarkAsUpdated();
     }
 
+    public void SetPasswordResetToken(string token, DateTime expiry)
+    {
+        PasswordResetToken = token;
+        PasswordResetTokenExpiry = expiry;
+        MarkAsUpdated();
+    }
+
+    public void ClearPasswordResetToken()
+    {
+        PasswordResetToken = null;
+        PasswordResetTokenExpiry = null;
+        MarkAsUpdated();
+    }
+
+    public bool IsPasswordResetTokenValid(string token) =>
+        PasswordResetToken == token &&
+        PasswordResetTokenExpiry.HasValue &&
+        PasswordResetTokenExpiry.Value > DateTime.UtcNow;
+
+    public Result ResetPassword(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            return Result.Failure("Mat khau khong hop le.");
+        PasswordHash = newPasswordHash;
+        ClearPasswordResetToken();
+        MarkAsUpdated();
+        return Result.Success();
+    }
+
     public Result ChangePassword(string currentPassword, string newPasswordHash, bool isCurrentPasswordValid)
     {
         if (!isCurrentPasswordValid)
@@ -111,3 +142,4 @@ public sealed class User : AuditableEntity
 }
 
 
+// Append nothing - we'll use a script

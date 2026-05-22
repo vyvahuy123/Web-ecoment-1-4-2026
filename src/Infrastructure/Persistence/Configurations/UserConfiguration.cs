@@ -75,5 +75,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         // Global query filter - tự động lọc soft-deleted records
         builder.HasQueryFilter(u => !u.IsDeleted);
+
+        builder.Property(u => u.PasswordResetToken).HasColumnName("password_reset_token").HasMaxLength(10).IsRequired(false);
+        builder.Property(u => u.PasswordResetTokenExpiry).HasColumnName("password_reset_token_expiry").IsRequired(false);
     }
 }
