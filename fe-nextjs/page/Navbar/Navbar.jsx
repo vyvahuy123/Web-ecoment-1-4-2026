@@ -49,7 +49,7 @@ function UserMenu({ onLogout }) {
     localStorage.removeItem("user");
     setOpen(false);
     onLogout?.();
-    router.push("/");
+    router.push("/dang-nhap");
   };
 
   return (
