@@ -9,11 +9,113 @@ const EMPTY_FORM = {
 
 const sid = (v) => (v == null ? "" : String(v));
 
+
+function VariantSection({ productId }) {
+  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ color: "", size: "", price: "", stock: "" });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  const [editId, setEditId] = useState(null);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const data = await ProductService.getVariants(productId);
+      setVariants(data || []);
+    } catch { setVariants([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { if (productId) load(); }, [productId]);
+
+  const resetForm = () => { setForm({ color: "", size: "", price: "", stock: "" }); setEditId(null); setErr(""); };
+
+  const handleSave = async () => {
+    if (!form.color.trim() || !form.size.trim() || !form.price || !form.stock) {
+      setErr("Vui lòng điền đầy đủ Màu, Size, Giá, Số lượng."); return;
+    }
+    setSaving(true); setErr("");
+    try {
+      const payload = { color: form.color.trim(), size: form.size.trim(), price: Number(form.price), stock: Number(form.stock) };
+      if (editId) {
+        await ProductService.updateVariant(editId, payload);
+      } else {
+        await ProductService.createVariant(productId, payload);
+      }
+      resetForm();
+      await load();
+    } catch (e) {
+      setErr(e?.response?.data?.message ?? e?.response?.data?.errors?.detail?.[0] ?? "Lỗi khi lưu variant.");
+    } finally { setSaving(false); }
+  };
+
+  const handleEdit = (v) => {
+    setForm({ color: v.color, size: v.size, price: String(v.price), stock: String(v.stock) });
+    setEditId(v.id);
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Xóa variant này?")) return;
+    try { await ProductService.deleteVariant(id); await load(); }
+    catch { alert("Lỗi khi xóa."); }
+  };
+
+  return (
+    <div style={{ marginTop: 20, borderTop: "1px solid #eee", paddingTop: 16 }}>
+      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>🎨 Phân loại (Màu / Size)</div>
+      {err && <div className="modal-err">{err}</div>}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 8, marginBottom: 8 }}>
+        <input className="modal-input" style={{ margin: 0 }} value={form.color} onChange={e => setForm(f => ({...f, color: e.target.value}))} placeholder="Màu (VD: Đen)" />
+        <input className="modal-input" style={{ margin: 0 }} value={form.size} onChange={e => setForm(f => ({...f, size: e.target.value}))} placeholder="Size (VD: M)" />
+        <input className="modal-input" style={{ margin: 0 }} type="number" value={form.price} onChange={e => setForm(f => ({...f, price: e.target.value}))} placeholder="Giá" />
+        <input className="modal-input" style={{ margin: 0 }} type="number" value={form.stock} onChange={e => setForm(f => ({...f, stock: e.target.value}))} placeholder="Tồn kho" />
+        <div style={{ display: "flex", gap: 4 }}>
+          <button className="btn btn-sm btn-dark" onClick={handleSave} disabled={saving} style={{ whiteSpace: "nowrap" }}>
+            {saving ? "..." : editId ? "Cập nhật" : "+ Thêm"}
+          </button>
+          {editId && <button className="btn btn-sm" onClick={resetForm}>✕</button>}
+        </div>
+      </div>
+      {loading ? <div style={{ color: "#999", fontSize: 13 }}>Đang tải...</div> : variants.length === 0 ? (
+        <div style={{ color: "#999", fontSize: 13, textAlign: "center", padding: "12px 0" }}>Chưa có phân loại nào</div>
+      ) : (
+        <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#f5f5f5" }}>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Màu</th>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Size</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>Giá</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>Tồn kho</th>
+              <th style={{ padding: "6px 8px" }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {variants.map(v => (
+              <tr key={v.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                <td style={{ padding: "6px 8px" }}><span style={{ background: "#f0f0f0", borderRadius: 4, padding: "2px 8px" }}>{v.color}</span></td>
+                <td style={{ padding: "6px 8px" }}>{v.size}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>{Number(v.price).toLocaleString("vi-VN")}₫</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>{v.stock}</td>
+                <td style={{ padding: "6px 8px", display: "flex", gap: 4, justifyContent: "center" }}>
+                  <button className="btn btn-sm" onClick={() => handleEdit(v)} style={{ fontSize: 11 }}>Sửa</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(v.id)} style={{ fontSize: 11 }}>Xóa</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 function ProductModal({ open, onClose, onSave, initial, categories }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [previewUrl, setPreviewUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [activeTab, setActiveTab] = useState("info");
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -31,6 +133,7 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
     );
     setPreviewUrl(initial?.imageUrl ?? "");
     setErr("");
+    setActiveTab("info");
   }, [initial, open]);
 
   if (!open) return null;
@@ -71,7 +174,20 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
           <span className="modal-title">{initial ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}</span>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-        <div className="modal-body">
+        {initial?.id && (
+          <div style={{ display: "flex", borderBottom: "1px solid #eee", padding: "0 20px" }}>
+            {[{key:"info",label:"📋 Thông tin"},{key:"variants",label:"🎨 Phân loại"}].map(t => (
+              <button key={t.key} onClick={() => setActiveTab(t.key)} type="button" style={{
+                padding: "10px 16px", border: "none", background: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: activeTab === t.key ? 600 : 400,
+                color: activeTab === t.key ? "#0a0a0a" : "#888",
+                borderBottom: activeTab === t.key ? "2px solid #0a0a0a" : "2px solid transparent",
+                marginBottom: -1, transition: "all 0.2s"
+              }}>{t.label}</button>
+            ))}
+          </div>
+        )}
+        <div className="modal-body" style={{ display: activeTab === "info" ? "flex" : "none" }}>
           {err && <div className="modal-err">{err}</div>}
 
           <label>Tên sản phẩm *</label>
@@ -106,6 +222,9 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
             </div>
           )}
         </div>
+        {initial?.id && activeTab === "variants" && (
+          <div className="modal-body"><VariantSection productId={initial.id} /></div>
+        )}
         <div className="modal-foot">
           <button className="btn btn-sm" onClick={onClose} disabled={saving}>Hủy</button>
           <button className="btn btn-sm btn-dark" onClick={handleSave} disabled={saving}>
