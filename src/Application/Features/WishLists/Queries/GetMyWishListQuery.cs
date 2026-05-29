@@ -21,7 +21,9 @@ public class GetMyWishListQueryHandler : IRequestHandler<GetMyWishListQuery, Lis
             ProductId = w.ProductId,
             ProductName = w.Product?.Name ?? string.Empty,
             ProductPrice = w.Product?.Price ?? 0,
-            ProductImageUrl = w.Product?.Images?.FirstOrDefault(x => x.IsMain)?.ImageUrl,
+            ProductImageUrl = w.Product?.Images?.FirstOrDefault(x => x.IsMain)?.ImageUrl
+                ?? w.Product?.Images?.FirstOrDefault()?.ImageUrl
+                ?? w.Product?.ImageUrl,
             AddedAt = w.CreatedAt
         }).ToList();
     }

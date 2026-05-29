@@ -1,5 +1,6 @@
 "use client";
 import { useRouter, usePathname, useParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCart } from "@/contexts/CartContext";
@@ -15,6 +16,8 @@ function getImageUrl(url) {
 
 export default function Wishlist() {
   const { wishlist, loading, toggleWishlist } = useWishlist();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const { addItem } = useCart();
   const router = useRouter();
 
@@ -47,7 +50,7 @@ export default function Wishlist() {
               <div style={{ fontSize: 40, marginBottom: 16 }}>⏳</div>
               <p>Đang tải...</p>
             </div>
-          ) : !localStorage.getItem("token") ? (
+          ) : !isClient || !localStorage.getItem("token") ? (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <div style={{ fontSize: 64, marginBottom: 20, opacity: 0.3 }}>♡</div>
               <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, marginBottom: 12 }}>Vui lòng đăng nhập</h2>

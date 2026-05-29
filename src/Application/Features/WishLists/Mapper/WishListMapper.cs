@@ -11,7 +11,9 @@ public static class WishListMapper
         ProductId = w.ProductId,
         ProductName = w.Product?.Name ?? string.Empty,
         ProductPrice = w.Product?.Price ?? 0,
-        ProductImageUrl = w.Product?.Images?.FirstOrDefault(i => i.IsMain)?.ImageUrl,
+        ProductImageUrl = w.Product?.Images?.FirstOrDefault(i => i.IsMain)?.ImageUrl
+            ?? w.Product?.Images?.FirstOrDefault()?.ImageUrl
+            ?? w.Product?.ImageUrl,
         AddedAt = w.CreatedAt
     };
 }

@@ -45,6 +45,7 @@ function UserMenu({ onLogout }) {
   }, []);
 
   const handleLogout = async () => {
+    if (!confirm("Bạn có muốn đăng xuất không?")) return;
     await AuthService.logout();
     localStorage.removeItem("user");
     setOpen(false);
@@ -64,29 +65,51 @@ function UserMenu({ onLogout }) {
 
       {open && (
         <div className="ec-user-dropdown">
-          <div className="ec-user-dropdown-header">
-            <div className="ec-user-avatar-lg" style={{ background: getAvatarColor(displayName) }}>
+          <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)",
+            display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.05)" }}>
+            <div style={{ width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
+              background: getAvatarColor(displayName), display: "flex", alignItems: "center",
+              justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 15 }}>
               {getInitials(displayName)}
             </div>
-            <div>
-              <p className="ec-user-fullname">{displayName}</p>
-              <p className="ec-user-email">{user?.email}</p>
+            <div style={{ overflow: "hidden" }}>
+              <p style={{ fontWeight: 600, fontSize: 14, color: "#fff", margin: 0,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</p>
             </div>
           </div>
-          <div className="ec-user-dropdown-divider" />
-          <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/tai-khoan"); }}>
-            Thông tin cá nhân
-          </button>
-          <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/orders"); }}>
-            Đơn hàng
-          </button>
-          <button className="ec-user-dropdown-item" onClick={() => { setOpen(false); router.push("/cart"); }}>
-            Giỏ hàng
-          </button>
-          <div className="ec-user-dropdown-divider" />
-          <button className="ec-user-dropdown-item ec-user-logout" onClick={handleLogout}>
-            Đăng xuất
-          </button>
+          <div style={{ padding: "6px 0", borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+            {[
+              { label: "Thông tin cá nhân", path: "/tai-khoan" },
+              { label: "Đơn hàng", path: "/orders" },
+              { label: "Giỏ hàng", path: "/cart" },
+            ].map(item => (
+              <button key={item.path}
+                onClick={() => { setOpen(false); router.push(item.path); }}
+                style={{ width: "100%", padding: "10px 18px", border: "none", background: "none",
+                  textAlign: "left", cursor: "pointer", fontSize: 13, color: "#ffffff",
+                  display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit",
+                  transition: "background 0.15s, padding-left 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.paddingLeft = "22px"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.paddingLeft = "18px"; }}
+              >
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(255,255,255,0.6)", flexShrink: 0 }} />
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.15)", padding: "6px 0 4px" }}>
+            <button onClick={handleLogout} style={{ width: "100%", padding: "10px 18px", border: "none",
+              background: "none", textAlign: "left", cursor: "pointer", fontSize: 13, color: "#ff6b6b",
+              display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit" }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,100,100,0.15)"}
+              onMouseLeave={e => e.currentTarget.style.background = "none"}
+            >
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#ff6b6b", flexShrink: 0 }} />
+              Đăng xuất
+            </button>
+          </div>
         </div>
       )}
     </div>
