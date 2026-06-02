@@ -58,7 +58,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 }
 
 public record UpdateProductCommand(
-    Guid Id, string Name, decimal Price, string? Description, string? ImageUrl, Guid? CategoryId
+    Guid Id, string Name, decimal Price, string? Description, string? ImageUrl, Guid? CategoryId, decimal? SalePrice = null
 ) : IRequest<ProductDto>;
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
@@ -82,7 +82,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             ?? throw new NotFoundException(nameof(Product), req.Id);
 
         // FIX: truyền đầy đủ Description và CategoryId — domain Update() nhận đúng
-        var result = product.Update(req.Name, req.Price, req.Description, req.ImageUrl, req.CategoryId);
+        var result = product.Update(req.Name, req.Price, req.Description, req.ImageUrl, req.CategoryId, req.SalePrice);
 
         if (result.IsFailure)
             throw new Exception(result.Error!);

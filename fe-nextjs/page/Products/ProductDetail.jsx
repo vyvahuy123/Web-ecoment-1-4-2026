@@ -227,9 +227,22 @@ export default function ProductDetail() {
                 <span style={{ fontSize: 13, color: "#999" }}>{avgRating} ({reviewTotal} đánh giá)</span>
               </div>
             )}
-
-            <p style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 700, color: "#e74c3c", marginBottom: 16 }}>
-              {fmt(displayPrice)}₫
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+              <p style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 700, color: "#e74c3c", margin: 0 }}>
+                {fmt(displayPrice)}₫
+              </p>
+              {originalPrice && (
+                <span style={{ background: "#e53935", color: "#fff", fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 4 }}>
+                  -{Math.round((1 - displayPrice / originalPrice) * 100)}%
+                </span>
+              )}
+            </div>
+            {originalPrice && (
+              <div style={{ marginBottom: 12 }}>
+                <span style={{ textDecoration: "line-through", color: "#999", fontSize: 16 }}>{fmt(originalPrice)}₫</span>
+                <span style={{ color: "#e53935", fontSize: 13, marginLeft: 8 }}>Tiết kiệm {fmt(originalPrice - displayPrice)}₫</span>
+              </div>
+            )}
             </p>
 
             {product.description && (

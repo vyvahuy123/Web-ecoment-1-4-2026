@@ -12,6 +12,7 @@ public sealed class Product : AuditableEntity
     public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
     public decimal Price { get; private set; }
+    public decimal? SalePrice { get; private set; }
     public int Stock { get; private set; }
     public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; }
@@ -51,7 +52,7 @@ public sealed class Product : AuditableEntity
         return Result.Success(product);
     }
 
-    public Result Update(string name, decimal price, string? description, string? imageUrl, Guid? categoryId)
+    public Result Update(string name, decimal price, string? description, string? imageUrl, Guid? categoryId, decimal? salePrice = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             return Result.Failure("Tên sản phẩm không được để trống.");

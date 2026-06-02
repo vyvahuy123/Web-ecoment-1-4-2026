@@ -368,6 +368,11 @@ function Products({ onAddCart }) {
                         </button>
                       )}
                       <button className="ec-wishlist">♡</button>
+                  {p.salePrice && (
+                    <div style={{ position: "absolute", top: 10, left: 10, background: "#e53935", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 4, zIndex: 2 }}>
+                      -{Math.round((1 - p.salePrice / p.price) * 100)}%
+                    </div>
+                  )}
                     </div>
                   </div>
                   <div className="ec-product-info">

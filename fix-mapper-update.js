@@ -1,4 +1,7 @@
-using Application.Features.Products.DTOs;
+const fs = require('fs');
+const path = 'E:/CleanArchitecture/src/Application/Features/Products/ProductMapper.cs';
+
+fs.writeFileSync(path, `using Application.Features.Products.DTOs;
 using Domain.Entities;
 namespace Application.Features.Products;
 internal static class ProductMapper
@@ -30,3 +33,5 @@ internal static class ProductMapper
         GetSalePrice(p, collections),
         p.Stock, p.IsActive, p.ImageUrl, p.CategoryId);
 }
+`);
+console.log('Done');

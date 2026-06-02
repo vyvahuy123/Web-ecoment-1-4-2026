@@ -68,5 +68,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // Soft-delete global query filter
         builder.HasQueryFilter(p => !p.IsDeleted);
         builder.Navigation(p => p.Images).HasField("_images");
+        builder.Property(p => p.SalePrice).HasColumnName("sale_price").HasColumnType("decimal(18,2)").IsRequired(false);
     }
 }
