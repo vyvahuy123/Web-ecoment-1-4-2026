@@ -4,7 +4,7 @@ import ProductService from "@/services/product.service";
 import CategoryService from "@/services/category.service";
 
 const EMPTY_FORM = {
-  name: "", price: "", description: "", imageUrl: "", imageFile: null, categoryId: "",
+  name: "", price: "", salePrice: "", description: "", imageUrl: "", imageFile: null, categoryId: "",
 };
 
 const sid = (v) => (v == null ? "" : String(v));
@@ -124,6 +124,7 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
       ? {
           name:        initial.name        ?? "",
           price:       initial.price       ?? "",
+          salePrice:   initial.salePrice   ?? "",
           description: initial.description ?? "",
           imageUrl:    initial.imageUrl    ?? "",
           imageFile:   null,
@@ -195,6 +196,8 @@ function ProductModal({ open, onClose, onSave, initial, categories }) {
 
           <label>Giá (VNĐ) *</label>
           <input className="modal-input" type="number" value={form.price} onChange={set("price")} placeholder="890000" />
+          <label>Giá sale (VNĐ) <span style={{color:"#999",fontSize:12}}>(để trống nếu không sale)</span></label>
+          <input className="modal-input" type="number" value={form.salePrice} onChange={set("salePrice")} placeholder="VD: 450000" />
 
           <label>Danh mục</label>
           <select className="modal-input" value={form.categoryId} onChange={set("categoryId")}>
@@ -394,13 +397,13 @@ export default function ProductsPage() {
 
   const handleCreate = async (form) => {
     const imageUrl = await resolveImageUrl(form);
-    await ProductService.create({ name: form.name, price: Number(form.price), description: form.description || null, imageUrl, categoryId: form.categoryId || null });
+    await ProductService.create({ name: form.name, price: Number(form.price), description: form.description || null, imageUrl, categoryId: form.categoryId || null, salePrice: form.salePrice ? Number(form.salePrice) : null });
     fetchProducts();
   };
 
   const handleUpdate = async (form) => {
     const imageUrl = await resolveImageUrl(form);
-    await ProductService.update(editTarget.id, { name: form.name, price: Number(form.price), description: form.description || null, imageUrl, categoryId: form.categoryId || null });
+    await ProductService.update(editTarget.id, { name: form.name, price: Number(form.price), description: form.description || null, imageUrl, categoryId: form.categoryId || null, salePrice: form.salePrice ? Number(form.salePrice) : null });
     fetchProducts();
   };
 

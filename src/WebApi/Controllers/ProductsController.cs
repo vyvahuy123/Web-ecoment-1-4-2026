@@ -60,7 +60,7 @@ public class ProductsController : ControllerBase
         Guid id, [FromBody] UpdateProductRequest req, CancellationToken ct)
     {
         var result = await _mediator.Send(
-            new UpdateProductCommand(id, req.Name, req.Price, req.Description, req.ImageUrl, req.CategoryId), ct);
+            new UpdateProductCommand(id, req.Name, req.Price, req.Description, req.ImageUrl, req.CategoryId, req.SalePrice), ct);
         return Ok(result);
     }
 
@@ -100,6 +100,7 @@ public record UpdateProductRequest(
     decimal Price,
     string? Description,
     string? ImageUrl,
-    Guid? CategoryId);   // ← nullable
+    Guid? CategoryId,
+    decimal? SalePrice = null);
 
 public record AdjustStockRequest(int Delta, string Reason);

@@ -63,6 +63,8 @@ public sealed class Product : AuditableEntity
 
         Name = name.Trim();
         Price = price;
+        SalePrice = (salePrice.HasValue && salePrice.Value > 0 && salePrice.Value < price) ? salePrice : null;
+        SalePrice = (salePrice.HasValue && salePrice.Value > 0 && salePrice.Value < price) ? salePrice : null;
         Description = description?.Trim();
         ImageUrl = imageUrl;
 
