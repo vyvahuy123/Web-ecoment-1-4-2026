@@ -19,4 +19,5 @@ public interface IChatRepository
 
     Task AddAsync(ChatMessage message);
     Task MarkAllAsReadAsync(Guid senderId, Guid receiverId);
+    Task<bool> IsFirstMessageAsync(Guid senderId, Guid receiverId);
 }

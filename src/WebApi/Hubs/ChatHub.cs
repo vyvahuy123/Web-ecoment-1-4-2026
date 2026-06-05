@@ -71,6 +71,18 @@ public class ChatHub : Hub
 
         // Gửi lại cho chính sender (confirm)
         await Clients.Caller.SendAsync("ReceiveMessage", payload);
+
+        // Auto-reply nếu đây là tin nhắn đầu tiên
+        var isFirstMessage = await _chatRepo.IsFirstMessageAsync(senderId, receiverGuid);
+        if (isFirstMessage)
+        {
+            var autoReplyContent = "Xin chào! Cảm ơn bạn đã liên hệ với INDIAS Store.\n\nChúng tôi đã nhận được tin nhắn của bạn và sẽ phản hồi sớm nhất có thể.\n\nThời gian hỗ trợ: 8:00 - 22:00 mỗi ngày.\n\nTrân trọng, Team INDIAS";
+            var autoReply = ChatMessage.Create(receiverGuid, senderId, autoReplyContent);
+            await _chatRepo.AddAsync(autoReply);
+            await _uow.SaveChangesAsync();
+            var autoPayload = new { id = autoReply.Id, senderId = autoReply.SenderId, receiverId = autoReply.ReceiverId, content = autoReply.Content, sentAt = autoReply.SentAt, isRead = autoReply.IsRead };
+            await Clients.Caller.SendAsync("ReceiveMessage", autoPayload);
+        }
     }
 
     public async Task MarkAsRead(string senderId)

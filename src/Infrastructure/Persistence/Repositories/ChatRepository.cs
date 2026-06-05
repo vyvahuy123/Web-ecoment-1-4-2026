@@ -78,4 +78,12 @@ public class ChatRepository : IChatRepository
 
         foreach (var m in msgs) m.MarkAsRead();
     }
+    public async Task<bool> IsFirstMessageAsync(Guid senderId, Guid receiverId)
+    {
+        var count = await _db.ChatMessages
+            .Where(m => m.SenderId == senderId && m.ReceiverId == receiverId)
+            .CountAsync();
+        return count == 1; // Chỉ có 1 tin = tin vừa gửi = tin đầu tiên
+    }
+
 }
