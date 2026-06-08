@@ -191,7 +191,27 @@ export default function ChatPage() {
                 <div key={msg.id} className={"chat-msg-wrap" + (isMe ? " admin" : "")}>
                   {!isMe && <div className="chat-msg-avatar">{getInitials(selected?.fullName || selected?.username)}</div>}
                   <div className="chat-msg-col">
-                    <div className={"chat-bubble" + (isMe ? " admin" : "")}>{msg.content}</div>
+                    {msg.messageType === 'card' && msg.metadata ? (() => {
+                      try {
+                        const d = JSON.parse(msg.metadata);
+                        return (
+                          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: 10, minWidth: 200 }}>
+                            <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>Don hang</div>
+                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{d.orderCode}</div>
+                            {d.items?.slice(0,2).map((item, i) => (
+                              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                                {item.imageUrl && <img src={item.imageUrl} alt={item.name} style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} />}
+                                <div><div style={{ fontSize: 12 }}>{item.name}</div><div style={{ fontSize: 11, color: '#888' }}>{item.price?.toLocaleString('vi-VN')}d</div></div>
+                              </div>
+                            ))}
+                            <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>Trang thai: {d.status}</div>
+                            <button onClick={() => { window.dispatchEvent(new CustomEvent('admin-navigate', { detail: { page: 'orders' } })); setTimeout(() => window.dispatchEvent(new CustomEvent('admin-open-order', { detail: { orderId: d.orderCode } })), 300); }} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 8, padding: '5px 12px', fontSize: 12, cursor: 'pointer', width: '100%' }}>
+                              Xem don hang
+                            </button>
+                          </div>
+                        );
+                      } catch(e) { return <div className={'chat-bubble' + (isMe ? ' admin' : '')}>{msg.content}</div>; }
+                    })() : <div className={'chat-bubble' + (isMe ? ' admin' : '')}>{msg.content}</div>}
                     <div className="chat-msg-time">
                       {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                     </div>

@@ -3,6 +3,28 @@ import { useState, useRef, useEffect } from 'react';
 import { chatService } from '../services/chat.service';
 import { useCart } from '@/contexts/CartContext';
 
+function CardMessage({ metadata }) {
+  try {
+    const data = JSON.parse(metadata);
+    if (data.type === "order") {
+      return (
+        <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 10, padding: 10, minWidth: 200 }}>
+          <div style={{ fontSize: 11, color: "#999", marginBottom: 6 }}>Don hang</div>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{data.orderCode}</div>
+          {data.items?.slice(0, 2).map((item, idx) => (
+            <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+              {item.imageUrl && <img src={item.imageUrl} alt={item.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }} />}
+              <div><div style={{ fontSize: 12, fontWeight: 500 }}>{item.name}</div><div style={{ fontSize: 11, color: "#888" }}>{item.price?.toLocaleString("vi-VN")}d x{item.quantity}</div></div>
+            </div>
+          ))}
+          <div style={{ fontSize: 12, color: "#888", marginTop: 6 }}>Trang thai: {data.status}</div>
+        </div>
+      );
+    }
+  } catch(e) {}
+  return null;
+}
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const { cartOpen } = useCart();
@@ -10,6 +32,7 @@ export default function ChatWidget() {
   const [input, setInput] = useState('');
   const [isClient, setIsClient] = useState(false);
   const [adminId, setAdminId] = useState(null);
+  const [pendingOrder, setPendingOrder] = useState(null);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -28,6 +51,19 @@ export default function ChatWidget() {
       .then(data => setAdminId(data.adminId))
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (!isClient || !token) return;
+    fetch('http://localhost:5000/api/orders/my?page=1&pageSize=1', {
+      headers: { Authorization: 'Bearer ' + token }
+    })
+      .then(r => r.json())
+      .then(data => {
+        const latest = data.items?.[0];
+        if (latest && latest.status === 'Pending') setPendingOrder(latest);
+      })
+      .catch(console.error);
+  }, [isClient, token]);
 
   useEffect(() => {
     if (!isClient || !token || !adminId) return;
@@ -62,6 +98,31 @@ export default function ChatWidget() {
     } catch (e) { console.error(e); }
   };
 
+  const sendOrderCard = async () => {
+    if (!pendingOrder || !adminId) return;
+    try {
+      const t = token || localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/orders/' + pendingOrder.id, {
+        headers: { Authorization: 'Bearer ' + t }
+      });
+      const detail = await res.json();
+      const meta = JSON.stringify({
+        type: 'order',
+        orderCode: detail.orderCode,
+        status: detail.status,
+        totalAmount: detail.totalAmount,
+        items: (detail.items || []).map(item => ({
+          name: item.productName,
+          imageUrl: item.productImageUrl,
+          price: item.unitPrice,
+          quantity: item.quantity
+        }))
+      });
+      await chatService.sendMessage(adminId, 'Toi muon hoi ve don hang ' + detail.orderCode, 'card', meta);
+      setPendingOrder(null);
+    } catch (e) { console.error(e); }
+  };
+
   const bubbleStyle = (isMe) => ({
     padding: '6px 12px',
     borderRadius: 16,
@@ -88,14 +149,27 @@ export default function ChatWidget() {
             )}
             {messages.map((msg, i) => {
               const isMe = msg.senderId?.toString() === myId;
+              const isCard = msg.messageType === 'card' && msg.metadata;
               return (
                 <div key={i} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
-                  <div style={bubbleStyle(isMe)}>{msg.content}</div>
+                  {isCard
+                    ? <CardMessage metadata={msg.metadata} />
+                    : <div style={bubbleStyle(isMe)}>{msg.content}</div>
+                  }
                 </div>
               );
             })}
             <div ref={bottomRef} />
           </div>
+          {pendingOrder && (
+            <div style={{ margin: '0 12px 8px', background: '#f8f8f8', border: '1px solid #eee', borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>Don hang dang cho xu ly</div>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{pendingOrder.orderCode}</div>
+              <button onClick={sendOrderCard} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 16, padding: '5px 14px', fontSize: 12, cursor: 'pointer', width: '100%' }}>
+                Gui don hang nay cho shop
+              </button>
+            </div>
+          )}
           <div style={{ padding: '8px 12px', borderTop: '1px solid #eee', display: 'flex', gap: 8 }}>
             <input
               ref={inputRef}

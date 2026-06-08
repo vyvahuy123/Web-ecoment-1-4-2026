@@ -51,6 +51,8 @@ public class AppDbContext : DbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.Content).HasMaxLength(2000).IsRequired();
             b.HasIndex(x => new { x.SenderId, x.ReceiverId, x.SentAt });
+            b.Property(x => x.MessageType).HasMaxLength(20).HasDefaultValue("text");
+            b.Property(x => x.Metadata).HasMaxLength(4000).IsRequired(false);
         });
 
         // SOFT DELETE GLOBAL FILTER

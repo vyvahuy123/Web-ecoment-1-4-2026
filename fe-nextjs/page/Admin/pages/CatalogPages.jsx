@@ -337,6 +337,29 @@ export function OrdersPage() {
   const [highlightId, setHighlightId] = useState(null);
   const setHighlightRef = useRef(null);
   useEffect(() => { setHighlightRef.current = setHighlightId; }, []);
+  useEffect(() => {
+    const handler = async (e) => {
+      const { orderId } = e.detail;
+      if (!orderId) return;
+      // orderId có thể là orderCode (ORD-xxx) hoặc Guid
+      setDetailLoading(true);
+      setDetailOrder({ _loading: true });
+      try {
+        const all = await OrderService.getAll({ page: 1, pageSize: 100 });
+        const items = Array.isArray(all) ? all : (all?.items ?? []);
+        const found = items.find(o => o.id === orderId || o.orderCode === orderId);
+        if (found) {
+          const data = await OrderService.getByIdAdmin(found.id);
+          setDetailOrder(data);
+        } else {
+          setDetailOrder(null);
+        }
+      } catch { setDetailOrder(null); }
+      finally { setDetailLoading(false); }
+    };
+    window.addEventListener("admin-open-order", handler);
+    return () => window.removeEventListener("admin-open-order", handler);
+  }, []);
   // Approve cancellation
   const [approveTarget, setApproveTarget] = useState(null);
   const [approveSaving, setApproveSaving] = useState(false);

@@ -78,6 +78,8 @@ public class ChatController : ControllerBase
             receiverId = m.ReceiverId,
             content = m.Content,
             sentAt = m.SentAt,
+            messageType = m.MessageType,
+            metadata = m.Metadata,
             isRead = m.IsRead
         }));
     }

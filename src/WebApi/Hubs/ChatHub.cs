@@ -43,7 +43,7 @@ public class ChatHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendMessage(string receiverId, string content)
+    public async Task SendMessage(string receiverId, string content, string messageType = "text", string? metadata = null)
     {
         var senderIdStr = Context.UserIdentifier!;
 
@@ -51,7 +51,7 @@ public class ChatHub : Hub
             !Guid.TryParse(receiverId, out var receiverGuid))
             throw new HubException("UserId không hợp lệ.");
 
-        var message = ChatMessage.Create(senderId, receiverGuid, content);
+        var message = ChatMessage.Create(senderId, receiverGuid, content, messageType, metadata);
         await _chatRepo.AddAsync(message);
         await _uow.SaveChangesAsync();
 
@@ -62,7 +62,9 @@ public class ChatHub : Hub
             receiverId = message.ReceiverId,
             content = message.Content,
             sentAt = message.SentAt,
-            isRead = message.IsRead
+            isRead = message.IsRead,
+            messageType = message.MessageType,
+            metadata = message.Metadata
         };
 
         // Gửi cho người nhận nếu đang online
@@ -80,7 +82,7 @@ public class ChatHub : Hub
             var autoReply = ChatMessage.Create(receiverGuid, senderId, autoReplyContent);
             await _chatRepo.AddAsync(autoReply);
             await _uow.SaveChangesAsync();
-            var autoPayload = new { id = autoReply.Id, senderId = autoReply.SenderId, receiverId = autoReply.ReceiverId, content = autoReply.Content, sentAt = autoReply.SentAt, isRead = autoReply.IsRead };
+            var autoPayload = new { id = autoReply.Id, senderId = autoReply.SenderId, receiverId = autoReply.ReceiverId, content = autoReply.Content, sentAt = autoReply.SentAt, isRead = autoReply.IsRead, messageType = autoReply.MessageType, metadata = autoReply.Metadata };
             await Clients.Caller.SendAsync("ReceiveMessage", autoPayload);
         }
     }

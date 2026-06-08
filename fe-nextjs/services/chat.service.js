@@ -48,11 +48,11 @@ export const chatService = {
     }
     connection = null;
   },
-  async sendMessage(receiverId, content) {
+  async sendMessage(receiverId, content, messageType = "text", metadata = null) {
     if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
       throw new Error("Chua ket noi SignalR");
     }
-    await connection.invoke("SendMessage", receiverId, content);
+    await connection.invoke("SendMessage", receiverId, content, messageType, metadata);
   },
   async markAsRead(senderId) {
     if (!connection) return;
