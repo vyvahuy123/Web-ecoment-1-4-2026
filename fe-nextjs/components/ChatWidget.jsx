@@ -33,6 +33,8 @@ export default function ChatWidget() {
   const [isClient, setIsClient] = useState(false);
   const [adminId, setAdminId] = useState(null);
   const [pendingOrder, setPendingOrder] = useState(null);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -52,6 +54,7 @@ export default function ChatWidget() {
       .catch(console.error);
   }, []);
 
+  // Fetch đơn hàng Pending gần nhất, không hiện luôn
   useEffect(() => {
     if (!isClient || !token) return;
     fetch('http://localhost:5000/api/orders/my?page=1&pageSize=1', {
@@ -60,7 +63,10 @@ export default function ChatWidget() {
       .then(r => r.json())
       .then(data => {
         const latest = data.items?.[0];
-        if (latest && latest.status === 'Pending') setPendingOrder(latest);
+        if (!latest || latest.status !== 'Pending') return;
+        // Kiểm tra đơn này đã từng gửi chưa
+        const sent = JSON.parse(localStorage.getItem('sentOrderCards') || '[]');
+        if (!sent.includes(latest.id)) setPendingOrder(latest);
       })
       .catch(console.error);
   }, [isClient, token]);
@@ -86,6 +92,14 @@ export default function ChatWidget() {
     setOpen(true);
   };
 
+  // Hiện gợi ý khi user bắt đầu gõ
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInput(val);
+    if (val.length === 1 && pendingOrder && !dismissed) setShowSuggestion(true);
+    if (val.length === 0) setShowSuggestion(false);
+  };
+
   const send = async () => {
     const t = token || localStorage.getItem('token');
     if (!t) { window.location.href = '/dang-nhap'; return; }
@@ -94,6 +108,7 @@ export default function ChatWidget() {
     try {
       await chatService.sendMessage(adminId, text);
       setInput('');
+      setShowSuggestion(false);
       inputRef.current?.focus();
     } catch (e) { console.error(e); }
   };
@@ -119,7 +134,13 @@ export default function ChatWidget() {
         }))
       });
       await chatService.sendMessage(adminId, 'Toi muon hoi ve don hang ' + detail.orderCode, 'card', meta);
+      // Lưu vào localStorage để không gợi ý lại
+      const sent = JSON.parse(localStorage.getItem('sentOrderCards') || '[]');
+      sent.push(pendingOrder.id);
+      localStorage.setItem('sentOrderCards', JSON.stringify(sent));
       setPendingOrder(null);
+      setShowSuggestion(false);
+      setInput('');
     } catch (e) { console.error(e); }
   };
 
@@ -141,7 +162,7 @@ export default function ChatWidget() {
         <div style={{ width: 320, height: 420, background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column', marginBottom: 12, overflow: 'hidden' }}>
           <div style={{ background: '#111', color: '#fff', padding: '12px 16px', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Chat voi shop</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => setOpen(false)}>X</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => { setOpen(false); setDismissed(false); setShowSuggestion(false); }}>X</span>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {messages.length === 0 && (
@@ -161,20 +182,23 @@ export default function ChatWidget() {
             })}
             <div ref={bottomRef} />
           </div>
-          {pendingOrder && (
-            <div style={{ margin: '0 12px 8px', background: '#f8f8f8', border: '1px solid #eee', borderRadius: 10, padding: 10 }}>
-              <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>Don hang dang cho xu ly</div>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{pendingOrder.orderCode}</div>
-              <button onClick={sendOrderCard} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 16, padding: '5px 14px', fontSize: 12, cursor: 'pointer', width: '100%' }}>
-                Gui don hang nay cho shop
-              </button>
+          {showSuggestion && pendingOrder && (
+            <div style={{ margin: '0 12px 6px', background: '#f8f8f8', border: '1px solid #e0e0e0', borderRadius: 10, padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 11, color: '#999' }}>Don hang dang cho xu ly</div>
+                <div style={{ fontWeight: 600, fontSize: 12 }}>{pendingOrder.orderCode}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={() => { setShowSuggestion(false); setDismissed(true); }} style={{ background: '#eee', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Bo qua</button>
+                <button onClick={sendOrderCard} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Gui</button>
+              </div>
             </div>
           )}
           <div style={{ padding: '8px 12px', borderTop: '1px solid #eee', display: 'flex', gap: 8 }}>
             <input
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder="Nhan tin nhan..."
               style={{ flex: 1, border: '1px solid #ddd', borderRadius: 20, padding: '6px 12px', fontSize: 13, outline: 'none' }}
