@@ -37,10 +37,10 @@ const SLIDES_FALLBACK = [
 ];
 
 const CATEGORIES = [
-  { name: "Women", count: "124 items", color: "#d4c5b0", icon: "👗" },
-  { name: "Men", count: "98 items", color: "#b5bec9", icon: "👔" },
-  { name: "Accessories", count: "76 items", color: "#c9b5b5", icon: "👜" },
-  { name: "New Arrivals", count: "32 items", color: "#b5c9b8", icon: "✨" },
+  { name: "Quần", color: "#d4c5b0", categoryId: "e9646c0d-23bc-4d0c-90c7-0d67ccb4de39" },
+  { name: "Túi xách", color: "#b5bec9", categoryId: "8c6609ec-440e-402b-b64e-1b06ec2dd143" },
+  { name: "Phụ kiện", color: "#c9b5b5", categoryId: "34a3b50e-1b6a-4432-a4b7-87225b5e7072" },
+  { name: "Áo", color: "#b5c9b8", categoryId: "7814ab9d-4b1d-4e69-9c61-f112436ee19b" },
 ];
 
 const TESTIMONIALS = [
@@ -63,6 +63,20 @@ const TESTIMONIALS = [
     stars: 5,
   },
 ];
+
+function useCategoryImages() {
+  const [catImages, setCatImages] = useState({});
+  useEffect(() => {
+    CATEGORIES.forEach(async (cat) => {
+      try {
+        const data = await ProductService.getAll({ categoryId: cat.categoryId, pageSize: 10 });
+        const imgs = (data?.items || []).map(p => p.imageUrl).filter(Boolean);
+        if (imgs.length > 0) setCatImages(prev => ({ ...prev, [cat.categoryId]: imgs }));
+      } catch(e) {}
+    });
+  }, []);
+  return catImages;
+}
 
 function useFadeUp(ref, deps = []) {
   useEffect(() => {
@@ -194,40 +208,64 @@ function Hero() {
 
 function Categories() {
   const ref = useRef(null);
+  const router = useRouter();
+  const catImages = useCategoryImages();
+  const [slideIdx, setSlideIdx] = useState({});
   useFadeUp(ref);
-  
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlideIdx(prev => {
+        const next = { ...prev };
+        CATEGORIES.forEach(cat => {
+          const imgs = catImages[cat.categoryId];
+          if (imgs && imgs.length > 1) {
+            next[cat.categoryId] = ((prev[cat.categoryId] || 0) + 1) % imgs.length;
+          }
+        });
+        return next;
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [catImages]);
+
   return (
     <section id="categories" className="ec-section" ref={ref}>
       <div className="container">
         <div className="ec-section-head fade-up">
-          <h2>Danh mục</h2>
-          <a
-            href="/san-pham"
-            onClick={(e) => {
-              e.preventDefault();
-              router.push("/san-pham");
-            }}
-          >
-            Xem tất cả
-          </a>
+          <h2>Danh muc</h2>
+          <a href="/san-pham" onClick={(e) => { e.preventDefault(); router.push("/san-pham"); }}>Xem tat ca</a>
         </div>
         <div className="ec-cats">
-          {CATEGORIES.map((c, i) => (
-            <div
-              className="ec-cat fade-up"
-              key={c.name}
-              style={{ cursor: "pointer", transitionDelay: `${i * 0.1}s` }}
-              onClick={() => router.push("/san-pham")}
-            >
-              <div className="ec-cat-bg" style={{ background: c.color }}>
-                <span style={{ fontSize: 72, opacity: 0.6 }}>{c.icon}</span>
+          {CATEGORIES.map((c, i) => {
+            const imgs = catImages[c.categoryId] || [];
+            const idx = slideIdx[c.categoryId] || 0;
+            const currentImg = imgs[idx];
+            return (
+              <div className="ec-cat fade-up" key={c.name} style={{ cursor: "pointer", transitionDelay: `${i * 0.1}s` }} onClick={() => router.push(`/san-pham?category=${c.categoryId}`)}>
+                <div className="ec-cat-bg" style={{ background: c.color, overflow: "hidden", position: "relative" }}>
+                  {imgs.length > 0 ? imgs.slice(0, 5).map((img, imgI) => (
+                    <img
+                      key={imgI}
+                      src={img}
+                      alt={c.name}
+                      style={{
+                        width: "100%", height: "100%", objectFit: "cover",
+                        position: "absolute", inset: 0,
+                        opacity: imgI === (slideIdx[c.categoryId] || 0) ? 1 : 0,
+                        transition: "opacity 0.8s ease-in-out",
+                      }}
+                    />
+                  )) : (
+                    <div style={{ width: "100%", height: "100%", background: c.color }} />
+                  )}
+                </div>
+                <div className="ec-cat-label">
+                  <h3>{c.name}</h3>
+                </div>
               </div>
-              <div className="ec-cat-label">
-                <h3>{c.name}</h3>
-                <span>{c.count}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
