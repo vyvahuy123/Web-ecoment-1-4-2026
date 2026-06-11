@@ -343,6 +343,15 @@ function OrderCard({ order, onCancel, reviewedOrders = [] }) {
           {reviewItem && (
         <ReviewModal order={order} item={reviewItem} onClose={()=>setReviewItem(null)} onSuccess={()=>{ setReviewItem(null); setReviewed(true); }} />
       )}
+          {order.status === 'Delivered' && (
+            <button
+              className="ec-btn ec-btn-outline"
+              style={{ padding: '8px 20px', fontSize: 11, color: '#e67e22', borderColor: '#e67e22' }}
+              onClick={() => window.dispatchEvent(new CustomEvent('open-chat-issue', { detail: { orderId: order.id, orderCode: order.orderCode, status: order.status } }))}
+            >
+              Có vấn đề?
+            </button>
+      )}
       {(order.status === 'Pending' || order.status === 'Confirmed') && (
             <button
               className="ec-btn ec-btn-outline"

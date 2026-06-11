@@ -40,7 +40,9 @@ public static class OrderMapper
         item.ProductImageUrl,
         item.UnitPrice,
         item.Quantity,
-        item.TotalPrice
+        item.TotalPrice,
+        item.VariantSize,
+        item.VariantColor
     );
 
     public static OrderSummaryDto ToSummary(Order order) => new(

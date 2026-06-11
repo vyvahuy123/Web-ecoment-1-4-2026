@@ -195,18 +195,19 @@ export default function ChatPage() {
                       try {
                         const d = JSON.parse(msg.metadata);
                         return (
-                          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: 10, minWidth: 200 }}>
-                            <div style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>Don hang</div>
-                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{d.orderCode}</div>
+                          <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '14px 16px', minWidth: 260, maxWidth: 300, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                            <div style={{ fontSize: 10, color: '#aaa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Don hang</div>
+                            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10, color: '#111' }}>{d.orderCode}</div>
                             {d.items?.slice(0,2).map((item, i) => (
                               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                                {item.imageUrl && <img src={item.imageUrl} alt={item.name} style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} />}
-                                <div><div style={{ fontSize: 12 }}>{item.name}</div><div style={{ fontSize: 11, color: '#888' }}>{item.price?.toLocaleString('vi-VN')}d</div></div>
+                                {item.imageUrl && <img src={item.imageUrl} alt={item.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 8 }} />}
+                                <div><div style={{ fontSize: 13, fontWeight: 500 }}>{item.name}</div><div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{item.price?.toLocaleString('vi-VN')}đ{item.size ? ' | ' + item.size : ''}{item.color ? ' | ' + item.color : ''}</div></div>
                               </div>
                             ))}
-                            <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>Trang thai: {d.status}</div>
+                            <div style={{ fontSize: 12, color: '#666', marginBottom: 4, marginTop: 8 }}>Trạng thái: <span style={{ fontWeight: 600, color: '#27ae60' }}>{d.status}</span></div>
+                            {d.issueReason && <div style={{ fontSize: 12, color: '#e67e22', fontWeight: 600, marginBottom: 8, padding: '4px 8px', background: '#fff7f0', borderRadius: 6 }}>⚠️ Vấn đề: {d.issueReason}</div>}
                             <button onClick={() => { window.dispatchEvent(new CustomEvent('admin-navigate', { detail: { page: 'orders' } })); setTimeout(() => window.dispatchEvent(new CustomEvent('admin-open-order', { detail: { orderId: d.orderCode } })), 300); }} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 8, padding: '5px 12px', fontSize: 12, cursor: 'pointer', width: '100%' }}>
-                              Xem don hang
+                              Xem đơn hàng →
                             </button>
                           </div>
                         );

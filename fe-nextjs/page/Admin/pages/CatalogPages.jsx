@@ -835,7 +835,7 @@ export function OrdersPage() {
                             {item.productName}
                           </div>
                           <div style={{ fontSize: 12, color: "var(--g4)" }}>
-                            x{item.quantity} × {fmt(item.unitPrice)}
+                            x{item.quantity} × {fmt(item.unitPrice)}{item.variantSize ? " | " + item.variantSize : ""}{item.variantColor ? " | " + item.variantColor : ""}
                           </div>
                         </div>
                         <div style={{ fontWeight: 600, fontSize: 13 }}>

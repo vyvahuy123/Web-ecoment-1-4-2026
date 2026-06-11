@@ -14,10 +14,11 @@ function CardMessage({ metadata }) {
           {data.items?.slice(0, 2).map((item, idx) => (
             <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
               {item.imageUrl && <img src={item.imageUrl} alt={item.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }} />}
-              <div><div style={{ fontSize: 12, fontWeight: 500 }}>{item.name}</div><div style={{ fontSize: 11, color: "#888" }}>{item.price?.toLocaleString("vi-VN")}d x{item.quantity}</div></div>
+              <div><div style={{ fontSize: 12, fontWeight: 500 }}>{item.name}</div><div style={{ fontSize: 11, color: "#888" }}>{item.price?.toLocaleString("vi-VN")}d x{item.quantity}{item.size ? " | " + item.size : ""}{item.color ? " | " + item.color : ""}</div></div>
             </div>
           ))}
           <div style={{ fontSize: 12, color: "#888", marginTop: 6 }}>Trang thai: {data.status}</div>
+          {data.issueReason && <div style={{ fontSize: 11, color: "#e67e22", fontWeight: 600, marginTop: 2 }}>Van de: {data.issueReason}</div>}
         </div>
       );
     }
@@ -33,6 +34,8 @@ export default function ChatWidget() {
   const [isClient, setIsClient] = useState(false);
   const [adminId, setAdminId] = useState(null);
   const [pendingOrder, setPendingOrder] = useState(null);
+  const [issueOrder, setIssueOrder] = useState(null);
+  const [issueReason, setIssueReason] = useState('');
   const [showSuggestion, setShowSuggestion] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const bottomRef = useRef(null);
@@ -52,6 +55,17 @@ export default function ChatWidget() {
       .then(res => res.json())
       .then(data => setAdminId(data.adminId))
       .catch(console.error);
+  }, []);
+
+  // Lắng nghe event từ trang Orders
+  useEffect(() => {
+    const handler = (e) => {
+      setIssueOrder(e.detail);
+      setIssueReason('');
+      setOpen(true);
+    };
+    window.addEventListener('open-chat-issue', handler);
+    return () => window.removeEventListener('open-chat-issue', handler);
   }, []);
 
   // Fetch đơn hàng Pending gần nhất, không hiện luôn
@@ -127,10 +141,7 @@ export default function ChatWidget() {
         status: detail.status,
         totalAmount: detail.totalAmount,
         items: (detail.items || []).map(item => ({
-          name: item.productName,
-          imageUrl: item.productImageUrl,
-          price: item.unitPrice,
-          quantity: item.quantity
+          name: item.productName, imageUrl: item.productImageUrl, price: item.unitPrice, quantity: item.quantity, size: item.variantSize, color: item.variantColor
         }))
       });
       await chatService.sendMessage(adminId, 'Toi muon hoi ve don hang ' + detail.orderCode, 'card', meta);
@@ -191,6 +202,34 @@ export default function ChatWidget() {
               <div style={{ display: 'flex', gap: 6 }}>
                 <button onClick={() => { setShowSuggestion(false); setDismissed(true); }} style={{ background: '#eee', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Bo qua</button>
                 <button onClick={sendOrderCard} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Gui</button>
+              </div>
+            </div>
+          )}
+          {issueOrder && (
+            <div style={{ margin: '0 12px 6px', background: '#fff7f0', border: '1px solid #f0a500', borderRadius: 10, padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, color: '#e67e22', fontWeight: 600, marginBottom: 4 }}>Van de voi don hang</div>
+              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>{issueOrder.orderCode}</div>
+              <select value={issueReason} onChange={e => setIssueReason(e.target.value)} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8 }}>
+                <option value="">-- Chon ly do --</option>
+                <option value="Sai size">Sai size</option>
+                <option value="Hang bi hong">Hang bi hong</option>
+                <option value="Thieu san pham">Thieu san pham</option>
+                <option value="Khac">Khac</option>
+              </select>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={() => setIssueOrder(null)} style={{ flex: 1, background: '#eee', border: 'none', borderRadius: 8, padding: '6px', fontSize: 11, cursor: 'pointer' }}>Huy</button>
+                <button disabled={!issueReason} onClick={async () => {
+                  if (!issueReason || !adminId) return;
+                  try {
+                    const t = token || localStorage.getItem('token');
+                    const res = await fetch('http://localhost:5000/api/orders/' + issueOrder.orderId, { headers: { Authorization: 'Bearer ' + t } });
+                    const detail = await res.json();
+                    const meta = JSON.stringify({ type: 'order', orderCode: detail.orderCode, status: detail.status, issueReason, totalAmount: detail.totalAmount, items: (detail.items||[]).map(item => ({ name: item.productName, imageUrl: item.productImageUrl, price: item.unitPrice, quantity: item.quantity, size: item.variantSize, color: item.variantColor })) });
+                    await chatService.sendMessage(adminId, '[Van de: ' + issueReason + '] Don hang ' + detail.orderCode, 'card', meta);
+                    setIssueOrder(null);
+                    setIssueReason('');
+                  } catch(e) { console.error(e); }
+                }} style={{ flex: 1, background: issueReason ? '#e67e22' : '#ccc', color: '#fff', border: 'none', borderRadius: 8, padding: '6px', fontSize: 11, cursor: issueReason ? 'pointer' : 'not-allowed' }}>Gui</button>
               </div>
             </div>
           )}

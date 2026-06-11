@@ -13,6 +13,8 @@ namespace Application.Features.Orders.DTOs
     string? ProductImageUrl,
     decimal UnitPrice,
     int Quantity,
-    decimal TotalPrice
+    decimal TotalPrice,
+    string? VariantSize,
+    string? VariantColor
 );
 }
