@@ -243,7 +243,6 @@ export default function ProductDetail() {
                 <span style={{ color: "#e53935", fontSize: 13, marginLeft: 8 }}>Tiết kiệm {fmt(originalPrice - displayPrice)}₫</span>
               </div>
             )}
-            </p>
 
             {product.description && (
               <p style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 24 }}>{product.description}</p>

@@ -9,7 +9,7 @@ function CardMessage({ metadata }) {
     if (data.type === "order") {
       return (
         <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 10, padding: 10, minWidth: 200 }}>
-          <div style={{ fontSize: 11, color: "#999", marginBottom: 6 }}>Don hang</div>
+          <div style={{ fontSize: 11, color: "#999", marginBottom: 6 }}>Đơn hàng</div>
           <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{data.orderCode}</div>
           {data.items?.slice(0, 2).map((item, idx) => (
             <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
@@ -17,8 +17,8 @@ function CardMessage({ metadata }) {
               <div><div style={{ fontSize: 12, fontWeight: 500 }}>{item.name}</div><div style={{ fontSize: 11, color: "#888" }}>{item.price?.toLocaleString("vi-VN")}d x{item.quantity}{item.size ? " | " + item.size : ""}{item.color ? " | " + item.color : ""}</div></div>
             </div>
           ))}
-          <div style={{ fontSize: 12, color: "#888", marginTop: 6 }}>Trang thai: {data.status}</div>
-          {data.issueReason && <div style={{ fontSize: 11, color: "#e67e22", fontWeight: 600, marginTop: 2 }}>Van de: {data.issueReason}</div>}
+          <div style={{ fontSize: 12, color: "#888", marginTop: 6 }}>Trạng thái: {data.status}</div>
+          {data.issueReason && <div style={{ fontSize: 11, color: "#e67e22", fontWeight: 600, marginTop: 2 }}>Vấn đề: {data.issueReason}</div>}
         </div>
       );
     }
@@ -172,12 +172,12 @@ export default function ChatWidget() {
       {open && (
         <div style={{ width: 320, height: 420, background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column', marginBottom: 12, overflow: 'hidden' }}>
           <div style={{ background: '#111', color: '#fff', padding: '12px 16px', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>Chat voi shop</span>
+            <span>Chat với shop</span>
             <span style={{ cursor: 'pointer' }} onClick={() => { setOpen(false); setDismissed(false); setShowSuggestion(false); }}>X</span>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {messages.length === 0 && (
-              <div style={{ color: '#999', textAlign: 'center', marginTop: 40 }}>Xin chao! Shop co the giup gi cho ban?</div>
+              <div style={{ color: '#999', textAlign: 'center', marginTop: 40 }}>Xin chào! Shop có thể giúp gì cho bạn?</div>
             )}
             {messages.map((msg, i) => {
               const isMe = msg.senderId?.toString() === myId;
@@ -196,25 +196,25 @@ export default function ChatWidget() {
           {showSuggestion && pendingOrder && (
             <div style={{ margin: '0 12px 6px', background: '#f8f8f8', border: '1px solid #e0e0e0', borderRadius: 10, padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
               <div>
-                <div style={{ fontSize: 11, color: '#999' }}>Don hang dang cho xu ly</div>
+                <div style={{ fontSize: 11, color: '#999' }}>Đơn hàng đang chờ xử lý</div>
                 <div style={{ fontWeight: 600, fontSize: 12 }}>{pendingOrder.orderCode}</div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => { setShowSuggestion(false); setDismissed(true); }} style={{ background: '#eee', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Bo qua</button>
+                <button onClick={() => { setShowSuggestion(false); setDismissed(true); }} style={{ background: '#eee', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Bỏ qua</button>
                 <button onClick={sendOrderCard} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 12, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>Gui</button>
               </div>
             </div>
           )}
           {issueOrder && (
             <div style={{ margin: '0 12px 6px', background: '#fff7f0', border: '1px solid #f0a500', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, color: '#e67e22', fontWeight: 600, marginBottom: 4 }}>Van de voi don hang</div>
+              <div style={{ fontSize: 11, color: '#e67e22', fontWeight: 600, marginBottom: 4 }}>Vấn đề với đơn hàng</div>
               <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>{issueOrder.orderCode}</div>
               <select value={issueReason} onChange={e => setIssueReason(e.target.value)} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8 }}>
-                <option value="">-- Chon ly do --</option>
+                <option value="">-- Chọn lý do --</option>
                 <option value="Sai size">Sai size</option>
-                <option value="Hang bi hong">Hang bi hong</option>
-                <option value="Thieu san pham">Thieu san pham</option>
-                <option value="Khac">Khac</option>
+                <option value="Hàng bị hỏng">Hàng bị hỏng</option>
+                <option value="Thiếu sản phẩm">Thiếu sản phẩm</option>
+                <option value="Khác">Khác</option>
               </select>
               <div style={{ display: 'flex', gap: 6 }}>
                 <button onClick={() => setIssueOrder(null)} style={{ flex: 1, background: '#eee', border: 'none', borderRadius: 8, padding: '6px', fontSize: 11, cursor: 'pointer' }}>Huy</button>
@@ -225,7 +225,7 @@ export default function ChatWidget() {
                     const res = await fetch('http://localhost:5000/api/orders/' + issueOrder.orderId, { headers: { Authorization: 'Bearer ' + t } });
                     const detail = await res.json();
                     const meta = JSON.stringify({ type: 'order', orderCode: detail.orderCode, status: detail.status, issueReason, totalAmount: detail.totalAmount, items: (detail.items||[]).map(item => ({ name: item.productName, imageUrl: item.productImageUrl, price: item.unitPrice, quantity: item.quantity, size: item.variantSize, color: item.variantColor })) });
-                    await chatService.sendMessage(adminId, '[Van de: ' + issueReason + '] Don hang ' + detail.orderCode, 'card', meta);
+                    await chatService.sendMessage(adminId, '[Vấn đề: ' + issueReason + '] Đơn hàng ' + detail.orderCode, 'card', meta);
                     setIssueOrder(null);
                     setIssueReason('');
                   } catch(e) { console.error(e); }
@@ -239,7 +239,7 @@ export default function ChatWidget() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={(e) => e.key === 'Enter' && send()}
-              placeholder="Nhan tin nhan..."
+              placeholder="Nhắn tin nhắn..."
               style={{ flex: 1, border: '1px solid #ddd', borderRadius: 20, padding: '6px 12px', fontSize: 13, outline: 'none' }}
             />
             <button onClick={send} disabled={!input.trim()} style={{ background: '#111', color: '#fff', border: 'none', borderRadius: 20, padding: '6px 14px', cursor: 'pointer' }}>

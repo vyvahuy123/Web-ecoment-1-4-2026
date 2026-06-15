@@ -175,6 +175,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
                 new[] { new FluentValidation.Results.ValidationFailure("", result.Error!) });
 
         var user = result.Value;
+        user.AssignRole("Customer");
         _uow.Users.Add(user);
 
         // Tạo token ngay sau khi đăng ký

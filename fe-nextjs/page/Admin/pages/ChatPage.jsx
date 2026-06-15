@@ -6,7 +6,7 @@ import "../styles/chat.css";
 const QUICK_REPLIES = [
   "Cam on ban da lien he! ",
   "Shop se kiem tra va phan hoi som nhat co the.",
-  "Don hang cua ban dang duoc xu ly.",
+  "Đơn hàng của bạn đang được xử lý.",
   "Ban vui long cho shop biet ma don hang nhe!",
   "Shop xin loi vi su bat tien nay ",
 ];
@@ -179,7 +179,7 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="chat-window__actions">
-              <button className="btn btn-sm btn-outline">Xem don hang</button>
+              <button className="btn btn-sm btn-outline">Xem đơn hàng</button>
               <button className="btn btn-sm btn-outline">Ho so</button>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function ChatPage() {
                         const d = JSON.parse(msg.metadata);
                         return (
                           <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '14px 16px', minWidth: 260, maxWidth: 300, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <div style={{ fontSize: 10, color: '#aaa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Don hang</div>
+                            <div style={{ fontSize: 10, color: '#aaa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Đơn hàng</div>
                             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10, color: '#111' }}>{d.orderCode}</div>
                             {d.items?.slice(0,2).map((item, i) => (
                               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>

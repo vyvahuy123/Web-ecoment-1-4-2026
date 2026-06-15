@@ -72,7 +72,7 @@ export function ReviewsPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Khach hang</th>
+                <th>Khách hang</th>
                 <th>San pham</th>
                 <th>Sao</th>
                 <th>Noi dung</th>

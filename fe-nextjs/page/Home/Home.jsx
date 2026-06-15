@@ -233,7 +233,7 @@ function Categories() {
     <section id="categories" className="ec-section" ref={ref}>
       <div className="container">
         <div className="ec-section-head fade-up">
-          <h2>Danh muc</h2>
+          <h2>Danh mục</h2>
           <a href="/san-pham" onClick={(e) => { e.preventDefault(); router.push("/san-pham"); }}>Xem tat ca</a>
         </div>
         <div className="ec-cats">
