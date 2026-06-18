@@ -11,6 +11,8 @@ public interface IProductRepository
     void Add(Product product);
     void Update(Product product);
     void Remove(Product product);
+    Task<IEnumerable<(Product Product, int TotalSold)>> GetTopSellingAsync(
+    int limit = 8, CancellationToken ct = default);
 }
 
 public interface IRefreshTokenRepository
@@ -23,11 +25,3 @@ public interface IRefreshTokenRepository
     Task DeleteExpiredAsync(CancellationToken ct = default);
 }
 
-/// <summary>Mở rộng IUnitOfWork để thêm Products + RefreshTokens</summary>
-public interface IUnitOfWork
-{
-    IUserRepository Users { get; }
-    IProductRepository Products { get; }
-    IRefreshTokenRepository RefreshTokens { get; }
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
-}

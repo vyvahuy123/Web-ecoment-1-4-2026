@@ -5,17 +5,24 @@ using Domain.ValueObjects;
 namespace Domain.Entities;
 
 /// <summary>
-/// Product Entity - ví dụ domain thứ hai song song với User
+/// Product Entity
 /// </summary>
 public sealed class Product : AuditableEntity
 {
     public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
     public decimal Price { get; private set; }
+    public decimal? SalePrice { get; private set; }
     public int Stock { get; private set; }
     public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; }
     public Guid CategoryId { get; private set; }
+    public Category Category { get; private set; } = null!;
+
+    private readonly List<ProductImage> _images = new();
+    private readonly List<ProductVariant> _variants = new();
+    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
+    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
 
     private Product() { }
 
@@ -33,29 +40,37 @@ public sealed class Product : AuditableEntity
 
         var product = new Product
         {
-            Name        = name.Trim(),
+            Name = name.Trim(),
             Description = description?.Trim(),
-            Price       = price,
-            Stock       = stock,
-            CategoryId  = categoryId,
-            IsActive    = true
+            Price = price,
+            Stock = stock,
+            CategoryId = categoryId,
+            IsActive = true
         };
 
         product.AddDomainEvent(new ProductCreatedEvent(product.Id, product.Name));
         return Result.Success(product);
     }
 
-    public Result Update(string name, decimal price, string? description, string? imageUrl)
+    public Result Update(string name, decimal price, string? description, string? imageUrl, Guid? categoryId, decimal? salePrice = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             return Result.Failure("Tên sản phẩm không được để trống.");
         if (price < 0)
             return Result.Failure("Giá không được âm.");
+        if (categoryId.HasValue && categoryId.Value == Guid.Empty)
+            return Result.Failure("Category không hợp lệ.");
 
-        Name        = name.Trim();
-        Price       = price;
+        Name = name.Trim();
+        Price = price;
+        SalePrice = (salePrice.HasValue && salePrice.Value > 0 && salePrice.Value < price) ? salePrice : null;
+        SalePrice = (salePrice.HasValue && salePrice.Value > 0 && salePrice.Value < price) ? salePrice : null;
         Description = description?.Trim();
-        ImageUrl    = imageUrl;
+        ImageUrl = imageUrl;
+
+        if (categoryId.HasValue)
+            CategoryId = categoryId.Value;
+
         MarkAsUpdated();
         return Result.Success();
     }
@@ -69,5 +84,24 @@ public sealed class Product : AuditableEntity
         return Result.Success();
     }
 
-    public void Deactivate() { IsActive = false; MarkAsUpdated(); }
+    /// <summary>
+    /// Soft-delete: set IsActive = false VÀ IsDeleted = true
+    /// để global query filter (p => !p.IsDeleted) lọc sản phẩm ra khỏi mọi query.
+    /// </summary>
+    public void Delete()
+    {
+        IsActive = false;
+        MarkAsDeleted(); // BaseEntity.MarkAsDeleted() → set IsDeleted = true
+        MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Chỉ ẩn sản phẩm (không hiển thị ở storefront) nhưng vẫn truy vấn được.
+    /// Giữ lại nếu cần dùng riêng; luồng xóa dùng Delete().
+    /// </summary>
+    public void Deactivate()
+    {
+        IsActive = false;
+        MarkAsUpdated();
+    }
 }

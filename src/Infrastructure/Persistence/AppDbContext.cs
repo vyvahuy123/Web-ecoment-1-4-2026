@@ -2,6 +2,7 @@ using Domain.Common;
 using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Persistence;
 
@@ -31,12 +32,44 @@ public class AppDbContext : DbContext
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<WishList> WishLists => Set<WishList>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<News> News => Set<News>();
+    public DbSet<Banner> Banners => Set<Banner>();
+    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
+    public DbSet<Collection> Collections => Set<Collection>();
+    public DbSet<CollectionProduct> CollectionProducts => Set<CollectionProduct>();
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        // Tự động apply tất cả IEntityTypeConfiguration trong assembly này
+        // Tự động apply tất cả configuration
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
         base.OnModelCreating(builder);
+
+        builder.Entity<ChatMessage>(b => {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Content).HasMaxLength(2000).IsRequired();
+            b.HasIndex(x => new { x.SenderId, x.ReceiverId, x.SentAt });
+            b.Property(x => x.MessageType).HasMaxLength(20).HasDefaultValue("text");
+            b.Property(x => x.Metadata).HasMaxLength(4000).IsRequired(false);
+        });
+
+        // SOFT DELETE GLOBAL FILTER
+        builder.Entity<Product>()
+            .HasQueryFilter(p => !p.IsDeleted);
+
+        builder.Entity<CartItem>().HasQueryFilter(i => !i.IsDeleted);
+        builder.Entity<ProductImage>().HasQueryFilter(i => !i.IsDeleted);
+        builder.Entity<ProductVariant>().HasQueryFilter(v => !v.IsDeleted);
+        builder.Entity<OrderItem>().HasQueryFilter(i => !i.IsDeleted);
+        builder.Entity<Payment>().HasQueryFilter(p => !p.IsDeleted);
+        builder.Entity<VoucherUsage>().HasQueryFilter(v => !v.IsDeleted);
+        builder.Entity<WishList>().HasQueryFilter(w => !w.IsDeleted);
+        builder.Entity<Notification>().HasQueryFilter(n => !n.IsDeleted);
+        builder.Entity<Cart>().HasQueryFilter(c => !c.IsDeleted);
+        builder.Entity<Order>().HasQueryFilter(o => !o.IsDeleted);
+        builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
     }
 
     // Override SaveChangesAsync để dispatch domain events sau khi save
@@ -59,6 +92,9 @@ public class AppDbContext : DbContext
         entities.ForEach(e => e.ClearDomainEvents());
 
         foreach (var evt in events)
-            await _mediator.Publish(evt, ct);
+        {
+            if (evt is INotification notification)  // ← chỉ publish nếu implement INotification
+                await _mediator.Publish(notification, ct);
+        }
     }
 }

@@ -132,6 +132,23 @@ public class AuthController : ControllerBase
             return forwarded.ToString().Split(',')[0].Trim();
         return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest req, CancellationToken ct)
+    {
+        await _mediator.Send(new ForgotPasswordCommand(req.Email), ct);
+        return Ok(new { message = "Neu email ton tai, ma xac nhan se duoc gui." });
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest req, CancellationToken ct)
+    {
+        await _mediator.Send(new ResetPasswordCommand(req.Email, req.Token, req.NewPassword), ct);
+        return Ok(new { message = "Mat khau da duoc doi thanh cong." });
+    }
 }
 
+public record ForgotPasswordRequest(string Email);
+public record ResetPasswordRequest(string Email, string Token, string NewPassword);
 public record RefreshAccessTokenRequest(string AccessToken);

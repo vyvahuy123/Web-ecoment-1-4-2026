@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap");
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --gray-1: #f5f5f5;
+  --gray-2: #e8e8e8;
+  --gray-3: #b0b0b0;
+  --gray-4: #6b6b6b;
+  --radius: 4px;
+}
+
+body { font-family: "DM Sans", sans-serif; color: var(--black); background: var(--white); }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+button { cursor: pointer; font-family: inherit; }
+
+.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+.ec-section { padding: 80px 0; }
+.ec-section-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+.ec-section-head h2 { font-family: "Cormorant Garamond", serif; font-size: clamp(28px, 4vw, 42px); font-weight: 400; }
+
+.ec-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+.ec-contact-info { display: flex; flex-direction: column; gap: 24px; }
+.ec-contact-item { display: flex; gap: 16px; align-items: flex-start; padding: 20px; border: 1px solid var(--gray-2); border-radius: var(--radius); }
+.ec-contact-icon { width: 44px; height: 44px; background: var(--black); color: var(--white); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.ec-contact-item h4 { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+.ec-contact-item p { font-size: 13px; color: var(--gray-4); line-height: 1.7; }
+.ec-contact-item a { color: var(--gray-4); transition: color 0.2s; }
+.ec-contact-item a:hover { color: var(--black); }
+.ec-contact-right { display: flex; flex-direction: column; gap: 24px; }
+.ec-contact-form { background: var(--gray-1); padding: 32px; border-radius: var(--radius); }
+.ec-contact-form h3 { font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 400; margin-bottom: 20px; }
+.ec-cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ec-cf-group { margin-bottom: 14px; }
+.ec-cf-group label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-4); margin-bottom: 6px; }
+.ec-cf-group input, .ec-cf-group select, .ec-cf-group textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--gray-2); border-radius: var(--radius); font-size: 13px; font-family: inherit; background: var(--white); outline: none; transition: border 0.2s; color: var(--black); }
+.ec-cf-group input:focus, .ec-cf-group select:focus, .ec-cf-group textarea:focus { border-color: var(--black); }
+.ec-cf-group textarea { resize: vertical; min-height: 90px; }
+.ec-cf-submit { width: 100%; padding: 12px; background: var(--black); color: var(--white); border: none; border-radius: var(--radius); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; transition: background 0.2s; cursor: pointer; }
+.ec-cf-submit:hover { background: var(--gray-4); }
+.ec-cf-alert { padding: 10px 14px; background: var(--black); color: var(--white); border-radius: var(--radius); font-size: 13px; margin-bottom: 14px; }
+.ec-map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--gray-2); }
+.ec-map iframe { width: 100%; height: 240px; border: 0; display: block; }
+
+.fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 768px) {
+  .ec-contact-grid { grid-template-columns: 1fr; }
+  .ec-cf-row { grid-template-columns: 1fr; }
+}

@@ -1,26 +1,36 @@
 ﻿using Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public sealed class Category : BaseEntity
 {
-    public sealed class Category : BaseEntity
+    public string Name { get; private set; } = default!;
+    public string? Description { get; private set; }
+
+    private Category() { }
+
+    // ── Create ────────────────────────────────────────
+    public static Result<Category> Create(string name, string? description = null)
     {
-        public string Name { get; private set; } = default!;
-        public string? Description { get; private set; }
+        if (string.IsNullOrWhiteSpace(name))
+            return Result.Failure<Category>("Tên danh mục không được để trống.");
 
-        private Category() { }
-
-        public static Result<Category> Create(string name, string? description = null)
+        return Result.Success(new Category
         {
-            if (string.IsNullOrWhiteSpace(name))
-                return Result.Failure<Category>("Tên danh mục không được để trống.");
+            Name = name.Trim(),
+            Description = description?.Trim()
+        });
+    }
 
-            return Result.Success(new Category { Name = name.Trim(), Description = description });
-        }
+    // ── Update ───────────────────────────────────────
+    public Result Update(string name, string? description = null)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return Result.Failure("Tên danh mục không được để trống.");
+
+        Name = name.Trim();
+        Description = description?.Trim();
+
+        return Result.Success();
     }
 }
-

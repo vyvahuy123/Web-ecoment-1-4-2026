@@ -71,7 +71,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         // 4. Tính expiry cho refresh token
         var refreshDays = _config.GetValue<int>("Jwt:RefreshTokenExpiryDays", 7);
 
-        // 5. Lưu Refresh Token vào DB
+        // 5. Revoke tất cả refresh token cũ → single session
+        var oldTokens = await _uow.RefreshTokens.GetActiveByUserIdAsync(user.Id, ct);
+        foreach (var old in oldTokens)
+            old.Revoke(request.IpAddress, "new-login");
+
+        // 6. Lưu Refresh Token vào DB
         var rt = RefreshToken.Create(
             user.Id, refreshToken,
             DateTime.UtcNow.AddDays(refreshDays),
@@ -79,7 +84,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
 
         _uow.RefreshTokens.Add(rt);
 
-        // 6. Ghi lại thời gian login
+        // 7. Ghi lại thời gian login
         user.RecordLogin();
         _uow.Users.Update(user);
 

@@ -35,7 +35,8 @@ public class Order : BaseEntity
     public PaymentStatus PaymentStatus { get; private set; } = PaymentStatus.Unpaid;
 
     public string? Note { get; private set; }               // Ghi chú của khách
-    public string? CancelReason { get; private set; }       // Lý do huỷ
+    public string? CancelReason { get; private set; }       // Lý do huỷ (admin duyệt)
+    public string? CancellationReason { get; private set; } // Lý do user yêu cầu huỷ
     public DateTime? PaidAt { get; private set; }
     public DateTime? ShippedAt { get; private set; }
     public DateTime? DeliveredAt { get; private set; }
@@ -97,6 +98,15 @@ public class Order : BaseEntity
     public void Deliver() { Status = OrderStatus.Delivered; DeliveredAt = DateTime.UtcNow; UpdatedAt = DateTime.UtcNow; }
     public void MarkPaid() { PaymentStatus = PaymentStatus.Paid; PaidAt = DateTime.UtcNow; UpdatedAt = DateTime.UtcNow; }
 
+    /// <summary>User yêu cầu huỷ — chờ admin duyệt</summary>
+    public void RequestCancellation(string reason)
+    {
+        Status = OrderStatus.PendingCancellation;
+        CancellationReason = reason;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Admin duyệt huỷ — mới thực sự cancel</summary>
     public void Cancel(string reason)
     {
         Status = OrderStatus.Cancelled;
@@ -115,10 +125,13 @@ public class OrderItem : BaseEntity
 {
     public Guid OrderId { get; private set; }
     public Guid ProductId { get; private set; }
+    public Guid? VariantId { get; private set; }
 
     // Snapshot thông tin sản phẩm lúc đặt hàng
     public string ProductName { get; private set; } = string.Empty;
     public string? ProductImageUrl { get; private set; }
+    public string? VariantColor { get; private set; }
+    public string? VariantSize { get; private set; }
     public decimal UnitPrice { get; private set; }          // Giá tại thời điểm đặt
     public int Quantity { get; private set; }
     public decimal TotalPrice { get; private set; }         // UnitPrice * Quantity
@@ -126,19 +139,23 @@ public class OrderItem : BaseEntity
     // Navigation
     public Order Order { get; private set; } = null!;
     public Product Product { get; private set; } = null!;
+    public ProductVariant? Variant { get; private set; }
 
     private OrderItem() { }
 
-    public static OrderItem Create(Guid orderId, Product product, int quantity)
+    public static OrderItem Create(Guid orderId, Product product, int quantity, decimal? priceOverride = null, ProductVariant? variant = null)
         => new OrderItem
         {
             Id = Guid.NewGuid(),
             OrderId = orderId,
             ProductId = product.Id,
+            VariantId = variant?.Id,
             ProductName = product.Name,
-            ProductImageUrl = product.ImageUrl,
-            UnitPrice = product.Price,
+            ProductImageUrl = variant?.ImageUrl ?? product.ImageUrl,
+            VariantColor = variant?.Color,
+            VariantSize = variant?.Size,
+            UnitPrice = variant?.Price ?? product.Price,
             Quantity = quantity,
-            TotalPrice = product.Price * quantity
+            TotalPrice = (variant?.Price ?? product.Price) * quantity
         };
 }

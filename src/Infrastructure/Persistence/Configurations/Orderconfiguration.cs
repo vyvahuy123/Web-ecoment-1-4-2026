@@ -88,9 +88,13 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.Property(i => i.OrderId).HasColumnName("order_id");
         builder.Property(i => i.ProductId).HasColumnName("product_id");
+        builder.Property(i => i.VariantId).HasColumnName("variant_id");
+        builder.Property(i => i.VariantColor).HasColumnName("variant_color").HasMaxLength(50);
+        builder.Property(i => i.VariantSize).HasColumnName("variant_size").HasMaxLength(20);
         builder.Property(i => i.ProductName).HasColumnName("product_name").HasMaxLength(200).IsRequired();
         builder.Property(i => i.ProductImageUrl).HasColumnName("product_image_url").HasMaxLength(500);
         builder.Property(i => i.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(18,2)");
+        builder.Property(i => i.TotalPrice).HasColumnName("total_price").HasColumnType("decimal(18,2)");
         builder.Property(i => i.Quantity).HasColumnName("quantity");
         builder.Property(i => i.TotalPrice).HasColumnName("total_price").HasColumnType("decimal(18,2)");
 
@@ -100,6 +104,11 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.HasOne(i => i.Product)
             .WithMany()
             .HasForeignKey(i => i.ProductId)
-            .OnDelete(DeleteBehavior.Restrict);   // Không xoá product khi còn order
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.Variant)
+            .WithMany()
+            .HasForeignKey(i => i.VariantId)
+            .OnDelete(DeleteBehavior.SetNull);   // Không xoá product khi còn order
     }
 }

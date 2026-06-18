@@ -1,0 +1,31 @@
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --gray-1: #f5f5f5;
+  --gray-2: #e8e8e8;
+  --gray-3: #b0b0b0;
+  --gray-4: #6b6b6b;
+  --radius: 4px;
+}
+
+.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+.ec-footer { background: var(--black); color: rgba(255,255,255,.7); padding: 64px 0 0; }
+.ec-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.ec-footer h4 { font-family: "Cormorant Garamond", serif; font-size: 16px; color: var(--white); margin-bottom: 18px; font-weight: 400; letter-spacing: 0.06em; }
+.ec-footer p { font-size: 13px; line-height: 1.8; }
+.ec-footer ul { display: flex; flex-direction: column; gap: 10px; list-style: none; }
+.ec-footer ul a { font-size: 13px; color: rgba(255,255,255,.6); transition: color 0.2s; text-decoration: none; }
+.ec-footer ul a:hover { color: var(--white); }
+.ec-footer-logo { font-family: "Cormorant Garamond", serif; font-size: 24px; font-weight: 600; color: var(--white); margin-bottom: 14px; display: block; letter-spacing: 0.08em; text-transform: uppercase; }
+.ec-footer-social { display: flex; gap: 10px; margin-top: 20px; }
+.ec-footer-social a { width: 34px; height: 34px; border: 1px solid rgba(255,255,255,.15); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 12px; color: rgba(255,255,255,.6); transition: .2s; text-decoration: none; }
+.ec-footer-social a:hover { background: rgba(255,255,255,.1); color: var(--white); }
+.ec-footer-bottom { border-top: 1px solid rgba(255,255,255,.08); padding: 20px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.ec-footer-bottom p { font-size: 12px; }
+.ec-footer-bottom-links { display: flex; gap: 20px; }
+.ec-footer-bottom-links a { font-size: 12px; color: rgba(255,255,255,.4); text-decoration: none; }
+.ec-footer-bottom-links a:hover { color: var(--white); }
+
+@media (max-width: 768px) { .ec-footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .ec-footer-grid { grid-template-columns: 1fr; } }

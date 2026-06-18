@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Application.Common;
 using Application.Common.Exceptions;
 using Application.Features.Products.DTOs;
@@ -17,7 +18,8 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
     {
         var p = await _uow.Products.GetByIdAsync(req.Id, ct)
             ?? throw new NotFoundException(nameof(Domain.Entities.Product), req.Id);
-        return ProductMapper.ToDto(p);
+        var cols = await _uow.Collections.GetCollectionsByProductIdAsync(p.Id, ct);
+        return ProductMapper.ToDto(p, cols);
     }
 }
 
@@ -37,7 +39,13 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, PagedRe
     {
         var (items, total) = await _uow.Products.GetPagedAsync(
             req.Page, req.PageSize, req.Search, req.CategoryId, ct);
-        return new PagedResult<ProductSummaryDto>(
-            items.Select(ProductMapper.ToSummary), total, req.Page, req.PageSize);
+
+        var summaries = new List<ProductSummaryDto>();
+        foreach (var p in items)
+        {
+            var cols = await _uow.Collections.GetCollectionsByProductIdAsync(p.Id, ct);
+            summaries.Add(ProductMapper.ToSummary(p, cols));
+        }
+        return new PagedResult<ProductSummaryDto>(summaries, total, req.Page, req.PageSize);
     }
 }
